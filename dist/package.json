@@ -1,0 +1,20 @@
+{
+  "name": "cesium-annotator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc && rsync package.json ./dist/package.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "cesium": "^1.113.0",
+    "nanoid": "^5.0.4"
+  }
+}
