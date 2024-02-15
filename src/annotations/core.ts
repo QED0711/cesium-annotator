@@ -9,6 +9,7 @@ type CoordinateInit = {
 }
 
 type AnnotationBaseInit = {
+    registry: Registry,
     viewerInterface: ViewerInterface,
     id?: string,
     isStatic?: boolean,
@@ -93,8 +94,10 @@ export class Annotation {
     entity: Cesium.Entity | null;
     handles: Cesium.Entity[];
     isActive: boolean;
+    private registry: Registry;
     
     constructor(init: AnnotationBaseInit){
+        this.registry = init.registry;
         this.viewerInterface = init.viewerInterface;
         this.id = init.id ?? nanoid();
         this.points = [];
@@ -241,10 +244,10 @@ export class Registry {
         let annotation;
         switch(subType) {
             case AnnotationType.BASE:
-                annotation = new Annotation({viewerInterface: this.viewerInterface, id});
+                annotation = new Annotation({registry: this, viewerInterface: this.viewerInterface, id});
                 break;
             default:
-                annotation = new Annotation({viewerInterface: this.viewerInterface, id});
+                annotation = new Annotation({registry: this, viewerInterface: this.viewerInterface, id});
         }
         return annotation;
     }
