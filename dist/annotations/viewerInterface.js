@@ -37,13 +37,10 @@ export class ViewerInterface {
         y !== null && y !== void 0 ? y : (y = this.cursorY);
         const scene = this.viewer.scene;
         const pixelPosition = new Cesium.Cartesian2(x, y);
-        let cartesianPosition = scene.pickPosition(pixelPosition);
-        if (!cartesianPosition) {
-            const ray = this.viewer.camera.getPickRay(pixelPosition);
-            if (!ray)
-                return null;
-            cartesianPosition = scene.globe.pick(ray, scene);
-        }
+        const ray = this.viewer.camera.getPickRay(pixelPosition);
+        if (!ray)
+            return null;
+        const cartesianPosition = scene.globe.pick(ray, scene);
         if (!cartesianPosition)
             return null;
         const cartographicPosition = Cesium.Cartographic.fromCartesian(cartesianPosition);

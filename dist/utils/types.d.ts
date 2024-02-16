@@ -6,7 +6,7 @@ export type CoordinateInit = {
 };
 export type AnnotationBaseInit = {
     id?: string;
-    isStatic?: boolean;
+    static?: boolean;
 };
 export type RegistryInit = {
     id: string;

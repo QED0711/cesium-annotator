@@ -3,28 +3,38 @@ import { AnnotationType } from "../../utils/types";
 import { Annotation } from "../core";
 export default class PointAnnotation extends Annotation {
     constructor(registry, options) {
+        var _a;
         super(registry, options);
         this.annotationType = AnnotationType.POINT;
+        this.entityProperties = (_a = options.entityProperties) !== null && _a !== void 0 ? _a : {};
     }
     appendCoordinate(coordinate) {
-        this.history.push(this.points);
         this.points = [coordinate];
+        this.emit("append", { annotation: this });
     }
     draw() {
-        console.log("POINT DRAW", this.points);
-        if (!this.entity) {
-            const entity = this.viewerInterface.viewer.entities.add({
+        let entity = null;
+        if (this.isStatic) {
+            this.removeEntity();
+            const position = this.points[0].toCartesian3();
+            entity = this.viewerInterface.viewer.entities.add({
+                id: this.id,
+                position,
+                point: Object.assign({ pixelSize: 10 }, this.entityProperties)
+            });
+        }
+        else if (!this.entity) {
+            entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position: new Cesium.CallbackProperty(() => {
-                    const currentCoord = this.points[0];
-                    return Cesium.Cartesian3.fromDegrees(currentCoord.lng, currentCoord.lat); // TODO: figure out if alt should be included
+                    var _a, _b;
+                    return (_b = (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.toCartesian3) === null || _b === void 0 ? void 0 : _b.call(_a);
                 }, false),
-                point: {
-                    pixelSize: 25,
-                }
+                point: Object.assign({ pixelSize: 10 }, this.entityProperties)
             });
-            this.entity = entity;
         }
+        this.entity = entity;
+        this.emit("update", { annotation: this });
     }
 }
 //# sourceMappingURL=point.js.map
