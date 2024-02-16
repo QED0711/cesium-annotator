@@ -1,21 +1,6 @@
 import * as Cesium from 'cesium';
 import { nanoid } from 'nanoid';
-export var DistanceUnit;
-(function (DistanceUnit) {
-    DistanceUnit["METERS"] = "meters";
-    DistanceUnit["KILOMETERS"] = "kilometers";
-    DistanceUnit["FEET"] = "feet";
-    DistanceUnit["MILES"] = "miles";
-})(DistanceUnit || (DistanceUnit = {}));
-export var AnnotationType;
-(function (AnnotationType) {
-    AnnotationType["BASE"] = "base";
-    AnnotationType["POINT"] = "point";
-    AnnotationType["POLYLINE"] = "polyline";
-    AnnotationType["POLYGON"] = "polygon";
-    AnnotationType["RECTANGLE"] = "rectangle";
-    AnnotationType["RING"] = "ring";
-})(AnnotationType || (AnnotationType = {}));
+import { DistanceUnit, AnnotationType } from '../utils/types';
 /*
     POINT CLASS
 */
@@ -53,120 +38,79 @@ export class Coordinate {
     ANNOTATION BASE CLASS
 */
 export class Annotation {
-    constructor(init) {
+    constructor(registry, init) {
         var _a, _b;
-        this.viewerInterface = init.viewerInterface;
+        this.registry = registry;
+        this.viewerInterface = registry.viewerInterface;
         this.id = (_a = init.id) !== null && _a !== void 0 ? _a : nanoid();
+        this.annotationType = AnnotationType.BASE;
         this.points = [];
         this.history = [];
         this.isStatic = (_b = init.isStatic) !== null && _b !== void 0 ? _b : true;
         this.entity = null;
         this.handles = [];
         this.isActive = false;
+        this.handleFound = false;
+        this.dragDetected = false;
     }
     get current() {
         return this.points;
     }
     activate() {
         this.isActive = true;
+        this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
+        this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
+        this.viewerInterface.registerListener("pointerup", this.handlePointerUp, this);
+    }
+    deactivate() {
+        this.isActive = false;
+        this.viewerInterface.unregisterListenersByAnnotationID(this.id);
     }
     delete() {
+        this.deactivate();
         if (!!this.entity) {
             this.viewerInterface.viewer.entities.remove(this.entity);
         }
     }
-}
-/******************************************************************************
- * ***************************** VIEWER INTERFACE *****************************
- *****************************************************************************/
-export class ViewerInterface {
-    constructor(viewer) {
-        this.viewer = viewer;
-        this.canvas = viewer.canvas;
-        this.events = {};
-        this.init();
-    }
-    init() {
-        this.pointerMoveHandler = (e) => {
-            this.cursorX = e.offsetX;
-            this.cursorY = e.offsetY;
-        };
-        this.canvas.addEventListener("pointermove", this.pointerMoveHandler);
-    }
-    removeHandlers() {
-        if (!!this.pointerMoveHandler) {
-            this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
+    handlePointerDown(e) {
+        // console.log("POINTER DOWN", e, this)
+        this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
+        const handle = this.viewerInterface.queryEntityAtPixel();
+        if (handle) {
+            this.handleFound = true;
+            this.viewerInterface.lock();
         }
     }
-    addEventListener(eventName, callback) {
-        this.events[eventName] = eventName in this.events
-            ? [...this.events[eventName], callback]
-            : [callback];
+    handlePointerMove(e) {
+        // console.log("POINTER MOVE", e, this)
+        this.dragDetected = true;
     }
-    removeEventListener(eventName, callback) {
-        if (eventName in this.events) {
-            this.events[eventName] = this.events[eventName].filter(cb => cb !== callback);
+    handlePointerUp(e) {
+        // console.log("POINTER UP", e, this)
+        this.viewerInterface.unlock();
+        if (this.handleFound) {
+            this.handleFound = false;
+            // TODO: when pointer comes up on a handle should update the current points and register a history record
+            return;
+        }
+        if (this.dragDetected) {
+            this.dragDetected = false;
+            return;
+        }
+        const coordinate = this.viewerInterface.getCoordinateAtPixel();
+        if (coordinate) {
+            switch (this.annotationType) {
+                case AnnotationType.POINT:
+                    this.appendCoordinate(coordinate);
+                    break;
+                default:
+                    return;
+            }
+            this.draw();
         }
     }
-    getCoordinateAtPixel(x, y) {
-        x !== null && x !== void 0 ? x : (x = this.cursorX);
-        y !== null && y !== void 0 ? y : (y = this.cursorY);
-        const scene = this.viewer.scene;
-        const pixelPosition = new Cesium.Cartesian2(x, y);
-        let cartesianPosition = scene.pickPosition(pixelPosition);
-        if (!cartesianPosition) {
-            const ray = this.viewer.camera.getPickRay(pixelPosition);
-            if (!ray)
-                return null;
-            cartesianPosition = scene.globe.pick(ray, scene);
-        }
-        if (!cartesianPosition)
-            return null;
-        const cartographicPosition = Cesium.Cartographic.fromCartesian(cartesianPosition);
-        const lng = Cesium.Math.toDegrees(cartographicPosition.longitude);
-        const lat = Cesium.Math.toDegrees(cartographicPosition.latitude);
-        const alt = Cesium.Math.toDegrees(cartographicPosition.height);
-        return new Coordinate({ lat, lng, alt });
-    }
-    lock() {
-        this.viewer.scene.screenSpaceCameraController.enableRotate = false;
-        this.viewer.scene.screenSpaceCameraController.enableTilt = false;
-        this.viewer.scene.screenSpaceCameraController.enableTranslate = false;
-    }
-    unlock() {
-        this.viewer.scene.screenSpaceCameraController.enableRotate = true;
-        this.viewer.scene.screenSpaceCameraController.enableTilt = true;
-        this.viewer.scene.screenSpaceCameraController.enableTranslate = true;
-    }
-}
-/******************************************************************************
- * ***************************** REGISTRY *****************************
- *****************************************************************************/
-export class Registry {
-    constructor(init) {
-        this.id = init.id;
-        this.viewer = init.viewer;
-        this.annotations = [];
-        this.viewerInterface = new ViewerInterface(this.viewer);
-    }
-    getAnnotationByID(id) {
-        return this.annotations.find(annotation => annotation.id === id);
-    }
-    deleteByID(id) {
-        var _a;
-        (_a = this.annotations
-            .find(annotation => annotation.id === id)) === null || _a === void 0 ? void 0 : _a.delete();
-    }
-    add(subType, id) {
-        let annotation;
-        switch (subType) {
-            case AnnotationType.BASE:
-                annotation = new Annotation({ viewerInterface: this.viewerInterface, id });
-                break;
-            default:
-                annotation = new Annotation({ viewerInterface: this.viewerInterface, id });
-        }
-        return annotation;
-    }
+    // SUBCLASS IMPLEMENTATIONS
+    appendCoordinate(coordinate) { }
+    draw() { }
 }
 //# sourceMappingURL=core.js.map
