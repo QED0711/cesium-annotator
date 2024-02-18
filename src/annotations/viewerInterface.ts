@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
 import { Annotation, Coordinate } from './core';
+import { AnnotationEntity } from '../utils/types';
 
 /******************************************************************************
  * ***************************** VIEWER INTERFACE ***************************** 
@@ -70,7 +71,7 @@ export class ViewerInterface {
         return new Coordinate({ lat, lng, alt });
     }
 
-    queryEntityAtPixel(x?: number, y?: number): Cesium.Entity | null {
+    queryEntityAtPixel(x?: number, y?: number): AnnotationEntity | null {
         x ??= this.cursorX;
         y ??= this.cursorY;
         const scene = this.viewer.scene;

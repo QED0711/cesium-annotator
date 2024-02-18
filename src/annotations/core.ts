@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import { nanoid } from 'nanoid';
-import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType } from '../utils/types';
+import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity } from '../utils/types';
 import { Registry } from './registry';
 import { ViewerInterface } from './viewerInterface';
 
@@ -21,6 +21,14 @@ export class Coordinate {
 
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate {
         return new this({ lng, lat, alt });
+    }
+
+    static cloneCoordinateArray(coordinates: Coordinate[]): Coordinate[] {
+        return coordinates.map(c => c.clone());
+    }
+
+    clone(): Coordinate {
+        return new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
     }
 
     toCartesian3(): Cesium.Cartesian3 {
@@ -60,18 +68,21 @@ export class Annotation {
 
     id: string;
     points: Coordinate[];
-    
+
     isStatic: boolean;
-    entity: Cesium.Entity | null;
-    handles: Cesium.Entity[];
+    entity: AnnotationEntity | null;
+    handles: AnnotationEntity[];
     isActive: boolean;
-    
+
     protected undoHistory: Coordinate[][];
     protected redoHistory: Coordinate[][];
-    protected handleFound: boolean;
-    protected dragDetected: boolean;
+    protected handleIdxFound: number | null;
 
-    protected events: {[eventName: string]: ((payload: {[key: string]: any}) => void)[]};
+    protected pointerDownDetected: boolean;
+    protected dragDetected: boolean;
+    protected preDragHistoricalRecord: Coordinate[] | null;
+
+    protected events: { [eventName: string]: ((payload: { [key: string]: any }) => void)[] };
 
     constructor(registry: Registry, init: AnnotationBaseInit) {
 
@@ -88,8 +99,10 @@ export class Annotation {
         this.handles = [];
 
         this.isActive = false;
-        this.handleFound = false
+        this.handleIdxFound = null;
+        this.pointerDownDetected = false
         this.dragDetected = false
+        this.preDragHistoricalRecord = null
 
         this.events = {};
     }
@@ -98,17 +111,17 @@ export class Annotation {
         return this.points;
     }
 
-    on(eventName: string, callback: (payload: {[key: string]: any}) => void) {
-        if(eventName in this.events) {
+    on(eventName: string, callback: (payload: { [key: string]: any }) => void) {
+        if (eventName in this.events) {
             this.events.eventName.push(callback);
         } else {
             this.events[eventName] = [callback];
         }
     }
 
-    emit(eventName: string, payload: {[key: string]: any}) {
-        if(!(eventName in this.events)) return;
-        for(let handler of this.events[eventName]) {
+    emit(eventName: string, payload: { [key: string]: any }) {
+        if (!(eventName in this.events)) return;
+        for (let handler of this.events[eventName]) {
             handler(payload);
         }
     }
@@ -119,50 +132,66 @@ export class Annotation {
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
         this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
         this.viewerInterface.registerListener("pointerup", this.handlePointerUp, this);
-    
-        this.emit("activate", {annotation: this});
+
+        this.emit("activate", { annotation: this });
     }
 
     deactivate() {
         this.isActive = false;
         this.viewerInterface.unregisterListenersByAnnotationID(this.id);
-        this.emit("deactivate", {annotation: this});
+        this.emit("deactivate", { annotation: this });
     }
 
     delete() {
         this.deactivate();
         this.removeEntity();
-        this.emit("delete", {annotation: this});
+        this.emit("delete", { annotation: this });
     }
 
     removeEntity() {
         if (!!this.entity) {
             this.viewerInterface.viewer.entities.remove(this.entity)
         }
-        this.emit("removeEntity", {annotation: this});
+        this.emit("removeEntity", { annotation: this });
     }
 
     handlePointerDown(e: PointerEvent) {
-        // console.log("POINTER DOWN", e, this)
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
-        const handle = this.viewerInterface.queryEntityAtPixel();
-        if (handle) {
-            this.handleFound = true;
+        this.pointerDownDetected = true;
+        const existingEntity = this.viewerInterface.queryEntityAtPixel();
+
+        if (existingEntity?._handleIdx !== undefined) {
+            this.handleIdxFound = existingEntity._handleIdx;
             this.viewerInterface.lock();
+            this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
         }
     }
 
     handlePointerMove(e: PointerEvent) {
-        this.dragDetected = true;
+        if (this.pointerDownDetected) {
+            // update the specified point as it is dragged
+            if(this.handleIdxFound !== null) {
+                const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
+                if(coordinate) this.points[this.handleIdxFound] = coordinate;
+            }
+            this.dragDetected = true;
+        }
     }
 
     handlePointerUp(e: PointerEvent) {
 
         this.viewerInterface.unlock();
+        this.pointerDownDetected = false;
 
-        if (this.handleFound) {
-            this.handleFound = false;
+        if (this.handleIdxFound !== null) {
             // TODO: when pointer comes up on a handle should update the current points and register a history record
+            const coordinate = this.viewerInterface.getCoordinateAtPixel();
+            if(coordinate) this.points[this.handleIdxFound] = coordinate; // update an existing point
+            if(this.preDragHistoricalRecord) this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
+            this.draw();
+            this.handleIdxFound = null;
+            this.preDragHistoricalRecord = null;
+            this.updateHandles();
             return;
         }
 
@@ -171,7 +200,7 @@ export class Annotation {
             return;
         }
 
-
+        // ADD NEW POINT
         const coordinate = this.viewerInterface.getCoordinateAtPixel();
         if (coordinate) {
             switch (this.annotationType) {
@@ -185,6 +214,7 @@ export class Annotation {
             }
 
             this.draw();
+            this.updateHandles();
         }
 
 
@@ -197,30 +227,41 @@ export class Annotation {
         }
         const prev = this.undoHistory.pop()
         // if there is nothing to undo, remove the entity
+        // console.log("PREV", prev);
         if (!prev) this.removeEntity();
         this.points = prev ?? [];
-        this.emit("undo", {annotation:this})
+        this.draw();
+        this.updateHandles();
+        this.emit("undo", { annotation: this })
     }
+
 
     redo() {
         const next = this.redoHistory.pop();
-        if(!!next) {
+        if (!!next) {
             this.recordPointsToUndoHistory();
             this.points = next;
+            this.draw();
+            this.updateHandles();
         }
-        this.emit("redo", {annotation: this});
+        this.emit("redo", { annotation: this });
     }
 
-    recordPointsToUndoHistory(){
+    recordPointsToUndoHistory() {
         this.undoHistory.push(this.points);
     }
 
-    clearRedoHistory(){
+    manualAppendToUndoHistory(points: Coordinate[]) {
+        this.undoHistory.push(points);
+    }
+
+    clearRedoHistory() {
         this.redoHistory = [];
     }
 
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate: Coordinate) { }
     draw() { }
+    updateHandles() { }
 }
 

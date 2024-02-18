@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 import { Registry } from "../registry";
 
@@ -19,13 +19,14 @@ export default class PointAnnotation extends Annotation {
 
     appendCoordinate(coordinate: Coordinate) {
         this.points = [coordinate];
-        this.emit("append", {annotation: this});
+        this.emit("append", { annotation: this });
     }
 
     draw() {
-        let entity = null;
+        let entity: AnnotationEntity | null = null;
         if (this.isStatic) {
             this.removeEntity();
+            if(this.points.length === 0) return;
             const position = this.points[0].toCartesian3();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -47,8 +48,9 @@ export default class PointAnnotation extends Annotation {
                 }
             })
         }
+        if (entity) entity._handleIdx = 0;
         this.entity = entity;
-        this.emit("update", {annotation: this});
+        this.emit("update", { annotation: this });
     }
 
 

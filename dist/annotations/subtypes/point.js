@@ -16,6 +16,8 @@ export default class PointAnnotation extends Annotation {
         let entity = null;
         if (this.isStatic) {
             this.removeEntity();
+            if (this.points.length === 0)
+                return;
             const position = this.points[0].toCartesian3();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -33,6 +35,8 @@ export default class PointAnnotation extends Annotation {
                 point: Object.assign({ pixelSize: 10 }, this.entityProperties)
             });
         }
+        if (entity)
+            entity._handleIdx = 0;
         this.entity = entity;
         this.emit("update", { annotation: this });
     }

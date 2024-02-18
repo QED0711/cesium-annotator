@@ -26,3 +26,6 @@ export declare enum AnnotationType {
     RECTANGLE = "rectangle",
     RING = "ring"
 }
+export type AnnotationEntity = Cesium.Entity & {
+    _handleIdx?: number;
+};

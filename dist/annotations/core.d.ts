@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType } from '../utils/types';
+import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity } from '../utils/types';
 import { Registry } from './registry';
 import { ViewerInterface } from './viewerInterface';
 export declare class Coordinate {
@@ -8,6 +8,8 @@ export declare class Coordinate {
     alt?: number;
     constructor(init: CoordinateInit);
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate;
+    static cloneCoordinateArray(coordinates: Coordinate[]): Coordinate[];
+    clone(): Coordinate;
     toCartesian3(): Cesium.Cartesian3;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
 }
@@ -18,13 +20,15 @@ export declare class Annotation {
     id: string;
     points: Coordinate[];
     isStatic: boolean;
-    entity: Cesium.Entity | null;
-    handles: Cesium.Entity[];
+    entity: AnnotationEntity | null;
+    handles: AnnotationEntity[];
     isActive: boolean;
     protected undoHistory: Coordinate[][];
     protected redoHistory: Coordinate[][];
-    protected handleFound: boolean;
+    protected handleIdxFound: number | null;
+    protected pointerDownDetected: boolean;
     protected dragDetected: boolean;
+    protected preDragHistoricalRecord: Coordinate[] | null;
     protected events: {
         [eventName: string]: ((payload: {
             [key: string]: any;
@@ -48,7 +52,9 @@ export declare class Annotation {
     undo(): void;
     redo(): void;
     recordPointsToUndoHistory(): void;
+    manualAppendToUndoHistory(points: Coordinate[]): void;
     clearRedoHistory(): void;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
+    updateHandles(): void;
 }
