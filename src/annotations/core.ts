@@ -27,6 +27,10 @@ export class Coordinate {
         return coordinates.map(c => c.clone());
     }
 
+    static coordinateArrayToCartesian3(coordinates: Coordinate[]): Cesium.Cartesian3[] {
+        return coordinates.map(c => c.toCartesian3());
+    }
+
     clone(): Coordinate {
         return new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
     }
@@ -209,6 +213,11 @@ export class Annotation {
                     this.appendCoordinate(coordinate);
                     this.clearRedoHistory();
                     break;
+                case AnnotationType.POLYLINE:
+                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+                    this.appendCoordinate(coordinate);
+                    this.clearRedoHistory();
+                    break;
                 default:
                     return;
             }
@@ -227,7 +236,6 @@ export class Annotation {
         }
         const prev = this.undoHistory.pop()
         // if there is nothing to undo, remove the entity
-        // console.log("PREV", prev);
         if (!prev) this.removeEntity();
         this.points = prev ?? [];
         this.draw();

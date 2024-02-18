@@ -1,5 +1,6 @@
 import { ViewerInterface } from './viewerInterface';
 import PointAnnotation from './subtypes/point';
+import PolyLineAnnotation from './subtypes/polyline';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -26,8 +27,14 @@ export class Registry {
             annotation.id === id ? annotation.activate() : annotation.deactivate();
         }
     }
+    // FACTORIES
     addPoint(options) {
         const annotation = new PointAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
+    }
+    addPolyLine(options) {
+        const annotation = new PolyLineAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation;
     }

@@ -3,6 +3,7 @@ import { RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation, Coordinate } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
+import PolyLineAnnotation, {PolyLineInitOptions} from './subtypes/polyline';
 
 
 
@@ -42,8 +43,15 @@ export class Registry {
         }
     }
 
+    // FACTORIES
     addPoint(options: PointInitOptions): PointAnnotation {
         const annotation = new PointAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation
+    }
+
+    addPolyLine(options: PolyLineInitOptions): PolyLineAnnotation {
+        const annotation = new PolyLineAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation
     }
