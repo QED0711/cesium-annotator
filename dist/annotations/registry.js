@@ -1,6 +1,6 @@
 import { ViewerInterface } from './viewerInterface';
 import PointAnnotation from './subtypes/point';
-import PolyLineAnnotation from './subtypes/polyline';
+import PolylineAnnotation from './subtypes/polyline';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -33,8 +33,8 @@ export class Registry {
         this.annotations.push(annotation);
         return annotation;
     }
-    addPolyLine(options) {
-        const annotation = new PolyLineAnnotation(this, options);
+    addPolyline(options) {
+        const annotation = new PolylineAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation;
     }

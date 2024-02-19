@@ -1,8 +1,9 @@
 import * as Cesium from 'cesium';
-import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity } from '../utils/types';
+import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord } from '../utils/types';
 import { Registry } from './registry';
 import { ViewerInterface } from './viewerInterface';
 export declare class Coordinate {
+    id: string;
     lng: number;
     lat: number;
     alt?: number;
@@ -21,12 +22,15 @@ export declare class Annotation {
     id: string;
     points: Coordinate[];
     isStatic: boolean;
+    userInteractive: boolean;
     entity: AnnotationEntity | null;
-    handles: AnnotationEntity[];
+    handles: {
+        [coordinateID: string]: AnnotationEntity;
+    };
     isActive: boolean;
     protected undoHistory: Coordinate[][];
     protected redoHistory: Coordinate[][];
-    protected handleIdxFound: number | null;
+    protected handleFound: HandleFoundRecord | null;
     protected pointerDownDetected: boolean;
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: Coordinate[] | null;
@@ -47,6 +51,7 @@ export declare class Annotation {
     deactivate(): void;
     delete(): void;
     removeEntity(): void;
+    removeHandleByCoordinateID(id: string): void;
     handlePointerDown(e: PointerEvent): void;
     handlePointerMove(e: PointerEvent): void;
     handlePointerUp(e: PointerEvent): void;
@@ -57,5 +62,5 @@ export declare class Annotation {
     clearRedoHistory(): void;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
-    updateHandles(): void;
+    syncHandles(): void;
 }

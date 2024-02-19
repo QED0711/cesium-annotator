@@ -3,7 +3,7 @@ import { RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
-import PolyLineAnnotation, { PolyLineInitOptions } from './subtypes/polyline';
+import PolylineAnnotation, { PolylineInitOptions } from './subtypes/polyline';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -17,5 +17,5 @@ export declare class Registry {
     deleteByID(id: string): void;
     activateByID(id: string): void;
     addPoint(options: PointInitOptions): PointAnnotation;
-    addPolyLine(options: PolyLineInitOptions): PolyLineAnnotation;
+    addPolyline(options: PolylineInitOptions): PolylineAnnotation;
 }

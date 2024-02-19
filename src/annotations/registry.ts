@@ -3,7 +3,7 @@ import { RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation, Coordinate } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
-import PolyLineAnnotation, {PolyLineInitOptions} from './subtypes/polyline';
+import PolylineAnnotation, {PolylineInitOptions} from './subtypes/polyline';
 
 
 
@@ -50,8 +50,8 @@ export class Registry {
         return annotation
     }
 
-    addPolyLine(options: PolyLineInitOptions): PolyLineAnnotation {
-        const annotation = new PolyLineAnnotation(this, options);
+    addPolyline(options: PolylineInitOptions): PolylineAnnotation {
+        const annotation = new PolylineAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation
     }

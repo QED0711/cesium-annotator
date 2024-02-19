@@ -7,6 +7,7 @@ export type CoordinateInit = {
 export type AnnotationBaseInit = {
     id?: string;
     static?: boolean;
+    userInteractive?: boolean;
 };
 export type RegistryInit = {
     id: string;
@@ -27,5 +28,11 @@ export declare enum AnnotationType {
     RING = "ring"
 }
 export type AnnotationEntity = Cesium.Entity & {
+    _isHandle?: boolean;
     _handleIdx?: number;
+    _handleCoordinateID?: string;
+};
+export type HandleFoundRecord = {
+    index: number;
+    handleID: string;
 };

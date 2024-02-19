@@ -3,18 +3,21 @@ import { AnnotationBaseInit, AnnotationEntity, AnnotationType } from "../../util
 import { Annotation, Coordinate } from "../core";
 import { Registry } from '../registry';
 
-export type PolyLineInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions
+export type PolylineInitOptions = AnnotationBaseInit & {
+    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions,
+    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
 }
 
-export default class PolyLine extends Annotation {
+export default class Polyline extends Annotation {
 
     entityProperties: Cesium.PolylineGraphics.ConstructorOptions;
+    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
 
-    constructor(registry: Registry, options: PolyLineInitOptions) {
+    constructor(registry: Registry, options: PolylineInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.POLYLINE;
         this.entityProperties = options.entityProperties ?? {};
+        this.handleProperties = options.handleProperties ?? {};
     }
 
     appendCoordinate(coordinate: Coordinate): void {
@@ -49,5 +52,28 @@ export default class PolyLine extends Annotation {
 
         if (entity) this.entity = entity;
         this.emit("update", { annotation: this })
+    }
+
+    syncHandles(): void {
+        // TODO: remove stale handles
+        if(this.isActive) {
+            for(let i = 0; i < this.points.length; i++) {
+                const point = this.points[i];
+                if(point.id in this.handles) continue;
+
+                const handle = this.viewerInterface.viewer.entities.add({
+                    position: point.toCartesian3(),
+                    point: {
+                        pixelSize: 10,
+                    }
+                }) as AnnotationEntity
+
+                handle._isHandle = true;
+                handle._handleCoordinateID = point.id
+                handle._handleIdx = i;
+
+                this.handles[point.id] = handle;
+            }
+        }
     }
 }

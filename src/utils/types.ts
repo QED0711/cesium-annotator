@@ -10,6 +10,7 @@ export type CoordinateInit = {
 export type AnnotationBaseInit = {
     id?: string,
     static?: boolean,
+    userInteractive?: boolean,
 }
 
 export type RegistryInit = {
@@ -34,5 +35,12 @@ export enum AnnotationType {
 }
 
 export type AnnotationEntity = Cesium.Entity & {
-    _handleIdx?: number
+    _isHandle?: boolean,
+    _handleIdx?: number,
+    _handleCoordinateID?:string
+}
+
+export type HandleFoundRecord = {
+    index: number,
+    handleID: string,
 }
