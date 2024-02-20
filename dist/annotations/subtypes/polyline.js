@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationType } from "../../utils/types";
+import { AnnotationType, DistanceUnit } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 export default class Polyline extends Annotation {
     constructor(registry, options) {
@@ -57,6 +57,28 @@ export default class Polyline extends Annotation {
         }
         this.updateHandleIdxs();
         this.removeStaleHandles();
+    }
+    // SUBCLASS SPECIFIC METHODS
+    getTotalDistance(unit = DistanceUnit.METERS) {
+        let dist = 0;
+        for (let i = 1; i < this.points.length; i++) {
+            dist += this.points[i].distanceTo(this.points[i - 1], unit);
+        }
+        return dist;
+    }
+    getDistanceSegments(unit = DistanceUnit.METERS) {
+        let distArr = [];
+        for (let i = 1; i < this.points.length; i++) {
+            distArr.push(this.points[i].distanceTo(this.points[i - 1], unit));
+        }
+        return distArr;
+    }
+    getHeadingSegments() {
+        const headingArr = [];
+        for (let i = 1; i < this.points.length; i++) {
+            headingArr.push(this.points[i - 1].headingTo(this.points[i]));
+        }
+        return headingArr;
     }
 }
 //# sourceMappingURL=polyline.js.map

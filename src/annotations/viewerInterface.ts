@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import { Annotation, Coordinate } from './core';
-import { AnnotationEntity } from '../utils/types';
+import { AnnotationEntity, ViewerInterfaceInitOptions } from '../utils/types';
 
 /******************************************************************************
  * ***************************** VIEWER INTERFACE ***************************** 
@@ -19,11 +19,14 @@ export class ViewerInterface {
 
     private longPressTimeout?: number | NodeJS.Timeout;
     longPressComplete: boolean;
+    useAltitude: boolean
 
-    constructor(viewer: Cesium.Viewer) {
+    constructor(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions) {
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
+
+        this.useAltitude = options.useAltitude ?? true;
 
         this.longPressComplete = false;
 
@@ -83,7 +86,7 @@ export class ViewerInterface {
 
         const lng = Cesium.Math.toDegrees(cartographicPosition.longitude);
         const lat = Cesium.Math.toDegrees(cartographicPosition.latitude);
-        const alt = Cesium.Math.toDegrees(cartographicPosition.height);
+        const alt = this.useAltitude ? Cesium.Math.toDegrees(cartographicPosition.height) : 0;
 
         return new Coordinate({ lat, lng, alt });
     }

@@ -1,15 +1,18 @@
 import { ViewerInterface } from './viewerInterface';
 import PointAnnotation from './subtypes/point';
 import PolylineAnnotation from './subtypes/polyline';
+import PolygonAnnotation from './subtypes/polygon';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
 export class Registry {
     constructor(init) {
+        var _a;
         this.id = init.id;
         this.viewer = init.viewer;
         this.annotations = [];
-        this.viewerInterface = new ViewerInterface(this.viewer);
+        this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : true;
+        this.viewerInterface = new ViewerInterface(this.viewer, { useAltitude: this.useAltitude });
     }
     getAnnotationByID(id) {
         return this.annotations.find(annotation => annotation.id === id);
@@ -35,6 +38,11 @@ export class Registry {
     }
     addPolyline(options) {
         const annotation = new PolylineAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
+    }
+    addPolygon(options) {
+        const annotation = new PolygonAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation;
     }

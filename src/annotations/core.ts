@@ -62,6 +62,18 @@ export class Coordinate {
         }
     }
 
+    headingTo(point2: Coordinate): number {
+        const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
+        const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
+
+        const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
+
+        let heading = Cesium.Math.toDegrees(geodesic.startHeading);
+
+        heading += heading < 0 ? 260 : 0;
+        return heading
+    }
+
 
 }
 
@@ -259,6 +271,11 @@ export class Annotation {
                     this.clearRedoHistory();
                     break;
                 case AnnotationType.POLYLINE:
+                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+                    this.appendCoordinate(coordinate);
+                    this.clearRedoHistory();
+                    break;
+                case AnnotationType.POLYGON:
                     this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
                     this.appendCoordinate(coordinate);
                     this.clearRedoHistory();

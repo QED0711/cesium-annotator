@@ -4,10 +4,12 @@ import { Coordinate } from './core';
  * ***************************** VIEWER INTERFACE *****************************
  *****************************************************************************/
 export class ViewerInterface {
-    constructor(viewer) {
+    constructor(viewer, options) {
+        var _a;
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
+        this.useAltitude = (_a = options.useAltitude) !== null && _a !== void 0 ? _a : true;
         this.longPressComplete = false;
         this.init();
     }
@@ -56,7 +58,7 @@ export class ViewerInterface {
         const cartographicPosition = Cesium.Cartographic.fromCartesian(cartesianPosition);
         const lng = Cesium.Math.toDegrees(cartographicPosition.longitude);
         const lat = Cesium.Math.toDegrees(cartographicPosition.latitude);
-        const alt = Cesium.Math.toDegrees(cartographicPosition.height);
+        const alt = this.useAltitude ? Cesium.Math.toDegrees(cartographicPosition.height) : 0;
         return new Coordinate({ lat, lng, alt });
     }
     queryEntityAtPixel(x, y) {

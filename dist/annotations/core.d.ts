@@ -14,6 +14,7 @@ export declare class Coordinate {
     clone(): Coordinate;
     toCartesian3(): Cesium.Cartesian3;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
+    headingTo(point2: Coordinate): number;
 }
 export declare class Annotation {
     protected registry: Registry;

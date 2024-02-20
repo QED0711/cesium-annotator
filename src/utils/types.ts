@@ -17,6 +17,11 @@ export type AnnotationBaseInit = {
 export type RegistryInit = {
     id: string,
     viewer: Cesium.Viewer,
+    useAltitude?: boolean,
+}
+
+export type ViewerInterfaceInitOptions = {
+    useAltitude?: boolean
 }
 
 export enum DistanceUnit {

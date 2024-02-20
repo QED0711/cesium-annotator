@@ -5,6 +5,8 @@ import { Annotation, Coordinate } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
 import PolylineAnnotation, {PolylineInitOptions} from './subtypes/polyline';
 
+import PolygonAnnotation, { PolygonInitOptions } from './subtypes/polygon';
+
 
 
 /******************************************************************************
@@ -16,12 +18,15 @@ export class Registry {
     viewer: Cesium.Viewer;
     viewerInterface: ViewerInterface
 
+    useAltitude: boolean
+
     constructor(init: RegistryInit) {
         this.id = init.id;
         this.viewer = init.viewer;
         this.annotations = [];
+        this.useAltitude = init.useAltitude ?? true;
 
-        this.viewerInterface = new ViewerInterface(this.viewer);
+        this.viewerInterface = new ViewerInterface(this.viewer, {useAltitude: this.useAltitude});
     }
 
     getAnnotationByID(id: string): Annotation | null | undefined {
@@ -54,6 +59,12 @@ export class Registry {
         const annotation = new PolylineAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation
+    }
+
+    addPolygon(options: PolygonInitOptions): PolygonAnnotation {
+        const annotation = new PolygonAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
     }
 }
 

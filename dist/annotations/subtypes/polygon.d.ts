@@ -1,19 +1,18 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, DistanceUnit } from "../../utils/types";
+import { AnnotationBaseInit } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 import { Registry } from '../registry';
-export type PolylineInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions;
+export type PolygonInitOptions = AnnotationBaseInit & {
+    entityProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    drawAsLine?: boolean;
 };
-export default class Polyline extends Annotation {
+export default class Polygon extends Annotation {
+    drawAsLine: boolean;
     entityProperties: Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
-    constructor(registry: Registry, options: PolylineInitOptions);
+    constructor(registry: Registry, options: PolygonInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
     syncHandles(): void;
-    getTotalDistance(unit?: DistanceUnit): number;
-    getDistanceSegments(unit?: DistanceUnit): number[];
-    getHeadingSegments(): number[];
 }
