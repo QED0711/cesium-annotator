@@ -27,7 +27,7 @@ export default class Polyline extends Annotation {
 
     draw(): void {
         let entity: AnnotationEntity | null = null;
-        if (this.isStatic) {
+        if (!this.liveUpdate) {
             this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -36,7 +36,7 @@ export default class Polyline extends Annotation {
                     width: 2,
                     ...this.entityProperties
                 }
-            })
+            }) as AnnotationEntity
         } else if (!this.entity) {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -47,15 +47,17 @@ export default class Polyline extends Annotation {
                     width: 2,
                     ...this.entityProperties
                 }
-            })
+            }) as AnnotationEntity
         }
-
-        if (entity) this.entity = entity;
+        
+        if (entity) {
+            entity._annotation = this;
+            this.entity = entity
+        }
         this.emit("update", { annotation: this })
     }
 
     syncHandles(): void {
-        // TODO: remove stale handles
         if(this.isActive) {
             for(let i = 0; i < this.points.length; i++) {
                 const point = this.points[i];
@@ -68,6 +70,7 @@ export default class Polyline extends Annotation {
                     }
                 }) as AnnotationEntity
 
+                handle._annotation = this;
                 handle._isHandle = true;
                 handle._handleCoordinateID = point.id
                 handle._handleIdx = i;
@@ -75,5 +78,8 @@ export default class Polyline extends Annotation {
                 this.handles[point.id] = handle;
             }
         }
+
+        this.updateHandleIdxs();
+        this.removeStaleHandles();
     }
 }

@@ -24,7 +24,7 @@ export default class PointAnnotation extends Annotation {
 
     draw() {
         let entity: AnnotationEntity | null = null;
-        if (this.isStatic) {
+        if (!this.liveUpdate) {
             this.removeEntity();
             if(this.points.length === 0) return;
             const position = this.points[0].toCartesian3();
@@ -35,7 +35,7 @@ export default class PointAnnotation extends Annotation {
                     pixelSize: 10,
                     ...this.entityProperties
                 }
-            })
+            }) as AnnotationEntity
         } else if (!this.entity) {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -46,9 +46,12 @@ export default class PointAnnotation extends Annotation {
                     pixelSize: 10,
                     ...this.entityProperties
                 }
-            })
+            }) as AnnotationEntity
         }
-        if (entity) entity._handleIdx = 0;
+        if (entity) {
+            entity._annotation = this;
+            entity._handleIdx = 0;
+        }
         this.entity = entity;
         this.emit("update", { annotation: this });
     }

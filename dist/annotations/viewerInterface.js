@@ -8,30 +8,40 @@ export class ViewerInterface {
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
+        this.longPressComplete = false;
         this.init();
     }
     init() {
+        // tracking long press initiation
+        this.pointerDownHandler = (e) => {
+            this.longPressTimeout = setTimeout(() => {
+                this.longPressComplete = true;
+                const foundEntity = this.queryEntityAtPixel();
+                if ((foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._isHandle) && foundEntity._handleIdx !== undefined) {
+                    foundEntity._annotation.removePointAtIndex(foundEntity._handleIdx);
+                }
+            }, 500);
+        };
+        // stop long press & track last known x, y coordinates
         this.pointerMoveHandler = (e) => {
+            clearTimeout(this.longPressTimeout);
             this.cursorX = e.offsetX;
             this.cursorY = e.offsetY;
         };
+        // track long press exit
+        this.pointerUpHandler = (e) => {
+            clearTimeout(this.longPressTimeout);
+            setTimeout(() => this.longPressComplete = false, 0);
+        };
         this.canvas.addEventListener("pointermove", this.pointerMoveHandler);
+        this.canvas.addEventListener("pointerdown", this.pointerDownHandler);
+        this.canvas.addEventListener("pointerup", this.pointerUpHandler);
     }
     removeHandlers() {
-        if (!!this.pointerMoveHandler) {
-            this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
-        }
+        !!this.pointerDownHandler && this.canvas.removeEventListener("pointerdown", this.pointerDownHandler);
+        !!this.pointerMoveHandler && this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
+        !!this.pointerUpHandler && this.canvas.removeEventListener("pointermove", this.pointerUpHandler);
     }
-    // addEventListener(eventName: string, callback: Function) {
-    //     this.events[eventName] = eventName in this.events
-    //         ? [...this.events[eventName], callback]
-    //         : [callback]
-    // }
-    // removeEventListener(eventName: string, callback: Function) {
-    //     if (eventName in this.events) {
-    //         this.events[eventName] = this.events[eventName].filter(cb => cb !== callback);
-    //     }
-    // }
     getCoordinateAtPixel(x, y) {
         x !== null && x !== void 0 ? x : (x = this.cursorX);
         y !== null && y !== void 0 ? y : (y = this.cursorY);

@@ -59,7 +59,7 @@ export class Annotation {
         this.points = [];
         this.undoHistory = [];
         this.redoHistory = [];
-        this.isStatic = (_b = init.static) !== null && _b !== void 0 ? _b : true;
+        this.liveUpdate = (_b = init.liveUpdate) !== null && _b !== void 0 ? _b : false;
         this.userInteractive = (_c = init.userInteractive) !== null && _c !== void 0 ? _c : true;
         this.entity = null;
         this.handles = {};
@@ -91,6 +91,7 @@ export class Annotation {
     }
     activate() {
         this.isActive = true;
+        this.showHandles();
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
         this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
         this.viewerInterface.registerListener("pointerup", this.handlePointerUp, this);
@@ -98,6 +99,7 @@ export class Annotation {
     }
     deactivate() {
         this.isActive = false;
+        this.hideHandles();
         this.viewerInterface.unregisterListenersByAnnotationID(this.id);
         this.emit("deactivate", { annotation: this });
     }
@@ -109,6 +111,7 @@ export class Annotation {
     removeEntity() {
         if (!!this.entity) {
             this.viewerInterface.viewer.entities.remove(this.entity);
+            this.entity = null;
         }
         this.emit("removeEntity", { annotation: this });
     }
@@ -119,11 +122,28 @@ export class Annotation {
             delete this.handles[id];
         }
     }
+    showHandles() {
+        for (let handle of Object.values(this.handles)) {
+            handle.show = true;
+        }
+    }
+    hideHandles() {
+        for (let handle of Object.values(this.handles)) {
+            handle.show = false;
+        }
+    }
+    removePointAtIndex(index) {
+        this.recordPointsToUndoHistory();
+        this.points = this.points.filter((_, i) => i !== index);
+        this.draw();
+        this.syncHandles();
+    }
     handlePointerDown(e) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
         this.pointerDownDetected = true;
         const existingEntity = this.viewerInterface.queryEntityAtPixel();
         if ((existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isHandle) && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleIdx) !== undefined && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleCoordinateID)) {
+            console.log(existingEntity._handleCoordinateID, existingEntity._handleIdx);
             this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID };
             this.viewerInterface.lock();
             this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
@@ -144,6 +164,10 @@ export class Annotation {
     handlePointerUp(e) {
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
+        if (this.viewerInterface.longPressComplete) {
+            this.handleFound = null;
+            return;
+        }
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
             if (coordinate)
@@ -215,6 +239,25 @@ export class Annotation {
     }
     clearRedoHistory() {
         this.redoHistory = [];
+    }
+    updateHandleIdxs() {
+        for (let i = 0; i < this.points.length; i++) {
+            const handle = this.handles[this.points[i].id];
+            handle._handleIdx = i;
+        }
+    }
+    removeStaleHandles() {
+        const pointIDs = {};
+        for (let point of this.points) {
+            pointIDs[point.id] = true;
+        }
+        const handleCoordinateIDs = Object.keys(this.handles);
+        for (let handleCoordID of handleCoordinateIDs) {
+            if (!pointIDs[handleCoordID]) {
+                this.viewerInterface.viewer.entities.remove(this.handles[handleCoordID]);
+                delete this.handles[handleCoordID];
+            }
+        }
     }
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate) { }

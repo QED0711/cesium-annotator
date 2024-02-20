@@ -15,6 +15,10 @@ export declare class ViewerInterface {
     private cursorX?;
     private cursorY?;
     private pointerMoveHandler?;
+    private pointerDownHandler?;
+    private pointerUpHandler?;
+    private longPressTimeout?;
+    longPressComplete: boolean;
     constructor(viewer: Cesium.Viewer);
     init(): void;
     removeHandlers(): void;

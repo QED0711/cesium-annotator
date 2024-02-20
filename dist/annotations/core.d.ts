@@ -21,7 +21,7 @@ export declare class Annotation {
     protected annotationType: AnnotationType;
     id: string;
     points: Coordinate[];
-    isStatic: boolean;
+    liveUpdate: boolean;
     userInteractive: boolean;
     entity: AnnotationEntity | null;
     handles: {
@@ -52,6 +52,9 @@ export declare class Annotation {
     delete(): void;
     removeEntity(): void;
     removeHandleByCoordinateID(id: string): void;
+    showHandles(): void;
+    hideHandles(): void;
+    removePointAtIndex(index: number): void;
     handlePointerDown(e: PointerEvent): void;
     handlePointerMove(e: PointerEvent): void;
     handlePointerUp(e: PointerEvent): void;
@@ -60,6 +63,8 @@ export declare class Annotation {
     recordPointsToUndoHistory(): void;
     manualAppendToUndoHistory(points: Coordinate[]): void;
     clearRedoHistory(): void;
+    updateHandleIdxs(): void;
+    removeStaleHandles(): void;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
     syncHandles(): void;

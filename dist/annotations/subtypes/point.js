@@ -14,7 +14,7 @@ export default class PointAnnotation extends Annotation {
     }
     draw() {
         let entity = null;
-        if (this.isStatic) {
+        if (!this.liveUpdate) {
             this.removeEntity();
             if (this.points.length === 0)
                 return;
@@ -35,8 +35,10 @@ export default class PointAnnotation extends Annotation {
                 point: Object.assign({ pixelSize: 10 }, this.entityProperties)
             });
         }
-        if (entity)
+        if (entity) {
+            entity._annotation = this;
             entity._handleIdx = 0;
+        }
         this.entity = entity;
         this.emit("update", { annotation: this });
     }

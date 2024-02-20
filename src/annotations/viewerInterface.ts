@@ -12,42 +12,59 @@ export class ViewerInterface {
     private canvas: HTMLCanvasElement;
     private cursorX?: number
     private cursorY?: number
+
     private pointerMoveHandler?: ((e: PointerEvent) => void) | null;
+    private pointerDownHandler?: ((e: PointerEvent) => void) | null;
+    private pointerUpHandler?: ((e: PointerEvent) => void) | null;
+
+    private longPressTimeout?: number | NodeJS.Timeout;
+    longPressComplete: boolean;
 
     constructor(viewer: Cesium.Viewer) {
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
 
+        this.longPressComplete = false;
+
         this.init();
     }
 
     init() {
+        // tracking long press initiation
+        this.pointerDownHandler = (e: PointerEvent) => {
+            this.longPressTimeout = setTimeout(() => {
+                this.longPressComplete = true;
+                const foundEntity = this.queryEntityAtPixel();
+                if(foundEntity?._isHandle && foundEntity._handleIdx !== undefined) {
+                    foundEntity._annotation.removePointAtIndex(foundEntity._handleIdx);
+                }
+            }, 500)
+        }
+
+        // stop long press & track last known x, y coordinates
         this.pointerMoveHandler = (e: PointerEvent) => {
+            clearTimeout(this.longPressTimeout);
             this.cursorX = e.offsetX;
             this.cursorY = e.offsetY;
         }
 
+        // track long press exit
+        this.pointerUpHandler = (e: PointerEvent) => {
+            clearTimeout(this.longPressTimeout);
+            setTimeout(() => this.longPressComplete = false, 0);
+        }
+
         this.canvas.addEventListener("pointermove", this.pointerMoveHandler)
+        this.canvas.addEventListener("pointerdown", this.pointerDownHandler)
+        this.canvas.addEventListener("pointerup", this.pointerUpHandler);
     }
 
     removeHandlers() {
-        if (!!this.pointerMoveHandler) {
-            this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
-        }
+        !!this.pointerDownHandler && this.canvas.removeEventListener("pointerdown", this.pointerDownHandler);
+        !!this.pointerMoveHandler && this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
+        !!this.pointerUpHandler && this.canvas.removeEventListener("pointermove", this.pointerUpHandler);
     }
-
-    // addEventListener(eventName: string, callback: Function) {
-    //     this.events[eventName] = eventName in this.events
-    //         ? [...this.events[eventName], callback]
-    //         : [callback]
-    // }
-
-    // removeEventListener(eventName: string, callback: Function) {
-    //     if (eventName in this.events) {
-    //         this.events[eventName] = this.events[eventName].filter(cb => cb !== callback);
-    //     }
-    // }
 
     getCoordinateAtPixel(x?: number, y?: number): Coordinate | null {
         x ??= this.cursorX;

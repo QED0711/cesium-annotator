@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import { Annotation } from '../annotations/core';
 
 /* INITIALIZATION OPTIONS */
 export type CoordinateInit = {
@@ -9,7 +10,7 @@ export type CoordinateInit = {
 
 export type AnnotationBaseInit = {
     id?: string,
-    static?: boolean,
+    liveUpdate?: boolean,
     userInteractive?: boolean,
 }
 
@@ -35,6 +36,7 @@ export enum AnnotationType {
 }
 
 export type AnnotationEntity = Cesium.Entity & {
+    _annotation: Annotation,
     _isHandle?: boolean,
     _handleIdx?: number,
     _handleCoordinateID?:string

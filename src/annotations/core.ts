@@ -77,11 +77,11 @@ export class Annotation {
     id: string;
     points: Coordinate[];
 
-    isStatic: boolean;
+    liveUpdate: boolean;
     userInteractive: boolean;
     entity: AnnotationEntity | null;
     // handles: HandleEntity[];
-    handles: {[coordinateID: string]: AnnotationEntity}
+    handles: { [coordinateID: string]: AnnotationEntity }
     isActive: boolean;
 
     protected undoHistory: Coordinate[][];
@@ -104,7 +104,7 @@ export class Annotation {
         this.points = [];
         this.undoHistory = [];
         this.redoHistory = [];
-        this.isStatic = init.static ?? true;
+        this.liveUpdate = init.liveUpdate ?? false;
         this.userInteractive = init.userInteractive ?? true;
 
         this.entity = null;
@@ -141,6 +141,7 @@ export class Annotation {
 
     activate() {
         this.isActive = true;
+        this.showHandles();
 
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
         this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
@@ -151,6 +152,7 @@ export class Annotation {
 
     deactivate() {
         this.isActive = false;
+        this.hideHandles();
         this.viewerInterface.unregisterListenersByAnnotationID(this.id);
         this.emit("deactivate", { annotation: this });
     }
@@ -164,16 +166,36 @@ export class Annotation {
     removeEntity() {
         if (!!this.entity) {
             this.viewerInterface.viewer.entities.remove(this.entity)
+            this.entity = null;
         }
         this.emit("removeEntity", { annotation: this });
     }
 
     removeHandleByCoordinateID(id: string) {
         const handleEntity = this.handles[id];
-        if(handleEntity){
+        if (handleEntity) {
             this.viewerInterface.viewer.entities.remove(handleEntity);
             delete this.handles[id];
         }
+    }
+
+    showHandles(): void {
+        for(let handle of Object.values(this.handles)) {
+            handle.show = true;
+        }
+    }
+    
+    hideHandles(): void {
+        for(let handle of Object.values(this.handles)) {
+            handle.show = false;
+        }
+    }
+
+    removePointAtIndex(index: number): void {
+        this.recordPointsToUndoHistory();
+        this.points = this.points.filter((_, i) => i !== index);
+        this.draw();
+        this.syncHandles();
     }
 
     handlePointerDown(e: PointerEvent) {
@@ -182,7 +204,8 @@ export class Annotation {
         const existingEntity = this.viewerInterface.queryEntityAtPixel();
 
         if (existingEntity?._isHandle && existingEntity?._handleIdx !== undefined && existingEntity?._handleCoordinateID) {
-            this.handleFound = {index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID}
+            console.log(existingEntity._handleCoordinateID, existingEntity._handleIdx);
+            this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID }
             this.viewerInterface.lock();
             this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
         }
@@ -191,10 +214,10 @@ export class Annotation {
     handlePointerMove(e: PointerEvent) {
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
-            if(this.handleFound !== null) {
+            if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                if(coordinate) this.points[this.handleFound.index] = coordinate;
+                if (coordinate) this.points[this.handleFound.index] = coordinate;
             }
             this.dragDetected = true;
         }
@@ -205,10 +228,15 @@ export class Annotation {
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
 
+        if (this.viewerInterface.longPressComplete) {
+            this.handleFound = null;
+            return;
+        }
+
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
-            if(coordinate) this.points[this.handleFound.index] = coordinate; // update an existing point
-            if(this.preDragHistoricalRecord) this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
+            if (coordinate) this.points[this.handleFound.index] = coordinate; // update an existing point
+            if (this.preDragHistoricalRecord) this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
             this.draw();
             this.handleFound = null;
             this.preDragHistoricalRecord = null;
@@ -271,7 +299,7 @@ export class Annotation {
     }
 
     recordPointsToUndoHistory() {
-        if(this.points.length > 0) {
+        if (this.points.length > 0) {
             this.undoHistory.push([...this.points]);
         }
     }
@@ -282,6 +310,27 @@ export class Annotation {
 
     clearRedoHistory() {
         this.redoHistory = [];
+    }
+
+    updateHandleIdxs(): void {
+        for(let i = 0; i < this.points.length; i++) {
+            const handle = this.handles[this.points[i].id];
+            handle._handleIdx = i;
+        }
+    }    
+
+    removeStaleHandles(): void {
+        const pointIDs: { [coordinateID: string]: boolean } = {};
+        for (let point of this.points) {
+            pointIDs[point.id] = true;
+        }
+        const handleCoordinateIDs = Object.keys(this.handles);
+        for (let handleCoordID of handleCoordinateIDs) {
+            if (!pointIDs[handleCoordID]) {
+                this.viewerInterface.viewer.entities.remove(this.handles[handleCoordID])
+                delete this.handles[handleCoordID];
+            }
+        }
     }
 
     // SUBCLASS IMPLEMENTATIONS

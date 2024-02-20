@@ -15,7 +15,7 @@ export default class Polyline extends Annotation {
     }
     draw() {
         let entity = null;
-        if (this.isStatic) {
+        if (!this.liveUpdate) {
             this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -30,12 +30,13 @@ export default class Polyline extends Annotation {
                     }, false), width: 2 }, this.entityProperties)
             });
         }
-        if (entity)
+        if (entity) {
+            entity._annotation = this;
             this.entity = entity;
+        }
         this.emit("update", { annotation: this });
     }
     syncHandles() {
-        // TODO: remove stale handles
         if (this.isActive) {
             for (let i = 0; i < this.points.length; i++) {
                 const point = this.points[i];
@@ -47,12 +48,15 @@ export default class Polyline extends Annotation {
                         pixelSize: 10,
                     }
                 });
+                handle._annotation = this;
                 handle._isHandle = true;
                 handle._handleCoordinateID = point.id;
                 handle._handleIdx = i;
                 this.handles[point.id] = handle;
             }
         }
+        this.updateHandleIdxs();
+        this.removeStaleHandles();
     }
 }
 //# sourceMappingURL=polyline.js.map

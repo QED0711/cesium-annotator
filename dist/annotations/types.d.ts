@@ -9,7 +9,7 @@ export type AnnotationBaseInit = {
     registry: Registry;
     viewerInterface: ViewerInterface;
     id?: string;
-    isStatic?: boolean;
+    liveUpdate?: boolean;
 };
 export type RegistryInit = {
     id: string;
