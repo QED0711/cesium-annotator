@@ -6,6 +6,7 @@ import PointAnnotation, { PointInitOptions } from './subtypes/point';
 import PolylineAnnotation, {PolylineInitOptions} from './subtypes/polyline';
 
 import PolygonAnnotation, { PolygonInitOptions } from './subtypes/polygon';
+import RectangleAnnotation, { RectangleInitOptions } from './subtypes/rectangle';
 
 
 
@@ -63,6 +64,12 @@ export class Registry {
 
     addPolygon(options: PolygonInitOptions): PolygonAnnotation {
         const annotation = new PolygonAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
+    }
+
+    addRectangle(options: RectangleInitOptions): RectangleAnnotation {
+        const annotation = new RectangleAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation;
     }

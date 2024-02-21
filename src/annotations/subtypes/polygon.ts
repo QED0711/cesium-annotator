@@ -34,6 +34,7 @@ export default class Polygon extends Annotation {
     draw(): void {
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
+            this.removeEntity();
             if (this.drawAsLine) {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
@@ -79,8 +80,6 @@ export default class Polygon extends Annotation {
                 }) as AnnotationEntity;
             }
         }
-
-        console.log(entity);
 
         if (entity) {
             entity._annotation = this;

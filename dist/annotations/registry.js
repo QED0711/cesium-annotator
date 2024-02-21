@@ -2,6 +2,7 @@ import { ViewerInterface } from './viewerInterface';
 import PointAnnotation from './subtypes/point';
 import PolylineAnnotation from './subtypes/polyline';
 import PolygonAnnotation from './subtypes/polygon';
+import RectangleAnnotation from './subtypes/rectangle';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -43,6 +44,11 @@ export class Registry {
     }
     addPolygon(options) {
         const annotation = new PolygonAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
+    }
+    addRectangle(options) {
+        const annotation = new RectangleAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation;
     }

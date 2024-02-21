@@ -11,6 +11,12 @@ export declare class Coordinate {
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate;
     static cloneCoordinateArray(coordinates: Coordinate[]): Coordinate[];
     static coordinateArrayToCartesian3(coordinates: Coordinate[]): Cesium.Cartesian3[];
+    static getMinMaxBbox(coordinates: Coordinate[]): {
+        lngMin: number;
+        lngMax: number;
+        latMin: number;
+        latMax: number;
+    };
     clone(): Coordinate;
     toCartesian3(): Cesium.Cartesian3;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;

@@ -5,6 +5,7 @@ import { Annotation } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
 import PolylineAnnotation, { PolylineInitOptions } from './subtypes/polyline';
 import PolygonAnnotation, { PolygonInitOptions } from './subtypes/polygon';
+import RectangleAnnotation, { RectangleInitOptions } from './subtypes/rectangle';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -21,4 +22,5 @@ export declare class Registry {
     addPoint(options: PointInitOptions): PointAnnotation;
     addPolyline(options: PolylineInitOptions): PolylineAnnotation;
     addPolygon(options: PolygonInitOptions): PolygonAnnotation;
+    addRectangle(options: RectangleInitOptions): RectangleAnnotation;
 }

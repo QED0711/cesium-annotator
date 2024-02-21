@@ -33,6 +33,21 @@ export class Coordinate {
         return coordinates.map(c => c.toCartesian3());
     }
 
+    static getMinMaxBbox(coordinates: Coordinate[]) {
+        let lngMin = Infinity, 
+            lngMax = -Infinity, 
+            latMin = Infinity, 
+            latMax = -Infinity;
+        for ( let coordinate of coordinates) {
+            if(coordinate.lng < lngMin) lngMin = coordinate.lng;
+            if(coordinate.lng > lngMax) lngMax = coordinate.lng;
+            if(coordinate.lat < latMin) latMin = coordinate.lat;
+            if(coordinate.lat > latMax) latMax = coordinate.lat;
+        }
+
+        return {lngMin, lngMax, latMin, latMax};
+    }
+
     clone(): Coordinate {
         const coordinate = new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
         coordinate.id = this.id;
@@ -276,6 +291,11 @@ export class Annotation {
                     this.clearRedoHistory();
                     break;
                 case AnnotationType.POLYGON:
+                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+                    this.appendCoordinate(coordinate);
+                    this.clearRedoHistory();
+                    break;
+                case AnnotationType.RECTANGLE:
                     this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
                     this.appendCoordinate(coordinate);
                     this.clearRedoHistory();
