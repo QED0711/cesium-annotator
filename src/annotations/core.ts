@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
 import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord } from '../utils/types';
 import { Registry } from './registry';
@@ -34,18 +35,18 @@ export class Coordinate {
     }
 
     static getMinMaxBbox(coordinates: Coordinate[]) {
-        let lngMin = Infinity, 
-            lngMax = -Infinity, 
-            latMin = Infinity, 
+        let lngMin = Infinity,
+            lngMax = -Infinity,
+            latMin = Infinity,
             latMax = -Infinity;
-        for ( let coordinate of coordinates) {
-            if(coordinate.lng < lngMin) lngMin = coordinate.lng;
-            if(coordinate.lng > lngMax) lngMax = coordinate.lng;
-            if(coordinate.lat < latMin) latMin = coordinate.lat;
-            if(coordinate.lat > latMax) latMax = coordinate.lat;
+        for (let coordinate of coordinates) {
+            if (coordinate.lng < lngMin) lngMin = coordinate.lng;
+            if (coordinate.lng > lngMax) lngMax = coordinate.lng;
+            if (coordinate.lat < latMin) latMin = coordinate.lat;
+            if (coordinate.lat > latMax) latMax = coordinate.lat;
         }
 
-        return {lngMin, lngMax, latMin, latMax};
+        return { lngMin, lngMax, latMin, latMax };
     }
 
     clone(): Coordinate {
@@ -87,6 +88,26 @@ export class Coordinate {
 
         heading += heading < 0 ? 260 : 0;
         return heading
+    }
+
+    atHeadingDistance(heading: number, distance: number, distanceUnit: DistanceUnit = DistanceUnit.METERS): Coordinate {
+        
+        // Convert distance to meters
+        switch(distanceUnit) {
+            case DistanceUnit.KILOMETERS:
+                distance /= 1000;
+                break;
+            case DistanceUnit.FEET:
+                distance *= 3.281;
+                break;
+            case DistanceUnit.MILES:
+                distance /= 1609;
+                break;
+        }
+
+        const ruler = new CheapRuler(this.lat, "meters");
+        const point = ruler.destination([this.lng, this.lat], distance, heading)
+        return new Coordinate({lng: point[0], lat: point[1], alt: this.alt})
     }
 
 
@@ -207,13 +228,13 @@ export class Annotation {
     }
 
     showHandles(): void {
-        for(let handle of Object.values(this.handles)) {
+        for (let handle of Object.values(this.handles)) {
             handle.show = true;
         }
     }
-    
+
     hideHandles(): void {
-        for(let handle of Object.values(this.handles)) {
+        for (let handle of Object.values(this.handles)) {
             handle.show = false;
         }
     }
@@ -300,6 +321,11 @@ export class Annotation {
                     this.appendCoordinate(coordinate);
                     this.clearRedoHistory();
                     break;
+                case AnnotationType.RING:
+                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+                    this.appendCoordinate(coordinate);
+                    this.clearRedoHistory();
+                    break;
                 default:
                     return;
             }
@@ -350,11 +376,11 @@ export class Annotation {
     }
 
     updateHandleIdxs(): void {
-        for(let i = 0; i < this.points.length; i++) {
+        for (let i = 0; i < this.points.length; i++) {
             const handle = this.handles[this.points[i].id];
             handle._handleIdx = i;
         }
-    }    
+    }
 
     removeStaleHandles(): void {
         const pointIDs: { [coordinateID: string]: boolean } = {};

@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
 import { DistanceUnit, AnnotationType } from '../utils/types';
 /*
@@ -66,6 +67,23 @@ export class Coordinate {
         let heading = Cesium.Math.toDegrees(geodesic.startHeading);
         heading += heading < 0 ? 260 : 0;
         return heading;
+    }
+    atHeadingDistance(heading, distance, distanceUnit = DistanceUnit.METERS) {
+        // Convert distance to meters
+        switch (distanceUnit) {
+            case DistanceUnit.KILOMETERS:
+                distance /= 1000;
+                break;
+            case DistanceUnit.FEET:
+                distance *= 3.281;
+                break;
+            case DistanceUnit.MILES:
+                distance /= 1609;
+                break;
+        }
+        const ruler = new CheapRuler(this.lat, "meters");
+        const point = ruler.destination([this.lng, this.lat], distance, heading);
+        return new Coordinate({ lng: point[0], lat: point[1], alt: this.alt });
     }
 }
 /*
@@ -226,6 +244,11 @@ export class Annotation {
                     this.clearRedoHistory();
                     break;
                 case AnnotationType.RECTANGLE:
+                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+                    this.appendCoordinate(coordinate);
+                    this.clearRedoHistory();
+                    break;
+                case AnnotationType.RING:
                     this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
                     this.appendCoordinate(coordinate);
                     this.clearRedoHistory();

@@ -7,6 +7,7 @@ import PolylineAnnotation, {PolylineInitOptions} from './subtypes/polyline';
 
 import PolygonAnnotation, { PolygonInitOptions } from './subtypes/polygon';
 import RectangleAnnotation, { RectangleInitOptions } from './subtypes/rectangle';
+import RingAnnotation, { RingInitOptions } from './subtypes/ring';
 
 
 
@@ -73,6 +74,14 @@ export class Registry {
         this.annotations.push(annotation);
         return annotation;
     }
+
+    addRing(options: RingInitOptions): RingAnnotation {
+        const annotation = new RingAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
+    }
+
+
 }
 
 

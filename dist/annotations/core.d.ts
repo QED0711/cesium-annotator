@@ -21,6 +21,7 @@ export declare class Coordinate {
     toCartesian3(): Cesium.Cartesian3;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
     headingTo(point2: Coordinate): number;
+    atHeadingDistance(heading: number, distance: number, distanceUnit?: DistanceUnit): Coordinate;
 }
 export declare class Annotation {
     protected registry: Registry;

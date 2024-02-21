@@ -3,6 +3,7 @@ import PointAnnotation from './subtypes/point';
 import PolylineAnnotation from './subtypes/polyline';
 import PolygonAnnotation from './subtypes/polygon';
 import RectangleAnnotation from './subtypes/rectangle';
+import RingAnnotation from './subtypes/ring';
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -49,6 +50,11 @@ export class Registry {
     }
     addRectangle(options) {
         const annotation = new RectangleAnnotation(this, options);
+        this.annotations.push(annotation);
+        return annotation;
+    }
+    addRing(options) {
+        const annotation = new RingAnnotation(this, options);
         this.annotations.push(annotation);
         return annotation;
     }
