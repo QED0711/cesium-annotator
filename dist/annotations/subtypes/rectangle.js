@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationType } from "../../utils/types";
+import { AnnotationType, DistanceUnit } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 export default class Rectangle extends Annotation {
     constructor(registry, options) {
@@ -101,6 +101,24 @@ export default class Rectangle extends Annotation {
         }
         this.updateHandleIdxs();
         this.removeStaleHandles();
+    }
+    getPerimeter(unit = DistanceUnit.METERS) {
+        const bbox = Coordinate.getMinMaxBbox(this.points);
+        const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
+        const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
+        const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
+        const width = bl.distanceTo(br, unit);
+        const height = bl.distanceTo(tl, unit);
+        return (width * 2) + (height * 2);
+    }
+    getArea(unit = DistanceUnit.METERS) {
+        const bbox = Coordinate.getMinMaxBbox(this.points);
+        const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
+        const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
+        const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
+        const width = bl.distanceTo(br, unit);
+        const height = bl.distanceTo(tl, unit);
+        return width * height;
     }
 }
 //# sourceMappingURL=rectangle.js.map

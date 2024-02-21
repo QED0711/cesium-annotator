@@ -12,6 +12,7 @@ export class Coordinate {
         this.lng = init.lng;
         this.lat = init.lat;
         this.alt = (_a = init.alt) !== null && _a !== void 0 ? _a : 0.0;
+        this.ruler = new CheapRuler(this.lat, "meters");
     }
     static fromDegrees(lng, lat, alt) {
         return new this({ lng, lat, alt });
@@ -46,9 +47,10 @@ export class Coordinate {
     }
     distanceTo(point2, unit) {
         unit !== null && unit !== void 0 ? unit : (unit = DistanceUnit.METERS);
-        const p1Cartesian = this.toCartesian3();
-        const p2Cartesian = point2.toCartesian3();
-        const distance = Cesium.Cartesian3.distance(p1Cartesian, p2Cartesian);
+        // const p1Cartesian: Cesium.Cartesian3 = this.toCartesian3();
+        // const p2Cartesian: Cesium.Cartesian3 = point2.toCartesian3();
+        // const distance = Cesium.Cartesian3.distance(p1Cartesian, p2Cartesian);
+        const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
         switch (unit) {
             case DistanceUnit.METERS:
                 return distance;
@@ -61,12 +63,13 @@ export class Coordinate {
         }
     }
     headingTo(point2) {
-        const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
-        const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
-        const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
-        let heading = Cesium.Math.toDegrees(geodesic.startHeading);
-        heading += heading < 0 ? 260 : 0;
-        return heading;
+        return this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
+        // const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
+        // const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
+        // const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
+        // let heading = Cesium.Math.toDegrees(geodesic.startHeading);
+        // heading += heading < 0 ? 260 : 0;
+        // return heading
     }
     atHeadingDistance(heading, distance, distanceUnit = DistanceUnit.METERS) {
         // Convert distance to meters
@@ -81,8 +84,8 @@ export class Coordinate {
                 distance /= 1609;
                 break;
         }
-        const ruler = new CheapRuler(this.lat, "meters");
-        const point = ruler.destination([this.lng, this.lat], distance, heading);
+        // const ruler = new CheapRuler(this.lat, "meters");
+        const point = this.ruler.destination([this.lng, this.lat], distance, heading);
         return new Coordinate({ lng: point[0], lat: point[1], alt: this.alt });
     }
 }

@@ -132,5 +132,30 @@ export default class Rectangle extends Annotation {
         this.updateHandleIdxs();
         this.removeStaleHandles();
     }
+
+    getPerimeter(unit: DistanceUnit = DistanceUnit.METERS): number | null {
+        const bbox = Coordinate.getMinMaxBbox(this.points);
+        const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
+        const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
+        const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
+
+        const width = bl.distanceTo(br, unit);
+        const height = bl.distanceTo(tl, unit);
+
+        return (width * 2) + (height * 2);
+    }
+
+    getArea(unit: DistanceUnit = DistanceUnit.METERS): number {
+        const bbox = Coordinate.getMinMaxBbox(this.points);
+        const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
+        const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
+        const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
+
+        const width = bl.distanceTo(br, unit);
+        const height = bl.distanceTo(tl, unit);
+
+        return width * height;
+    }
+
 }
 

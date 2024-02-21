@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium';
+import CheapRuler from 'cheap-ruler';
 import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord } from '../utils/types';
 import { Registry } from './registry';
 import { ViewerInterface } from './viewerInterface';
@@ -7,6 +8,7 @@ export declare class Coordinate {
     lng: number;
     lat: number;
     alt?: number;
+    ruler: CheapRuler;
     constructor(init: CoordinateInit);
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate;
     static cloneCoordinateArray(coordinates: Coordinate[]): Coordinate[];

@@ -14,12 +14,14 @@ export class Coordinate {
     lng: number;
     lat: number;
     alt?: number;
+    ruler: CheapRuler
 
     constructor(init: CoordinateInit) {
         this.id = nanoid();
         this.lng = init.lng;
         this.lat = init.lat;
         this.alt = init.alt ?? 0.0;
+        this.ruler = new CheapRuler(this.lat, "meters");
     }
 
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate {
@@ -45,7 +47,6 @@ export class Coordinate {
             if (coordinate.lat < latMin) latMin = coordinate.lat;
             if (coordinate.lat > latMax) latMax = coordinate.lat;
         }
-
         return { lngMin, lngMax, latMin, latMax };
     }
 
@@ -61,10 +62,12 @@ export class Coordinate {
 
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number {
         unit ??= DistanceUnit.METERS;
-        const p1Cartesian: Cesium.Cartesian3 = this.toCartesian3();
-        const p2Cartesian: Cesium.Cartesian3 = point2.toCartesian3();
+        // const p1Cartesian: Cesium.Cartesian3 = this.toCartesian3();
+        // const p2Cartesian: Cesium.Cartesian3 = point2.toCartesian3();
 
-        const distance = Cesium.Cartesian3.distance(p1Cartesian, p2Cartesian);
+        // const distance = Cesium.Cartesian3.distance(p1Cartesian, p2Cartesian);
+
+        const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
 
         switch (unit) {
             case DistanceUnit.METERS:
@@ -79,15 +82,16 @@ export class Coordinate {
     }
 
     headingTo(point2: Coordinate): number {
-        const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
-        const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
+        return this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
+        // const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
+        // const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
 
-        const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
+        // const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
 
-        let heading = Cesium.Math.toDegrees(geodesic.startHeading);
+        // let heading = Cesium.Math.toDegrees(geodesic.startHeading);
 
-        heading += heading < 0 ? 260 : 0;
-        return heading
+        // heading += heading < 0 ? 260 : 0;
+        // return heading
     }
 
     atHeadingDistance(heading: number, distance: number, distanceUnit: DistanceUnit = DistanceUnit.METERS): Coordinate {
@@ -105,8 +109,8 @@ export class Coordinate {
                 break;
         }
 
-        const ruler = new CheapRuler(this.lat, "meters");
-        const point = ruler.destination([this.lng, this.lat], distance, heading)
+        // const ruler = new CheapRuler(this.lat, "meters");
+        const point = this.ruler.destination([this.lng, this.lat], distance, heading)
         return new Coordinate({lng: point[0], lat: point[1], alt: this.alt})
     }
 

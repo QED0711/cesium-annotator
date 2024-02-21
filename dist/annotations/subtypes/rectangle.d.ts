@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit } from "../../utils/types";
+import { AnnotationBaseInit, DistanceUnit } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 import { Registry } from '../registry';
 export type RectangleInitOptions = AnnotationBaseInit & {
@@ -15,4 +15,6 @@ export default class Rectangle extends Annotation {
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
     syncHandles(): void;
+    getPerimeter(unit?: DistanceUnit): number | null;
+    getArea(unit?: DistanceUnit): number;
 }
