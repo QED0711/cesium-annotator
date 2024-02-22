@@ -18,7 +18,7 @@ export default class PointAnnotation extends Annotation {
             this.removeEntity();
             if (this.points.length === 0)
                 return;
-            const position = this.points[0].toCartesian3();
+            const position = this.points[0].cartesian3;
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position,
@@ -29,8 +29,8 @@ export default class PointAnnotation extends Annotation {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position: new Cesium.CallbackProperty(() => {
-                    var _a, _b;
-                    return (_b = (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.toCartesian3) === null || _b === void 0 ? void 0 : _b.call(_a);
+                    var _a;
+                    return (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.cartesian3;
                 }, false),
                 point: Object.assign({ pixelSize: 10 }, this.entityProperties)
             });
@@ -42,5 +42,8 @@ export default class PointAnnotation extends Annotation {
         this.entity = entity;
         this.emit("update", { annotation: this });
     }
+    // OVERRIDES
+    syncHandles() { }
+    insertCoordinateAtIndex(coordinate, idx) { }
 }
 //# sourceMappingURL=point.js.map

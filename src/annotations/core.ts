@@ -14,6 +14,7 @@ export class Coordinate {
     lng: number;
     lat: number;
     alt?: number;
+    cartesian3: Cesium.Cartesian3;    
     ruler: CheapRuler
 
     constructor(init: CoordinateInit) {
@@ -21,6 +22,7 @@ export class Coordinate {
         this.lng = init.lng;
         this.lat = init.lat;
         this.alt = init.alt ?? 0.0;
+        this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
         this.ruler = new CheapRuler(this.lat, "meters");
     }
 
@@ -33,7 +35,7 @@ export class Coordinate {
     }
 
     static coordinateArrayToCartesian3(coordinates: Coordinate[]): Cesium.Cartesian3[] {
-        return coordinates.map(c => c.toCartesian3());
+        return coordinates.map(c => c.cartesian3);
     }
 
     static getMinMaxBbox(coordinates: Coordinate[]) {
@@ -56,19 +58,21 @@ export class Coordinate {
         return coordinate;
     }
 
-    toCartesian3(): Cesium.Cartesian3 {
-        return Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
-    }
+    update(values: {lat?: number, lng?: number, alt?: number}) {
+        if(values.lat !== undefined) {
+            this.lat = values.lat;
+            this.ruler = new CheapRuler(this.lat, "meters");
+        }
+        this.lng = values.lng ?? this.lng;
+        this.alt = values.alt ?? this.alt;
+
+        this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
+    }    
 
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number {
-        unit ??= DistanceUnit.METERS;
-        // const p1Cartesian: Cesium.Cartesian3 = this.toCartesian3();
-        // const p2Cartesian: Cesium.Cartesian3 = point2.toCartesian3();
-
-        // const distance = Cesium.Cartesian3.distance(p1Cartesian, p2Cartesian);
-
         const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
-
+        
+        unit ??= DistanceUnit.METERS;
         switch (unit) {
             case DistanceUnit.METERS:
                 return distance;
@@ -82,16 +86,8 @@ export class Coordinate {
     }
 
     headingTo(point2: Coordinate): number {
-        return this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
-        // const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
-        // const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
-
-        // const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
-
-        // let heading = Cesium.Math.toDegrees(geodesic.startHeading);
-
-        // heading += heading < 0 ? 260 : 0;
-        // return heading
+        const heading =  this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
+        return heading > 0 ? heading : 360 + heading;
     }
 
     atHeadingDistance(heading: number, distance: number, distanceUnit: DistanceUnit = DistanceUnit.METERS): Coordinate {
@@ -109,11 +105,22 @@ export class Coordinate {
                 break;
         }
 
-        // const ruler = new CheapRuler(this.lat, "meters");
         const point = this.ruler.destination([this.lng, this.lat], distance, heading)
         return new Coordinate({lng: point[0], lat: point[1], alt: this.alt})
     }
 
+    segmentDistance(point2: Coordinate, segments: number): Coordinate[] {
+        const dist = this.distanceTo(point2);
+        const heading = this.headingTo(point2);
+
+        let coords: Coordinate[] = []
+        const segDist = dist / segments;
+        for(let i = 1; i < segments; i++) {
+            coords.push(this.atHeadingDistance(heading, segDist * i));
+        }
+
+        return coords;
+    }
 
 }
 
@@ -140,6 +147,7 @@ export class Annotation {
     protected redoHistory: Coordinate[][];
     // protected handleIdxFound: number | null;
     protected handleFound: HandleFoundRecord | null
+    protected bypassPointerUp: boolean
 
     protected pointerDownDetected: boolean;
     protected dragDetected: boolean;
@@ -165,6 +173,7 @@ export class Annotation {
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
+        this.bypassPointerUp = false;
         this.pointerDownDetected = false
         this.dragDetected = false
         this.preDragHistoricalRecord = null
@@ -280,6 +289,11 @@ export class Annotation {
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
 
+        if(this.bypassPointerUp) {
+            this.bypassPointerUp = false;
+            return;
+        }
+
         if (this.viewerInterface.longPressComplete) {
             this.handleFound = null;
             return;
@@ -304,35 +318,10 @@ export class Annotation {
         // ADD NEW POINT
         const coordinate = this.viewerInterface.getCoordinateAtPixel();
         if (coordinate) {
-            switch (this.annotationType) {
-                case AnnotationType.POINT:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.POLYLINE:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.POLYGON:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.RECTANGLE:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.RING:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                default:
-                    return;
-            }
+
+            this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+            this.appendCoordinate(coordinate);
+            this.clearRedoHistory();
 
             this.draw();
             this.syncHandles();
@@ -400,9 +389,45 @@ export class Annotation {
         }
     }
 
+    syncHandles(): void {
+        if(this.isActive) {
+            for(let i = 0; i < this.points.length; i++) {
+                const point = this.points[i];
+                if(point.id in this.handles) continue;
+
+                const handle = this.viewerInterface.viewer.entities.add({
+                    position: point.cartesian3,
+                    point: {
+                        pixelSize: 10,
+                    }
+                }) as AnnotationEntity
+
+                handle._annotation = this;
+                handle._isHandle = true;
+                handle._handleCoordinateID = point.id
+                handle._handleIdx = i;
+
+                this.handles[point.id] = handle;
+            }
+        }
+
+        this.updateHandleIdxs();
+        this.removeStaleHandles();
+    }
+
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number) {
+        this.recordPointsToUndoHistory();
+        this.points = [...this.points]
+        this.points.splice(idx, 0, coordinate)
+        this.clearRedoHistory();
+
+        this.draw();
+        this.syncHandles();
+
+    }
+
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate: Coordinate) { }
     draw() { }
-    syncHandles() { }
 }
 

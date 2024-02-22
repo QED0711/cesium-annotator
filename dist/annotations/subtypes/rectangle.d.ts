@@ -17,4 +17,5 @@ export default class Rectangle extends Annotation {
     syncHandles(): void;
     getPerimeter(unit?: DistanceUnit): number | null;
     getArea(unit?: DistanceUnit): number;
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
 }

@@ -108,29 +108,7 @@ export default class Rectangle extends Annotation {
     }
 
     syncHandles(): void {
-        if (this.isActive) {
-            for (let i = 0; i < this.points.length; i++) {
-                const point = this.points[i];
-                if (point.id in this.handles) continue;
-
-                const handle = this.viewerInterface.viewer.entities.add({
-                    position: point.toCartesian3(),
-                    point: {
-                        pixelSize: 10,
-                    }
-                }) as AnnotationEntity
-
-                handle._annotation = this;
-                handle._isHandle = true;
-                handle._handleCoordinateID = point.id
-                handle._handleIdx = i;
-
-                this.handles[point.id] = handle;
-            }
-        }
-
-        this.updateHandleIdxs();
-        this.removeStaleHandles();
+        super.syncHandles();
     }
 
     getPerimeter(unit: DistanceUnit = DistanceUnit.METERS): number | null {
@@ -156,6 +134,9 @@ export default class Rectangle extends Annotation {
 
         return width * height;
     }
+
+    // OVERRIDES
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void {}
 
 }
 

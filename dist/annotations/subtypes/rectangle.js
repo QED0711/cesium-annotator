@@ -81,26 +81,7 @@ export default class Rectangle extends Annotation {
         this.emit("update", { annotation: this });
     }
     syncHandles() {
-        if (this.isActive) {
-            for (let i = 0; i < this.points.length; i++) {
-                const point = this.points[i];
-                if (point.id in this.handles)
-                    continue;
-                const handle = this.viewerInterface.viewer.entities.add({
-                    position: point.toCartesian3(),
-                    point: {
-                        pixelSize: 10,
-                    }
-                });
-                handle._annotation = this;
-                handle._isHandle = true;
-                handle._handleCoordinateID = point.id;
-                handle._handleIdx = i;
-                this.handles[point.id] = handle;
-            }
-        }
-        this.updateHandleIdxs();
-        this.removeStaleHandles();
+        super.syncHandles();
     }
     getPerimeter(unit = DistanceUnit.METERS) {
         const bbox = Coordinate.getMinMaxBbox(this.points);
@@ -120,5 +101,7 @@ export default class Rectangle extends Annotation {
         const height = bl.distanceTo(tl, unit);
         return width * height;
     }
+    // OVERRIDES
+    insertCoordinateAtIndex(coordinate, idx) { }
 }
 //# sourceMappingURL=rectangle.js.map

@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 import { Registry } from '../registry';
 
@@ -8,6 +8,7 @@ export type PolygonInitOptions = AnnotationBaseInit & {
     entityProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions,
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
     drawAsLine?: boolean
+    midpointMarkers?: boolean,
 }
 
 export default class Polygon extends Annotation {
@@ -15,6 +16,8 @@ export default class Polygon extends Annotation {
     drawAsLine: boolean;
     entityProperties: Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    private midpointMarkers: boolean;
+    private midPointHandles: Cesium.Entity[];
 
     constructor(registry: Registry, options: PolygonInitOptions) {
         super(registry, options);
@@ -24,6 +27,9 @@ export default class Polygon extends Annotation {
         this.handleProperties = options.handleProperties ?? {};
 
         this.drawAsLine = options.drawAsLine ?? false;
+
+        this.midpointMarkers = options.midpointMarkers ?? true;
+        this.midPointHandles = [];
     }
 
     appendCoordinate(coordinate: Coordinate): void {
@@ -88,30 +94,59 @@ export default class Polygon extends Annotation {
         this.emit("update", { annotation: this });
     }
 
+    handlePointerDown(e: PointerEvent): void {
+        super.handlePointerDown(e); 
+        const existingEntity = this.viewerInterface.queryEntityAtPixel() as MidPointHandleEntity | null;
+        if(existingEntity?._isMidpointHandle) {
+            this.insertCoordinateAtIndex(existingEntity._coordinate, existingEntity._idxBookends[1])
+            this.bypassPointerUp = true;
+        }
+    }
+
     syncHandles(): void {
-        if (this.isActive) {
+        super.syncHandles();
+
+        if(!this.midpointMarkers) return;
+
+        for(let mph of this.midPointHandles) {
+            this.viewerInterface.viewer.entities.remove(mph);
+        }
+        this.midPointHandles = [];
+        if (this.points.length >= 3) {
             for (let i = 0; i < this.points.length; i++) {
-                const point = this.points[i];
-                if (point.id in this.handles) continue;
+                const point = this.points[i]
+                const nextPoint = i === this.points.length - 1 ? this.points[0] : this.points[i+1]
+                const midPoint = point.segmentDistance(nextPoint, 2)[0] as Coordinate;
 
-                const handle = this.viewerInterface.viewer.entities.add({
-                    position: point.toCartesian3(),
+                const mpHandle = this.viewerInterface.viewer.entities.add({
+                    position: midPoint.cartesian3,
                     point: {
-                        pixelSize: 10,
-                    }
-                }) as AnnotationEntity
+                        pixelSize: 5,
+                        color: Cesium.Color.BLUE, 
+                    } as Cesium.PointGraphics.ConstructorOptions
+                }) as MidPointHandleEntity;
 
-                handle._annotation = this;
-                handle._isHandle = true;
-                handle._handleCoordinateID = point.id
-                handle._handleIdx = i;
-
-                this.handles[point.id] = handle;
+                mpHandle._isMidpointHandle = true;
+                mpHandle._annotation = this;
+                mpHandle._coordinate = midPoint;
+                mpHandle._idxBookends = [i, i + 1];
+                this.midPointHandles.push(mpHandle)
             }
         }
+    }
 
-        this.updateHandleIdxs();
-        this.removeStaleHandles();
+    hideHandles(): void {
+        super.hideHandles();
+        for (let handle of Object.values(this.midPointHandles)) {
+            handle.show = false;
+        }
+    }
+
+    showHandles(): void {
+        super.showHandles();
+        for (let handle of Object.values(this.midPointHandles)) {
+            handle.show = true;
+        }
     }
 
 }

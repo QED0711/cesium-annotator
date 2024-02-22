@@ -20,4 +20,5 @@ export default class Ring extends Annotation {
     draw(): void;
     syncHandles(): void;
     getArea(): number | null;
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
 }

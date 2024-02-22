@@ -12,6 +12,7 @@ export class Coordinate {
         this.lng = init.lng;
         this.lat = init.lat;
         this.alt = (_a = init.alt) !== null && _a !== void 0 ? _a : 0.0;
+        this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
         this.ruler = new CheapRuler(this.lat, "meters");
     }
     static fromDegrees(lng, lat, alt) {
@@ -21,7 +22,7 @@ export class Coordinate {
         return coordinates.map(c => c.clone());
     }
     static coordinateArrayToCartesian3(coordinates) {
-        return coordinates.map(c => c.toCartesian3());
+        return coordinates.map(c => c.cartesian3);
     }
     static getMinMaxBbox(coordinates) {
         let lngMin = Infinity, lngMax = -Infinity, latMin = Infinity, latMax = -Infinity;
@@ -42,15 +43,19 @@ export class Coordinate {
         coordinate.id = this.id;
         return coordinate;
     }
-    toCartesian3() {
-        return Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
+    update(values) {
+        var _a, _b;
+        if (values.lat !== undefined) {
+            this.lat = values.lat;
+            this.ruler = new CheapRuler(this.lat, "meters");
+        }
+        this.lng = (_a = values.lng) !== null && _a !== void 0 ? _a : this.lng;
+        this.alt = (_b = values.alt) !== null && _b !== void 0 ? _b : this.alt;
+        this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
     }
     distanceTo(point2, unit) {
-        unit !== null && unit !== void 0 ? unit : (unit = DistanceUnit.METERS);
-        // const p1Cartesian: Cesium.Cartesian3 = this.toCartesian3();
-        // const p2Cartesian: Cesium.Cartesian3 = point2.toCartesian3();
-        // const distance = Cesium.Cartesian3.distance(p1Cartesian, p2Cartesian);
         const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
+        unit !== null && unit !== void 0 ? unit : (unit = DistanceUnit.METERS);
         switch (unit) {
             case DistanceUnit.METERS:
                 return distance;
@@ -63,13 +68,8 @@ export class Coordinate {
         }
     }
     headingTo(point2) {
-        return this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
-        // const cartographic1 = Cesium.Cartographic.fromDegrees(this.lng, this.lat, this.alt);
-        // const cartographic2 = Cesium.Cartographic.fromDegrees(point2.lng, point2.lat, point2.alt);
-        // const geodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2);
-        // let heading = Cesium.Math.toDegrees(geodesic.startHeading);
-        // heading += heading < 0 ? 260 : 0;
-        // return heading
+        const heading = this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
+        return heading > 0 ? heading : 360 + heading;
     }
     atHeadingDistance(heading, distance, distanceUnit = DistanceUnit.METERS) {
         // Convert distance to meters
@@ -84,9 +84,18 @@ export class Coordinate {
                 distance /= 1609;
                 break;
         }
-        // const ruler = new CheapRuler(this.lat, "meters");
         const point = this.ruler.destination([this.lng, this.lat], distance, heading);
         return new Coordinate({ lng: point[0], lat: point[1], alt: this.alt });
+    }
+    segmentDistance(point2, segments) {
+        const dist = this.distanceTo(point2);
+        const heading = this.headingTo(point2);
+        let coords = [];
+        const segDist = dist / segments;
+        for (let i = 1; i < segments; i++) {
+            coords.push(this.atHeadingDistance(heading, segDist * i));
+        }
+        return coords;
     }
 }
 /*
@@ -109,6 +118,7 @@ export class Annotation {
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
+        this.bypassPointerUp = false;
         this.pointerDownDetected = false;
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
@@ -207,6 +217,10 @@ export class Annotation {
     handlePointerUp(e) {
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
+        if (this.bypassPointerUp) {
+            this.bypassPointerUp = false;
+            return;
+        }
         if (this.viewerInterface.longPressComplete) {
             this.handleFound = null;
             return;
@@ -230,35 +244,9 @@ export class Annotation {
         // ADD NEW POINT
         const coordinate = this.viewerInterface.getCoordinateAtPixel();
         if (coordinate) {
-            switch (this.annotationType) {
-                case AnnotationType.POINT:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.POLYLINE:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.POLYGON:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.RECTANGLE:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                case AnnotationType.RING:
-                    this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-                    this.appendCoordinate(coordinate);
-                    this.clearRedoHistory();
-                    break;
-                default:
-                    return;
-            }
+            this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+            this.appendCoordinate(coordinate);
+            this.clearRedoHistory();
             this.draw();
             this.syncHandles();
         }
@@ -317,9 +305,38 @@ export class Annotation {
             }
         }
     }
+    syncHandles() {
+        if (this.isActive) {
+            for (let i = 0; i < this.points.length; i++) {
+                const point = this.points[i];
+                if (point.id in this.handles)
+                    continue;
+                const handle = this.viewerInterface.viewer.entities.add({
+                    position: point.cartesian3,
+                    point: {
+                        pixelSize: 10,
+                    }
+                });
+                handle._annotation = this;
+                handle._isHandle = true;
+                handle._handleCoordinateID = point.id;
+                handle._handleIdx = i;
+                this.handles[point.id] = handle;
+            }
+        }
+        this.updateHandleIdxs();
+        this.removeStaleHandles();
+    }
+    insertCoordinateAtIndex(coordinate, idx) {
+        this.recordPointsToUndoHistory();
+        this.points = [...this.points];
+        this.points.splice(idx, 0, coordinate);
+        this.clearRedoHistory();
+        this.draw();
+        this.syncHandles();
+    }
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate) { }
     draw() { }
-    syncHandles() { }
 }
 //# sourceMappingURL=core.js.map

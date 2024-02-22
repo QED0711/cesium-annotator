@@ -3,11 +3,13 @@ import { AnnotationType, DistanceUnit } from "../../utils/types";
 import { Annotation, Coordinate } from "../core";
 export default class Polyline extends Annotation {
     constructor(registry, options) {
-        var _a, _b;
+        var _a, _b, _c;
         super(registry, options);
         this.annotationType = AnnotationType.POLYLINE;
         this.entityProperties = (_a = options.entityProperties) !== null && _a !== void 0 ? _a : {};
         this.handleProperties = (_b = options.handleProperties) !== null && _b !== void 0 ? _b : {};
+        this.midpointMarkers = (_c = options.midpointMarkers) !== null && _c !== void 0 ? _c : true,
+            this.midPointHandles = [];
     }
     appendCoordinate(coordinate) {
         this.points.push(coordinate);
@@ -36,27 +38,52 @@ export default class Polyline extends Annotation {
         }
         this.emit("update", { annotation: this });
     }
+    handlePointerDown(e) {
+        super.handlePointerDown(e);
+        const existingEntity = this.viewerInterface.queryEntityAtPixel();
+        if (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isMidpointHandle) {
+            this.insertCoordinateAtIndex(existingEntity._coordinate, existingEntity._idxBookends[1]);
+            this.bypassPointerUp = true;
+        }
+    }
     syncHandles() {
-        if (this.isActive) {
-            for (let i = 0; i < this.points.length; i++) {
+        super.syncHandles();
+        if (!this.midpointMarkers)
+            return;
+        for (let mph of this.midPointHandles) {
+            this.viewerInterface.viewer.entities.remove(mph);
+        }
+        this.midPointHandles = [];
+        if (this.points.length >= 2) {
+            for (let i = 0; i < this.points.length - 1; i++) {
                 const point = this.points[i];
-                if (point.id in this.handles)
-                    continue;
-                const handle = this.viewerInterface.viewer.entities.add({
-                    position: point.toCartesian3(),
+                const midPoint = point.segmentDistance(this.points[i + 1], 2)[0];
+                const mpHandle = this.viewerInterface.viewer.entities.add({
+                    position: midPoint.cartesian3,
                     point: {
-                        pixelSize: 10,
+                        pixelSize: 5,
+                        color: Cesium.Color.BLUE,
                     }
                 });
-                handle._annotation = this;
-                handle._isHandle = true;
-                handle._handleCoordinateID = point.id;
-                handle._handleIdx = i;
-                this.handles[point.id] = handle;
+                mpHandle._isMidpointHandle = true;
+                mpHandle._annotation = this;
+                mpHandle._coordinate = midPoint;
+                mpHandle._idxBookends = [i, i + 1];
+                this.midPointHandles.push(mpHandle);
             }
         }
-        this.updateHandleIdxs();
-        this.removeStaleHandles();
+    }
+    hideHandles() {
+        super.hideHandles();
+        for (let handle of Object.values(this.midPointHandles)) {
+            handle.show = false;
+        }
+    }
+    showHandles() {
+        super.showHandles();
+        for (let handle of Object.values(this.midPointHandles)) {
+            handle.show = true;
+        }
     }
     // SUBCLASS SPECIFIC METHODS
     getTotalDistance(unit = DistanceUnit.METERS) {

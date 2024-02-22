@@ -10,4 +10,6 @@ export default class PointAnnotation extends Annotation {
     constructor(registry: Registry, options: PointInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
+    syncHandles(): void;
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
 }

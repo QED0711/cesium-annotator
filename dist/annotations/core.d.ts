@@ -8,6 +8,7 @@ export declare class Coordinate {
     lng: number;
     lat: number;
     alt?: number;
+    cartesian3: Cesium.Cartesian3;
     ruler: CheapRuler;
     constructor(init: CoordinateInit);
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate;
@@ -20,10 +21,15 @@ export declare class Coordinate {
         latMax: number;
     };
     clone(): Coordinate;
-    toCartesian3(): Cesium.Cartesian3;
+    update(values: {
+        lat?: number;
+        lng?: number;
+        alt?: number;
+    }): void;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
     headingTo(point2: Coordinate): number;
     atHeadingDistance(heading: number, distance: number, distanceUnit?: DistanceUnit): Coordinate;
+    segmentDistance(point2: Coordinate, segments: number): Coordinate[];
 }
 export declare class Annotation {
     protected registry: Registry;
@@ -41,6 +47,7 @@ export declare class Annotation {
     protected undoHistory: Coordinate[][];
     protected redoHistory: Coordinate[][];
     protected handleFound: HandleFoundRecord | null;
+    protected bypassPointerUp: boolean;
     protected pointerDownDetected: boolean;
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: Coordinate[] | null;
@@ -75,7 +82,8 @@ export declare class Annotation {
     clearRedoHistory(): void;
     updateHandleIdxs(): void;
     removeStaleHandles(): void;
+    syncHandles(): void;
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
-    syncHandles(): void;
 }
