@@ -1,7 +1,8 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
 import { Registry } from "../registry";
+import { Coordinate } from '../coordinate';
 export type PointInitOptions = AnnotationBaseInit & {
     pointProperties?: Cesium.PointGraphics.ConstructorOptions;
     billboardProperties?: Cesium.BillboardGraphics.ConstructorOptions;

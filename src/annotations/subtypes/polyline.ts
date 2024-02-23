@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
+import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 export type PolylineInitOptions = AnnotationBaseInit & {
@@ -39,7 +40,7 @@ export default class Polyline extends Annotation {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 polyline: {
-                    positions: Coordinate.coordinateArrayToCartesian3(this.points),
+                    positions: this.points.toCartesian3Array(),
                     width: 2,
                     ...this.entityProperties
                 }
@@ -49,7 +50,7 @@ export default class Polyline extends Annotation {
                 id: this.id,
                 polyline: {
                     positions: new Cesium.CallbackProperty(() => {
-                        return Coordinate.coordinateArrayToCartesian3(this.points);
+                        return this.points.toCartesian3Array();
                     }, false),
                     width: 2,
                     ...this.entityProperties
@@ -84,8 +85,8 @@ export default class Polyline extends Annotation {
         this.midPointHandles = [];
         if (this.points.length >= 2) {
             for (let i = 0; i < this.points.length - 1; i++) {
-                const point = this.points[i]
-                const midPoint = point.segmentDistance(this.points[i+1], 2)[0] as Coordinate;
+                const point = this.points.at(i) as Coordinate;
+                const midPoint = point.segmentDistance(this.points.at(i+1) as Coordinate, 2)[0] as Coordinate;
 
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,
@@ -122,7 +123,7 @@ export default class Polyline extends Annotation {
     getTotalDistance(unit: DistanceUnit = DistanceUnit.METERS): number {
         let dist = 0;
         for (let i = 1; i < this.points.length; i++) {
-            dist += this.points[i].distanceTo(this.points[i - 1], unit);
+            dist += (this.points.at(i) as Coordinate).distanceTo(this.points.at(i - 1) as Coordinate, unit);
         }
         return dist;
     }
@@ -130,7 +131,7 @@ export default class Polyline extends Annotation {
     getDistanceSegments(unit: DistanceUnit = DistanceUnit.METERS): number[] {
         let distArr: number[] = [];
         for (let i = 1; i < this.points.length; i++) {
-            distArr.push(this.points[i].distanceTo(this.points[i - 1], unit));
+            distArr.push((this.points.at(i) as Coordinate).distanceTo(this.points.at(i - 1) as Coordinate, unit));
         }
         return distArr;
     }
@@ -138,7 +139,7 @@ export default class Polyline extends Annotation {
     getHeadingSegments(): number[] {
         const headingArr: number[] = [];
         for (let i = 1; i < this.points.length; i++) {
-            headingArr.push(this.points[i - 1].headingTo(this.points[i]));
+            headingArr.push((this.points.at(i - 1) as Coordinate).headingTo(this.points.at(i) as Coordinate));
         }
         return headingArr;
 

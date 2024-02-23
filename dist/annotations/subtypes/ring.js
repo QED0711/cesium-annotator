@@ -19,9 +19,10 @@ export default class Ring extends Annotation {
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
+                // if (coordinate) this.points[this.handleFound.index] = coordinate;
                 if (coordinate)
-                    this.points[this.handleFound.index] = coordinate;
-                this.radius = this.points[0].distanceTo(this.points[1]);
+                    this.points.set(this.handleFound.index, coordinate);
+                this.radius = this.points.at(0).distanceTo(this.points.at(1));
             }
             this.dragDetected = true;
         }
@@ -31,13 +32,14 @@ export default class Ring extends Annotation {
             this.points.push(coordinate);
         }
         else {
-            this.points[1] = coordinate;
+            this.points.set(1, coordinate);
         }
         if (this.points.length === 2) {
-            this.radius = this.points[0].distanceTo(this.points[1]);
+            this.radius = this.points.at(0).distanceTo(this.points.at(1));
         }
     }
     draw() {
+        var _a;
         if (this.points.length < 2 || this.radius === null)
             return;
         let entity = null;
@@ -48,7 +50,7 @@ export default class Ring extends Annotation {
                 const perimeterCoords = [];
                 for (let i = 0; i < this.nPoints; i++) {
                     const heading = headingFactor * i;
-                    perimeterCoords.push(this.points[0].atHeadingDistance(heading, this.radius).cartesian3);
+                    perimeterCoords.push(this.points.at(0).atHeadingDistance(heading, this.radius).cartesian3);
                 }
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
@@ -58,7 +60,7 @@ export default class Ring extends Annotation {
             else {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
-                    position: this.points[0].cartesian3,
+                    position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3,
                     ellipse: Object.assign({ semiMajorAxis: this.radius, semiMinorAxis: this.radius }, this.entityProperties)
                 });
             }
@@ -72,7 +74,7 @@ export default class Ring extends Annotation {
                             const perimeterCoords = [];
                             for (let i = 0; i < this.nPoints; i++) {
                                 const heading = headingFactor * i;
-                                perimeterCoords.push(this.points[0].atHeadingDistance(heading, this.radius).cartesian3);
+                                perimeterCoords.push(this.points.at(0).atHeadingDistance(heading, this.radius).cartesian3);
                             }
                             perimeterCoords.push(perimeterCoords[0]); // close the perimerter
                             return perimeterCoords;
@@ -83,7 +85,8 @@ export default class Ring extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
                     position: new Cesium.CallbackProperty(() => {
-                        return this.points[0].cartesian3;
+                        var _a;
+                        return (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3;
                     }, false),
                     ellipse: Object.assign({ semiMajorAxis: new Cesium.CallbackProperty(() => {
                             return this.radius;

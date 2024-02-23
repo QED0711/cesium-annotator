@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
+import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 export type RectangleInitOptions = AnnotationBaseInit & {
@@ -27,7 +28,7 @@ export default class Rectangle extends Annotation {
         if (this.points.length < 2) {
             this.points.push(coordinate);
         } else {
-            this.points[1] = coordinate;
+            this.points.set(1, coordinate);
         }
     }
 
@@ -35,7 +36,7 @@ export default class Rectangle extends Annotation {
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
             this.removeEntity();
-            const bbox = Coordinate.getMinMaxBbox(this.points);
+            const bbox = this.points.getMinMaxBbox();
             const positions = [
                 Cesium.Cartesian3.fromDegrees(bbox.lngMin, bbox.latMin),
                 Cesium.Cartesian3.fromDegrees(bbox.lngMin, bbox.latMax),
@@ -67,7 +68,7 @@ export default class Rectangle extends Annotation {
                     id: this.id,
                     polyline: {
                         positions: new Cesium.CallbackProperty(() => {
-                            const bbox = Coordinate.getMinMaxBbox(this.points);
+                            const bbox = this.points.getMinMaxBbox();
                             return [
                                 Cesium.Cartesian3.fromDegrees(bbox.lngMin, bbox.latMin),
                                 Cesium.Cartesian3.fromDegrees(bbox.lngMin, bbox.latMax),
@@ -85,8 +86,7 @@ export default class Rectangle extends Annotation {
                     id: this.id,
                     polygon: {
                         hierarchy: new Cesium.CallbackProperty(() => {
-                            const bbox = Coordinate.getMinMaxBbox(this.points);
-
+                            const bbox = this.points.getMinMaxBbox();
                             return new Cesium.PolygonHierarchy([
                                 Cesium.Cartesian3.fromDegrees(bbox.lngMin, bbox.latMin),
                                 Cesium.Cartesian3.fromDegrees(bbox.lngMin, bbox.latMax),
@@ -112,7 +112,7 @@ export default class Rectangle extends Annotation {
     }
 
     getPerimeter(unit: DistanceUnit = DistanceUnit.METERS): number | null {
-        const bbox = Coordinate.getMinMaxBbox(this.points);
+        const bbox = this.points.getMinMaxBbox();
         const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
         const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
         const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
@@ -124,7 +124,7 @@ export default class Rectangle extends Annotation {
     }
 
     getArea(unit: DistanceUnit = DistanceUnit.METERS): number {
-        const bbox = Coordinate.getMinMaxBbox(this.points);
+        const bbox = this.points.getMinMaxBbox();
         const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
         const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
         const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });

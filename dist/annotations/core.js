@@ -1,103 +1,6 @@
-import * as Cesium from 'cesium';
-import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
-import { DistanceUnit, AnnotationType, HandleType } from '../utils/types';
-/*
-    POINT CLASS
-*/
-export class Coordinate {
-    constructor(init) {
-        var _a;
-        this.id = nanoid();
-        this.lng = init.lng;
-        this.lat = init.lat;
-        this.alt = (_a = init.alt) !== null && _a !== void 0 ? _a : 0.0;
-        this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
-        this.ruler = new CheapRuler(this.lat, "meters");
-    }
-    static fromDegrees(lng, lat, alt) {
-        return new this({ lng, lat, alt });
-    }
-    static cloneCoordinateArray(coordinates) {
-        return coordinates.map(c => c.clone());
-    }
-    static coordinateArrayToCartesian3(coordinates) {
-        return coordinates.map(c => c.cartesian3);
-    }
-    static getMinMaxBbox(coordinates) {
-        let lngMin = Infinity, lngMax = -Infinity, latMin = Infinity, latMax = -Infinity;
-        for (let coordinate of coordinates) {
-            if (coordinate.lng < lngMin)
-                lngMin = coordinate.lng;
-            if (coordinate.lng > lngMax)
-                lngMax = coordinate.lng;
-            if (coordinate.lat < latMin)
-                latMin = coordinate.lat;
-            if (coordinate.lat > latMax)
-                latMax = coordinate.lat;
-        }
-        return { lngMin, lngMax, latMin, latMax };
-    }
-    clone() {
-        const coordinate = new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
-        coordinate.id = this.id;
-        return coordinate;
-    }
-    update(values) {
-        var _a, _b;
-        if (values.lat !== undefined) {
-            this.lat = values.lat;
-            this.ruler = new CheapRuler(this.lat, "meters");
-        }
-        this.lng = (_a = values.lng) !== null && _a !== void 0 ? _a : this.lng;
-        this.alt = (_b = values.alt) !== null && _b !== void 0 ? _b : this.alt;
-        this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
-    }
-    distanceTo(point2, unit) {
-        const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
-        unit !== null && unit !== void 0 ? unit : (unit = DistanceUnit.METERS);
-        switch (unit) {
-            case DistanceUnit.METERS:
-                return distance;
-            case DistanceUnit.KILOMETERS:
-                return distance / 1000;
-            case DistanceUnit.FEET:
-                return distance * 3.281;
-            case DistanceUnit.MILES:
-                return distance / 1609;
-        }
-    }
-    headingTo(point2) {
-        const heading = this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
-        return heading > 0 ? heading : 360 + heading;
-    }
-    atHeadingDistance(heading, distance, distanceUnit = DistanceUnit.METERS) {
-        // Convert distance to meters
-        switch (distanceUnit) {
-            case DistanceUnit.KILOMETERS:
-                distance /= 1000;
-                break;
-            case DistanceUnit.FEET:
-                distance *= 3.281;
-                break;
-            case DistanceUnit.MILES:
-                distance /= 1609;
-                break;
-        }
-        const point = this.ruler.destination([this.lng, this.lat], distance, heading);
-        return new Coordinate({ lng: point[0], lat: point[1], alt: this.alt });
-    }
-    segmentDistance(point2, segments) {
-        const dist = this.distanceTo(point2);
-        const heading = this.headingTo(point2);
-        let coords = [];
-        const segDist = dist / segments;
-        for (let i = 1; i < segments; i++) {
-            coords.push(this.atHeadingDistance(heading, segDist * i));
-        }
-        return coords;
-    }
-}
+import { AnnotationType, HandleType } from '../utils/types';
+import { CoordinateCollection } from './coordinate';
 /*
     ANNOTATION BASE CLASS
 */
@@ -108,7 +11,7 @@ export class Annotation {
         this.viewerInterface = registry.viewerInterface;
         this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
         this.annotationType = AnnotationType.BASE;
-        this.points = [];
+        this.points = new CoordinateCollection();
         this.undoHistory = [];
         this.redoHistory = [];
         this.liveUpdate = (_b = options.liveUpdate) !== null && _b !== void 0 ? _b : false;
@@ -199,7 +102,8 @@ export class Annotation {
         if ((existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isHandle) && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleIdx) !== undefined && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleCoordinateID)) {
             this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID };
             this.viewerInterface.lock();
-            this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
+            // this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
+            this.preDragHistoricalRecord = this.points.clone();
         }
     }
     handlePointerMove(e) {
@@ -208,8 +112,9 @@ export class Annotation {
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
+                // if (coordinate) this.points[this.handleFound.index] = coordinate;
                 if (coordinate)
-                    this.points[this.handleFound.index] = coordinate;
+                    this.points.set(this.handleFound.index, coordinate);
             }
             this.dragDetected = true;
         }
@@ -227,8 +132,9 @@ export class Annotation {
         }
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
+            // if (coordinate) this.points[this.handleFound.index] = coordinate; // update an existing point
             if (coordinate)
-                this.points[this.handleFound.index] = coordinate; // update an existing point
+                this.points.set(this.handleFound.index, coordinate); // update an existing point
             if (this.preDragHistoricalRecord)
                 this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
             this.draw();
@@ -254,13 +160,13 @@ export class Annotation {
     undo() {
         if (this.points.length > 0) {
             // store current points array in the redo history
-            this.redoHistory.push([...this.points]);
+            this.redoHistory.push(this.points.clone());
         }
         const prev = this.undoHistory.pop();
         // if there is nothing to undo, remove the entity
         if (!prev)
             this.removeEntity();
-        this.points = prev !== null && prev !== void 0 ? prev : [];
+        this.points = prev !== null && prev !== void 0 ? prev : new CoordinateCollection();
         this.draw();
         this.syncHandles();
         this.emit("undo", { annotation: this });
@@ -277,19 +183,23 @@ export class Annotation {
     }
     recordPointsToUndoHistory() {
         if (this.points.length > 0) {
-            this.undoHistory.push([...this.points]);
+            this.undoHistory.push(this.points.clone());
         }
     }
     manualAppendToUndoHistory(points) {
-        this.undoHistory.push([...points]);
+        this.undoHistory.push(points.clone());
     }
     clearRedoHistory() {
         this.redoHistory = [];
     }
     updateHandleIdxs() {
+        var _a, _b;
         for (let i = 0; i < this.points.length; i++) {
-            const handle = this.handles[this.points[i].id];
-            handle._handleIdx = i;
+            const handleID = (_b = (_a = this.points.at(i)) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : null;
+            if (handleID !== null) {
+                const handle = this.handles[handleID];
+                handle._handleIdx = i;
+            }
         }
     }
     removeStaleHandles() {
@@ -308,7 +218,9 @@ export class Annotation {
     syncHandles() {
         if (this.isActive) {
             for (let i = 0; i < this.points.length; i++) {
-                const point = this.points[i];
+                const point = this.points.at(i);
+                if (!point)
+                    continue;
                 if (point.id in this.handles)
                     continue;
                 const handle = this.viewerInterface.viewer.entities.add({
@@ -329,8 +241,8 @@ export class Annotation {
     }
     insertCoordinateAtIndex(coordinate, idx) {
         this.recordPointsToUndoHistory();
-        this.points = [...this.points];
-        this.points.splice(idx, 0, coordinate);
+        this.points = this.points.clone();
+        this.points.insertAtIndex(idx, coordinate);
         this.clearRedoHistory();
         this.draw();
         this.syncHandles();

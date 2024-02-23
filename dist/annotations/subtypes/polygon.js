@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import { AnnotationType } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
 export default class Polygon extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c, _d;
@@ -23,7 +23,7 @@ export default class Polygon extends Annotation {
             if (this.drawAsLine) {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
-                    polyline: Object.assign({ positions: Coordinate.coordinateArrayToCartesian3([...this.points, this.points[0]]), width: 2 }, this.entityProperties)
+                    polyline: Object.assign({ positions: [...this.points.coordinates.map(c => c.cartesian3), this.points.at(0).cartesian3], width: 2 }, this.entityProperties)
                 });
             }
             else {
@@ -31,7 +31,7 @@ export default class Polygon extends Annotation {
                     return;
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
-                    polygon: Object.assign({ hierarchy: Coordinate.coordinateArrayToCartesian3(this.points) }, this.entityProperties)
+                    polygon: Object.assign({ hierarchy: this.points.toCartesian3Array() }, this.entityProperties)
                 });
             }
         }
@@ -40,7 +40,7 @@ export default class Polygon extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
                     polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
-                            return Coordinate.coordinateArrayToCartesian3([...this.points, this.points[0]]);
+                            return [...this.points.coordinates.map(c => c.cartesian3), this.points.at(0).cartesian3];
                         }, false), width: 2 }, this.entityProperties)
                 });
             }
@@ -50,7 +50,7 @@ export default class Polygon extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
                     polygon: Object.assign({ hierarchy: new Cesium.CallbackProperty(() => {
-                            const positions = Coordinate.coordinateArrayToCartesian3(this.points);
+                            const positions = this.points.toCartesian3Array();
                             return new Cesium.PolygonHierarchy(positions);
                         }, false) }, this.entityProperties)
                 });
@@ -80,8 +80,10 @@ export default class Polygon extends Annotation {
         this.midPointHandles = [];
         if (this.points.length >= 3) {
             for (let i = 0; i < this.points.length; i++) {
-                const point = this.points[i];
-                const nextPoint = i === this.points.length - 1 ? this.points[0] : this.points[i + 1];
+                const point = this.points.at(i);
+                if (!point)
+                    continue;
+                const nextPoint = i === this.points.length - 1 ? this.points.at(0) : this.points.at(i + 1);
                 const midPoint = point.segmentDistance(nextPoint, 2)[0];
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,

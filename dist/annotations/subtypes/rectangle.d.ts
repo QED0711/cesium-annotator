@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, DistanceUnit } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
+import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 export type RectangleInitOptions = AnnotationBaseInit & {
     entityProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions;

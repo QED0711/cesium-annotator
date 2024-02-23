@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
+import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 export type RingInitOptions = AnnotationBaseInit & {
@@ -35,8 +36,9 @@ export default class Ring extends Annotation {
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                if (coordinate) this.points[this.handleFound.index] = coordinate;
-                this.radius = this.points[0].distanceTo(this.points[1]);
+                // if (coordinate) this.points[this.handleFound.index] = coordinate;
+                if (coordinate) this.points.set(this.handleFound.index, coordinate);
+                this.radius = (this.points.at(0) as Coordinate).distanceTo(this.points.at(1) as Coordinate);
             }
             this.dragDetected = true;
         }
@@ -46,10 +48,10 @@ export default class Ring extends Annotation {
         if (this.points.length < 2) {
             this.points.push(coordinate);
         } else {
-            this.points[1] = coordinate;
+            this.points.set(1, coordinate)
         }
         if(this.points.length === 2) {
-            this.radius = this.points[0].distanceTo(this.points[1]);
+            this.radius = (this.points.at(0) as Coordinate).distanceTo(this.points.at(1) as Coordinate);
         }
     }
 
@@ -63,7 +65,7 @@ export default class Ring extends Annotation {
                 const perimeterCoords: Cesium.Cartesian3[] = [];
                 for (let i = 0; i < this.nPoints; i++) {
                     const heading = headingFactor * i;
-                    perimeterCoords.push(this.points[0].atHeadingDistance(heading, this.radius).cartesian3)
+                    perimeterCoords.push((this.points.at(0) as Coordinate).atHeadingDistance(heading, this.radius).cartesian3)
                 }
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
@@ -76,7 +78,7 @@ export default class Ring extends Annotation {
             } else {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
-                    position: this.points[0].cartesian3,
+                    position: this.points.at(0)?.cartesian3,
                     ellipse: {
                         semiMajorAxis: this.radius,
                         semiMinorAxis: this.radius,
@@ -94,7 +96,7 @@ export default class Ring extends Annotation {
                             const perimeterCoords: Cesium.Cartesian3[] = [];
                             for (let i = 0; i < this.nPoints; i++) {
                                 const heading = headingFactor * i;
-                                perimeterCoords.push(this.points[0].atHeadingDistance(heading, this.radius as number).cartesian3)
+                                perimeterCoords.push((this.points.at(0) as Coordinate).atHeadingDistance(heading, this.radius as number).cartesian3)
                             }
                             perimeterCoords.push(perimeterCoords[0]) // close the perimerter
                             return perimeterCoords;
@@ -107,7 +109,7 @@ export default class Ring extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
                     position: new Cesium.CallbackProperty(() => {
-                        return this.points[0].cartesian3;
+                        return this.points.at(0)?.cartesian3;
                     }, false) as unknown as Cesium.PositionProperty,
                     ellipse: {
                         semiMajorAxis: new Cesium.CallbackProperty(() => {

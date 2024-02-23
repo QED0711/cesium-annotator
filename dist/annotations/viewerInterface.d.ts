@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
-import { Annotation, Coordinate } from './core';
+import { Annotation } from './core';
+import { Coordinate } from './coordinate';
 import { AnnotationEntity, ViewerInterfaceInitOptions } from '../utils/types';
 /******************************************************************************
  * ***************************** VIEWER INTERFACE *****************************

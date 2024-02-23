@@ -1,7 +1,8 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, AnnotationEntity, AnnotationType, HandleType } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
 import { Registry } from "../registry";
+import { CoordinateCollection, Coordinate } from '../coordinate';
 
 export type PointInitOptions = AnnotationBaseInit & {
     pointProperties?: Cesium.PointGraphics.ConstructorOptions,
@@ -24,7 +25,7 @@ export default class PointAnnotation extends Annotation {
     }
 
     appendCoordinate(coordinate: Coordinate) {
-        this.points = [coordinate];
+        this.points = new CoordinateCollection([coordinate]);
         this.emit("append", { annotation: this });
     }
 
@@ -50,7 +51,7 @@ export default class PointAnnotation extends Annotation {
 
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
-                position: this.points[0].cartesian3,
+                position: this.points.at(0)?.cartesian3,
                 point,
                 billboard,
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
@@ -60,7 +61,7 @@ export default class PointAnnotation extends Annotation {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position: new Cesium.CallbackProperty(() => {
-                    return this.points[0]?.cartesian3;
+                    return this.points.at(0)?.cartesian3;
                 }, false) as unknown as Cesium.PositionProperty,
                 point,
                 billboard,
@@ -72,7 +73,7 @@ export default class PointAnnotation extends Annotation {
             entity._annotation = this;
             entity._isHandle = true;
             entity._handleIdx = 0;
-            entity._handleCoordinateID = this.points[0]?.id;
+            entity._handleCoordinateID = this.points.at(0)?.id;
             this.entity = entity;
         }
         

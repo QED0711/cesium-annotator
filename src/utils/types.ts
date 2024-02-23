@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
-import { Annotation, Coordinate } from '../annotations/core';
+import { Annotation } from '../annotations/core';
+import { Coordinate } from '../annotations/coordinate';
 
 /* INITIALIZATION OPTIONS */
 export type CoordinateInit = {
@@ -13,6 +14,7 @@ export type AnnotationBaseInit = {
     liveUpdate?: boolean,
     userInteractive?: boolean,
     handleType?: HandleType
+    attributes?: {[key: string]: any}
 }
 
 export type RegistryInit = {
@@ -51,6 +53,12 @@ export type AnnotationEntity = Cesium.Entity & {
     _isHandle?: boolean,
     _handleIdx?: number,
     _handleCoordinateID?:string
+}
+
+export type HandleEntity = Cesium.Entity & {
+    _isHandle: boolean,
+    _handleIdx: number,
+    _handleCoordinate: Coordinate
 }
 
 export type HandleFoundRecord = {

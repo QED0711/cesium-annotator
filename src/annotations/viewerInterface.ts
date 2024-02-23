@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
-import { Annotation, Coordinate } from './core';
+import { Annotation } from './core';
+import { Coordinate } from './coordinate';
 import { AnnotationEntity, ViewerInterfaceInitOptions } from '../utils/types';
 
 /******************************************************************************
@@ -39,7 +40,7 @@ export class ViewerInterface {
             this.longPressTimeout = setTimeout(() => {
                 this.longPressComplete = true;
                 const foundEntity = this.queryEntityAtPixel();
-                if(foundEntity?._isHandle && foundEntity._handleIdx !== undefined) {
+                if (foundEntity?._isHandle && foundEntity._handleIdx !== undefined) {
                     foundEntity._annotation.removePointAtIndex(foundEntity._handleIdx);
                 }
             }, 500)
@@ -99,9 +100,9 @@ export class ViewerInterface {
         const pixelPosition = new Cesium.Cartesian2(x, y);
         const pickedObject = scene.pick(pixelPosition)
 
-        if(Cesium.defined(pickedObject)) {
+        if (Cesium.defined(pickedObject)) {
             return pickedObject.id
-        } 
+        }
         return null;
     }
 
@@ -120,14 +121,14 @@ export class ViewerInterface {
     registerListener(eventName: string, callback: Function, annotation: Annotation) {
         const func = callback.bind(annotation);
         this.canvas.addEventListener(eventName, func)
-        
-        this.events[annotation.id] = {...(this.events[annotation.id] ?? {}), [eventName]: func}
+
+        this.events[annotation.id] = { ...(this.events[annotation.id] ?? {}), [eventName]: func }
     }
 
     unregisterListenersByAnnotationID(id: string) {
         const listeners = this.events[id];
-        if(!!listeners) {
-            for(let [eventName, func] of Object.entries(listeners)) {
+        if (!!listeners) {
+            for (let [eventName, func] of Object.entries(listeners)) {
                 this.canvas.removeEventListener(eventName, func);
             }
         }

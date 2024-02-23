@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
+import { CoordinateCollection } from '../coordinate';
 export default class PointAnnotation extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c;
@@ -11,11 +12,11 @@ export default class PointAnnotation extends Annotation {
         this.billboardProperties = (_c = options.billboardProperties) !== null && _c !== void 0 ? _c : {};
     }
     appendCoordinate(coordinate) {
-        this.points = [coordinate];
+        this.points = new CoordinateCollection([coordinate]);
         this.emit("append", { annotation: this });
     }
     draw() {
-        var _a;
+        var _a, _b;
         let entity = null;
         let point, billboard;
         if (this.handleType === HandleType.BILLBOARD) {
@@ -28,7 +29,7 @@ export default class PointAnnotation extends Annotation {
             this.removeEntity();
             if (this.points.length === 0)
                 return;
-            entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: this.points[0].cartesian3, point,
+            entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3, point,
                 billboard }, this.entityProperties));
         }
         else if (!this.entity) {
@@ -36,7 +37,7 @@ export default class PointAnnotation extends Annotation {
                 return;
             entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: new Cesium.CallbackProperty(() => {
                     var _a;
-                    return (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.cartesian3;
+                    return (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3;
                 }, false), point,
                 billboard }, this.entityProperties));
         }
@@ -44,7 +45,7 @@ export default class PointAnnotation extends Annotation {
             entity._annotation = this;
             entity._isHandle = true;
             entity._handleIdx = 0;
-            entity._handleCoordinateID = (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.id;
+            entity._handleCoordinateID = (_b = this.points.at(0)) === null || _b === void 0 ? void 0 : _b.id;
             this.entity = entity;
         }
         this.emit("update", { annotation: this });

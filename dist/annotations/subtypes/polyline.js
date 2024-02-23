@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import { AnnotationType, DistanceUnit } from "../../utils/types";
-import { Annotation, Coordinate } from "../core";
+import { Annotation } from "../core";
 export default class Polyline extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c;
@@ -21,14 +21,14 @@ export default class Polyline extends Annotation {
             this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
-                polyline: Object.assign({ positions: Coordinate.coordinateArrayToCartesian3(this.points), width: 2 }, this.entityProperties)
+                polyline: Object.assign({ positions: this.points.toCartesian3Array(), width: 2 }, this.entityProperties)
             });
         }
         else if (!this.entity) {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
-                        return Coordinate.coordinateArrayToCartesian3(this.points);
+                        return this.points.toCartesian3Array();
                     }, false), width: 2 }, this.entityProperties)
             });
         }
@@ -56,8 +56,8 @@ export default class Polyline extends Annotation {
         this.midPointHandles = [];
         if (this.points.length >= 2) {
             for (let i = 0; i < this.points.length - 1; i++) {
-                const point = this.points[i];
-                const midPoint = point.segmentDistance(this.points[i + 1], 2)[0];
+                const point = this.points.at(i);
+                const midPoint = point.segmentDistance(this.points.at(i + 1), 2)[0];
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,
                     point: {
@@ -89,21 +89,21 @@ export default class Polyline extends Annotation {
     getTotalDistance(unit = DistanceUnit.METERS) {
         let dist = 0;
         for (let i = 1; i < this.points.length; i++) {
-            dist += this.points[i].distanceTo(this.points[i - 1], unit);
+            dist += this.points.at(i).distanceTo(this.points.at(i - 1), unit);
         }
         return dist;
     }
     getDistanceSegments(unit = DistanceUnit.METERS) {
         let distArr = [];
         for (let i = 1; i < this.points.length; i++) {
-            distArr.push(this.points[i].distanceTo(this.points[i - 1], unit));
+            distArr.push(this.points.at(i).distanceTo(this.points.at(i - 1), unit));
         }
         return distArr;
     }
     getHeadingSegments() {
         const headingArr = [];
         for (let i = 1; i < this.points.length; i++) {
-            headingArr.push(this.points[i - 1].headingTo(this.points[i]));
+            headingArr.push(this.points.at(i - 1).headingTo(this.points.at(i)));
         }
         return headingArr;
     }
