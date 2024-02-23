@@ -1,45 +1,52 @@
 import * as Cesium from 'cesium';
-import { AnnotationType } from "../../utils/types";
+import { AnnotationType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 export default class PointAnnotation extends Annotation {
     constructor(registry, options) {
-        var _a;
+        var _a, _b, _c;
         super(registry, options);
         this.annotationType = AnnotationType.POINT;
         this.entityProperties = (_a = options.entityProperties) !== null && _a !== void 0 ? _a : {};
+        this.pointProperties = (_b = options.pointProperties) !== null && _b !== void 0 ? _b : {};
+        this.billboardProperties = (_c = options.billboardProperties) !== null && _c !== void 0 ? _c : {};
     }
     appendCoordinate(coordinate) {
         this.points = [coordinate];
         this.emit("append", { annotation: this });
     }
     draw() {
+        var _a;
         let entity = null;
+        let point, billboard;
+        if (this.handleType === HandleType.BILLBOARD) {
+            billboard = Object.assign({ scale: 1.0 }, this.billboardProperties);
+        }
+        else {
+            point = Object.assign({ pixelSize: 10 }, this.pointProperties);
+        }
         if (!this.liveUpdate) {
             this.removeEntity();
             if (this.points.length === 0)
                 return;
-            const position = this.points[0].cartesian3;
-            entity = this.viewerInterface.viewer.entities.add({
-                id: this.id,
-                position,
-                point: Object.assign({ pixelSize: 10 }, this.entityProperties)
-            });
+            entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: this.points[0].cartesian3, point,
+                billboard }, this.entityProperties));
         }
         else if (!this.entity) {
-            entity = this.viewerInterface.viewer.entities.add({
-                id: this.id,
-                position: new Cesium.CallbackProperty(() => {
+            if (this.points.length === 0)
+                return;
+            entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: new Cesium.CallbackProperty(() => {
                     var _a;
                     return (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.cartesian3;
-                }, false),
-                point: Object.assign({ pixelSize: 10 }, this.entityProperties)
-            });
+                }, false), point,
+                billboard }, this.entityProperties));
         }
         if (entity) {
             entity._annotation = this;
+            entity._isHandle = true;
             entity._handleIdx = 0;
+            entity._handleCoordinateID = (_a = this.points[0]) === null || _a === void 0 ? void 0 : _a.id;
+            this.entity = entity;
         }
-        this.entity = entity;
         this.emit("update", { annotation: this });
     }
     // OVERRIDES

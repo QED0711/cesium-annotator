@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
-import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord } from '../utils/types';
+import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType } from '../utils/types';
 import { Registry } from './registry';
 import { ViewerInterface } from './viewerInterface';
 export declare class Coordinate {
@@ -43,6 +43,7 @@ export declare class Annotation {
     handles: {
         [coordinateID: string]: AnnotationEntity;
     };
+    handleType: HandleType;
     isActive: boolean;
     protected undoHistory: Coordinate[][];
     protected redoHistory: Coordinate[][];
@@ -56,7 +57,7 @@ export declare class Annotation {
             [key: string]: any;
         }) => void)[];
     };
-    constructor(registry: Registry, init: AnnotationBaseInit);
+    constructor(registry: Registry, options: AnnotationBaseInit);
     get current(): Coordinate[];
     on(eventName: string, callback: (payload: {
         [key: string]: any;

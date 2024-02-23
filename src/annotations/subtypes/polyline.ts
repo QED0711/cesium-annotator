@@ -136,7 +136,6 @@ export default class Polyline extends Annotation {
     }
 
     getHeadingSegments(): number[] {
-        // TODO: there is a bug here when points are moved the headings aren't correct anymore
         const headingArr: number[] = [];
         for (let i = 1; i < this.points.length; i++) {
             headingArr.push(this.points[i - 1].headingTo(this.points[i]));

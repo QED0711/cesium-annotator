@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
-import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord } from '../utils/types';
+import { CoordinateInit, DistanceUnit, AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType } from '../utils/types';
 import { Registry } from './registry';
 import { ViewerInterface } from './viewerInterface';
 
@@ -139,8 +139,8 @@ export class Annotation {
     liveUpdate: boolean;
     userInteractive: boolean;
     entity: AnnotationEntity | null;
-    // handles: HandleEntity[];
     handles: { [coordinateID: string]: AnnotationEntity }
+    handleType: HandleType;
     isActive: boolean;
 
     protected undoHistory: Coordinate[][];
@@ -155,20 +155,21 @@ export class Annotation {
 
     protected events: { [eventName: string]: ((payload: { [key: string]: any }) => void)[] };
 
-    constructor(registry: Registry, init: AnnotationBaseInit) {
+    constructor(registry: Registry, options: AnnotationBaseInit) {
 
         this.registry = registry;
         this.viewerInterface = registry.viewerInterface;
-        this.id = init.id ?? nanoid();
+        this.id = options.id ?? nanoid();
         this.annotationType = AnnotationType.BASE;
         this.points = [];
         this.undoHistory = [];
         this.redoHistory = [];
-        this.liveUpdate = init.liveUpdate ?? false;
-        this.userInteractive = init.userInteractive ?? true;
+        this.liveUpdate = options.liveUpdate ?? false;
+        this.userInteractive = options.userInteractive ?? true;
 
         this.entity = null;
         this.handles = {};
+        this.handleType = options.handleType ?? HandleType.POINT;
 
         this.isActive = false;
         // this.handleIdxFound = null;
@@ -265,7 +266,6 @@ export class Annotation {
         const existingEntity = this.viewerInterface.queryEntityAtPixel();
 
         if (existingEntity?._isHandle && existingEntity?._handleIdx !== undefined && existingEntity?._handleCoordinateID) {
-            console.log(existingEntity._handleCoordinateID, existingEntity._handleIdx);
             this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID }
             this.viewerInterface.lock();
             this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);

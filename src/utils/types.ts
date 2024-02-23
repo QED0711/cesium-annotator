@@ -12,6 +12,7 @@ export type AnnotationBaseInit = {
     id?: string,
     liveUpdate?: boolean,
     userInteractive?: boolean,
+    handleType?: HandleType
 }
 
 export type RegistryInit = {
@@ -38,6 +39,11 @@ export enum AnnotationType {
     POLYGON = "polygon",
     RECTANGLE = "rectangle",
     RING = "ring",
+}
+
+export enum HandleType {
+    POINT,
+    BILLBOARD,
 }
 
 export type AnnotationEntity = Cesium.Entity & {

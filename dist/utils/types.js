@@ -14,4 +14,9 @@ export var AnnotationType;
     AnnotationType["RECTANGLE"] = "rectangle";
     AnnotationType["RING"] = "ring";
 })(AnnotationType || (AnnotationType = {}));
+export var HandleType;
+(function (HandleType) {
+    HandleType[HandleType["POINT"] = 0] = "POINT";
+    HandleType[HandleType["BILLBOARD"] = 1] = "BILLBOARD";
+})(HandleType || (HandleType = {}));
 //# sourceMappingURL=types.js.map
