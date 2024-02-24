@@ -18,9 +18,12 @@ export class ViewerInterface {
         this.pointerDownHandler = (e) => {
             this.longPressTimeout = setTimeout(() => {
                 this.longPressComplete = true;
-                const foundEntity = this.queryEntityAtPixel();
-                if ((foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._isHandle) && foundEntity._handleIdx !== undefined) {
-                    foundEntity._annotation.removePointAtIndex(foundEntity._handleIdx);
+                let foundEntity = this.queryEntityAtPixel();
+                if (foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._isHandle) {
+                    foundEntity = foundEntity;
+                    if (foundEntity._handleIdx !== undefined) {
+                        foundEntity._parentAnnotation.removePointAtIndex(foundEntity._handleIdx);
+                    }
                 }
             }, 500);
         };

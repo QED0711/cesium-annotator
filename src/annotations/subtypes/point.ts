@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, HandleType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, HandleEntity, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { Registry } from "../registry";
 import { CoordinateCollection, Coordinate } from '../coordinate';
@@ -15,7 +15,7 @@ export default class PointAnnotation extends Annotation {
     entityProperties: Cesium.PointGraphics.ConstructorOptions;
     pointProperties: Cesium.PointGraphics.ConstructorOptions;
     billboardProperties: Cesium.BillboardGraphics.ConstructorOptions;
-
+    
     constructor(registry: Registry, options: PointInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.POINT;
@@ -30,7 +30,7 @@ export default class PointAnnotation extends Annotation {
     }
 
     draw() {
-        let entity: AnnotationEntity | null = null;
+        let entity: HandleEntity | null = null;
 
         let point, billboard;
         if(this.handleType === HandleType.BILLBOARD) {
@@ -55,7 +55,7 @@ export default class PointAnnotation extends Annotation {
                 point,
                 billboard,
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
-            }) as AnnotationEntity
+            }) as HandleEntity
         } else if (!this.entity) {
             if(this.points.length === 0) return;
             entity = this.viewerInterface.viewer.entities.add({
@@ -66,11 +66,11 @@ export default class PointAnnotation extends Annotation {
                 point,
                 billboard,
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
-            }) as AnnotationEntity
+            }) as HandleEntity
         }
 
         if (entity) {
-            entity._annotation = this;
+            entity._parentAnnotation = this;
             entity._isHandle = true;
             entity._handleIdx = 0;
             entity._handleCoordinateID = this.points.at(0)?.id;

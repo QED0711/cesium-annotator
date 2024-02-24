@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { Annotation } from './core';
 import { Coordinate } from './coordinate';
-import { AnnotationEntity, ViewerInterfaceInitOptions } from '../utils/types';
+import { AnnotationEntity, HandleEntity, ViewerInterfaceInitOptions } from '../utils/types';
 
 /******************************************************************************
  * ***************************** VIEWER INTERFACE ***************************** 
@@ -39,9 +39,12 @@ export class ViewerInterface {
         this.pointerDownHandler = (e: PointerEvent) => {
             this.longPressTimeout = setTimeout(() => {
                 this.longPressComplete = true;
-                const foundEntity = this.queryEntityAtPixel();
-                if (foundEntity?._isHandle && foundEntity._handleIdx !== undefined) {
-                    foundEntity._annotation.removePointAtIndex(foundEntity._handleIdx);
+                let foundEntity = this.queryEntityAtPixel();
+                if ((foundEntity as HandleEntity)?._isHandle ) {
+                    foundEntity = foundEntity as HandleEntity;
+                    if(foundEntity._handleIdx !== undefined) {
+                        foundEntity._parentAnnotation.removePointAtIndex(foundEntity._handleIdx);
+                    }
                 }
             }, 500)
         }
@@ -92,7 +95,7 @@ export class ViewerInterface {
         return new Coordinate({ lat, lng, alt });
     }
 
-    queryEntityAtPixel(x?: number, y?: number): AnnotationEntity | null {
+    queryEntityAtPixel(x?: number, y?: number): AnnotationEntity | HandleEntity | null {
         x ??= this.cursorX;
         y ??= this.cursorY;
         const scene = this.viewer.scene;

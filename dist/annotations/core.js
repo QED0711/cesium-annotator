@@ -6,12 +6,13 @@ import { CoordinateCollection } from './coordinate';
 */
 export class Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         this.registry = registry;
         this.viewerInterface = registry.viewerInterface;
         this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
         this.annotationType = AnnotationType.BASE;
         this.points = new CoordinateCollection();
+        this.groups = new Set();
         this.undoHistory = [];
         this.redoHistory = [];
         this.liveUpdate = (_b = options.liveUpdate) !== null && _b !== void 0 ? _b : false;
@@ -19,6 +20,7 @@ export class Annotation {
         this.entity = null;
         this.handles = {};
         this.handleType = (_d = options.handleType) !== null && _d !== void 0 ? _d : HandleType.POINT;
+        this.attributes = (_e = options.attributes) !== null && _e !== void 0 ? _e : null;
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
@@ -46,6 +48,9 @@ export class Annotation {
             handler(payload);
         }
     }
+    executeCallback(func) {
+        func(this);
+    }
     activate() {
         this.isActive = true;
         this.showHandles();
@@ -63,7 +68,20 @@ export class Annotation {
     delete() {
         this.deactivate();
         this.removeEntity();
+        this.leaveAllGroups();
         this.emit("delete", { annotation: this });
+    }
+    joinGroup(group) {
+        group.capture(this);
+    }
+    leaveGroup(group) {
+        group.release(this);
+    }
+    leaveAllGroups() {
+        const groups = Array.from(this.groups);
+        for (let group of groups) {
+            this.leaveGroup(group);
+        }
     }
     removeEntity() {
         if (!!this.entity) {
@@ -77,6 +95,16 @@ export class Annotation {
         if (handleEntity) {
             this.viewerInterface.viewer.entities.remove(handleEntity);
             delete this.handles[id];
+        }
+    }
+    show() {
+        if (this.entity) {
+            this.entity.show = true;
+        }
+    }
+    hide() {
+        if (this.entity) {
+            this.entity.show = false;
         }
     }
     showHandles() {
@@ -98,12 +126,14 @@ export class Annotation {
     handlePointerDown(e) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
         this.pointerDownDetected = true;
-        const existingEntity = this.viewerInterface.queryEntityAtPixel();
-        if ((existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isHandle) && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleIdx) !== undefined && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleCoordinateID)) {
-            this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID };
-            this.viewerInterface.lock();
-            // this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
-            this.preDragHistoricalRecord = this.points.clone();
+        let existingEntity = this.viewerInterface.queryEntityAtPixel();
+        if (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isHandle) {
+            existingEntity = existingEntity;
+            if ((existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleIdx) !== undefined && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleCoordinateID)) {
+                this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID };
+                this.viewerInterface.lock();
+                this.preDragHistoricalRecord = this.points.clone();
+            }
         }
     }
     handlePointerMove(e) {
@@ -112,7 +142,6 @@ export class Annotation {
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                // if (coordinate) this.points[this.handleFound.index] = coordinate;
                 if (coordinate)
                     this.points.set(this.handleFound.index, coordinate);
             }
@@ -132,7 +161,6 @@ export class Annotation {
         }
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
-            // if (coordinate) this.points[this.handleFound.index] = coordinate; // update an existing point
             if (coordinate)
                 this.points.set(this.handleFound.index, coordinate); // update an existing point
             if (this.preDragHistoricalRecord)
@@ -229,7 +257,7 @@ export class Annotation {
                         pixelSize: 10,
                     }
                 });
-                handle._annotation = this;
+                handle._parentAnnotation = this;
                 handle._isHandle = true;
                 handle._handleCoordinateID = point.id;
                 handle._handleIdx = i;

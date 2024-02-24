@@ -50,15 +50,17 @@ export enum HandleType {
 
 export type AnnotationEntity = Cesium.Entity & {
     _annotation: Annotation,
-    _isHandle?: boolean,
-    _handleIdx?: number,
-    _handleCoordinateID?:string
+    // _isHandle?: boolean,
+    // _handleIdx?: number,
+    // _handleCoordinateID?:string
 }
 
 export type HandleEntity = Cesium.Entity & {
+    _parentAnnotation: Annotation,
     _isHandle: boolean,
     _handleIdx: number,
-    _handleCoordinate: Coordinate
+    _handleCoordinateID?: string,
+    // _handleCoordinate: Coordinate
 }
 
 export type HandleFoundRecord = {

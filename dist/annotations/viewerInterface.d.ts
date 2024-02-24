@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { Annotation } from './core';
 import { Coordinate } from './coordinate';
-import { AnnotationEntity, ViewerInterfaceInitOptions } from '../utils/types';
+import { AnnotationEntity, HandleEntity, ViewerInterfaceInitOptions } from '../utils/types';
 /******************************************************************************
  * ***************************** VIEWER INTERFACE *****************************
  *****************************************************************************/
@@ -25,7 +25,7 @@ export declare class ViewerInterface {
     init(): void;
     removeHandlers(): void;
     getCoordinateAtPixel(x?: number, y?: number): Coordinate | null;
-    queryEntityAtPixel(x?: number, y?: number): AnnotationEntity | null;
+    queryEntityAtPixel(x?: number, y?: number): AnnotationEntity | HandleEntity | null;
     lock(): void;
     unlock(): void;
     registerListener(eventName: string, callback: Function, annotation: Annotation): void;

@@ -11,6 +11,9 @@ export type AnnotationBaseInit = {
     liveUpdate?: boolean;
     userInteractive?: boolean;
     handleType?: HandleType;
+    attributes?: {
+        [key: string]: any;
+    };
 };
 export type RegistryInit = {
     id: string;
@@ -40,14 +43,12 @@ export declare enum HandleType {
 }
 export type AnnotationEntity = Cesium.Entity & {
     _annotation: Annotation;
-    _isHandle?: boolean;
-    _handleIdx?: number;
-    _handleCoordinateID?: string;
 };
 export type HandleEntity = Cesium.Entity & {
+    _parentAnnotation: Annotation;
     _isHandle: boolean;
     _handleIdx: number;
-    _handleCoordinate: Coordinate;
+    _handleCoordinateID?: string;
 };
 export type HandleFoundRecord = {
     index: number;

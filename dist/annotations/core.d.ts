@@ -1,5 +1,5 @@
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType } from '../utils/types';
-import { Registry } from './registry';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity } from '../utils/types';
+import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
 export declare class Annotation {
@@ -8,14 +8,18 @@ export declare class Annotation {
     protected annotationType: AnnotationType;
     id: string;
     points: CoordinateCollection;
+    groups: Set<AnnotationGroup>;
     liveUpdate: boolean;
     userInteractive: boolean;
-    entity: AnnotationEntity | null;
+    entity: AnnotationEntity | HandleEntity | null;
     handles: {
-        [coordinateID: string]: AnnotationEntity;
+        [coordinateID: string]: HandleEntity;
     };
     handleType: HandleType;
     isActive: boolean;
+    attributes: {
+        [key: string]: any;
+    } | null;
     protected undoHistory: CoordinateCollection[];
     protected redoHistory: CoordinateCollection[];
     protected handleFound: HandleFoundRecord | null;
@@ -36,11 +40,17 @@ export declare class Annotation {
     emit(eventName: string, payload: {
         [key: string]: any;
     }): void;
+    executeCallback(func: (annotation: Annotation) => {}): void;
     activate(): void;
     deactivate(): void;
     delete(): void;
+    joinGroup(group: AnnotationGroup): void;
+    leaveGroup(group: AnnotationGroup): void;
+    leaveAllGroups(): void;
     removeEntity(): void;
     removeHandleByCoordinateID(id: string): void;
+    show(): void;
+    hide(): void;
     showHandles(): void;
     hideHandles(): void;
     removePointAtIndex(index: number): void;

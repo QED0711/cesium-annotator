@@ -42,7 +42,7 @@ export default class PointAnnotation extends Annotation {
                 billboard }, this.entityProperties));
         }
         if (entity) {
-            entity._annotation = this;
+            entity._parentAnnotation = this;
             entity._isHandle = true;
             entity._handleIdx = 0;
             entity._handleCoordinateID = (_b = this.points.at(0)) === null || _b === void 0 ? void 0 : _b.id;

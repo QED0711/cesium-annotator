@@ -4,6 +4,52 @@ import PolylineAnnotation from './subtypes/polyline';
 import PolygonAnnotation from './subtypes/polygon';
 import RectangleAnnotation from './subtypes/rectangle';
 import RingAnnotation from './subtypes/ring';
+import { nanoid } from 'nanoid';
+/******************************************************************************
+ * ***************************** GROUP *****************************
+ *****************************************************************************/
+export class AnnotationGroup {
+    constructor(name) {
+        this.id = nanoid();
+        this.name = name;
+        this.annotations = new Set();
+    }
+    capture(annotation) {
+        this.annotations.add(annotation);
+        annotation.groups.add(this);
+    }
+    release(annotation) {
+        this.annotations.delete(annotation);
+        annotation.groups.delete(this);
+    }
+    releaseAll() {
+        const annotations = Array.from(this.annotations);
+        for (let annotation of annotations) {
+            this.release(annotation);
+        }
+    }
+    executeCallback(func) {
+        for (let annotation of this.annotations) {
+            annotation.executeCallback(func);
+        }
+    }
+    show() {
+        for (let annotation of this.annotations) {
+            annotation.show();
+        }
+    }
+    hide() {
+        for (let annotation of this.annotations) {
+            annotation.hide();
+        }
+    }
+    deleteAll() {
+        let annotations = Array.from(this.annotations);
+        for (let annotation of annotations) {
+            annotation.delete();
+        }
+    }
+}
 /******************************************************************************
  * ***************************** REGISTRY *****************************
  *****************************************************************************/
@@ -13,6 +59,7 @@ export class Registry {
         this.id = init.id;
         this.viewer = init.viewer;
         this.annotations = [];
+        this.groups = [];
         this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : true;
         this.viewerInterface = new ViewerInterface(this.viewer, { useAltitude: this.useAltitude });
     }
@@ -31,6 +78,27 @@ export class Registry {
         for (let annotation of this.annotations) {
             annotation.id === id ? annotation.activate() : annotation.deactivate();
         }
+    }
+    createGroup(name) {
+        const group = new AnnotationGroup(name);
+        this.groups.push(group);
+        return group;
+    }
+    getGroupByID(id) {
+        var _a;
+        return (_a = this.groups.find(g => g.id === id)) !== null && _a !== void 0 ? _a : null;
+    }
+    getGroupByName(name) {
+        var _a;
+        return (_a = this.groups.find(g => g.name === name)) !== null && _a !== void 0 ? _a : null;
+    }
+    deleteGroupByID(id, options) {
+        const group = this.getGroupByID(id);
+        if (group) {
+            (options === null || options === void 0 ? void 0 : options.deleteAnnotations) && group.deleteAll();
+            (options === null || options === void 0 ? void 0 : options.releaseAnnotations) && group.releaseAll();
+        }
+        this.groups = this.groups.filter(g => g.id !== id);
     }
     // FACTORIES
     addPoint(options) {

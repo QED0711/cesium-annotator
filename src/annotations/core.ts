@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection} from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -18,8 +18,8 @@ export class Annotation {
 
     liveUpdate: boolean;
     userInteractive: boolean;
-    entity: AnnotationEntity | null;
-    handles: { [coordinateID: string]: AnnotationEntity }
+    entity: AnnotationEntity | HandleEntity | null;
+    handles: { [coordinateID: string]: HandleEntity }
     handleType: HandleType;
     isActive: boolean;
 
@@ -179,13 +179,15 @@ export class Annotation {
     handlePointerDown(e: PointerEvent) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
         this.pointerDownDetected = true;
-        const existingEntity = this.viewerInterface.queryEntityAtPixel();
+        let existingEntity = this.viewerInterface.queryEntityAtPixel();
 
-        if (existingEntity?._isHandle && existingEntity?._handleIdx !== undefined && existingEntity?._handleCoordinateID) {
-            this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID }
-            this.viewerInterface.lock();
-            // this.preDragHistoricalRecord = Coordinate.cloneCoordinateArray(this.points);
-            this.preDragHistoricalRecord = this.points.clone();
+        if ((existingEntity as HandleEntity)?._isHandle ) {
+            existingEntity = existingEntity as HandleEntity;
+            if(existingEntity?._handleIdx !== undefined && existingEntity?._handleCoordinateID){
+                this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID }
+                this.viewerInterface.lock();
+                this.preDragHistoricalRecord = this.points.clone();
+            }
         }
     }
 
@@ -195,7 +197,6 @@ export class Annotation {
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                // if (coordinate) this.points[this.handleFound.index] = coordinate;
                 if(coordinate) this.points.set(this.handleFound.index, coordinate);
             }
             this.dragDetected = true;
@@ -219,7 +220,6 @@ export class Annotation {
 
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
-            // if (coordinate) this.points[this.handleFound.index] = coordinate; // update an existing point
             if (coordinate) this.points.set(this.handleFound.index, coordinate); // update an existing point
             if (this.preDragHistoricalRecord) this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
             this.draw();
@@ -323,9 +323,9 @@ export class Annotation {
                     point: {
                         pixelSize: 10,
                     }
-                }) as AnnotationEntity
+                }) as HandleEntity
 
-                handle._annotation = this;
+                handle._parentAnnotation = this;
                 handle._isHandle = true;
                 handle._handleCoordinateID = point.id
                 handle._handleIdx = i;
