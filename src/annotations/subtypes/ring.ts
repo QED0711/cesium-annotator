@@ -157,7 +157,6 @@ export default class Ring extends Annotation {
             const heading = headingFactor * i;
             perimeterCoords.push((this.points.at(0) as Coordinate).atHeadingDistance(heading, this.radius as number))
         }
-        perimeterCoords.push(perimeterCoords[0]) // close the perimerter
 
         const collection = new CoordinateCollection(perimeterCoords)
         const geoJson = collection.toGeoJson(AnnotationType.POLYGON);
@@ -171,7 +170,19 @@ export default class Ring extends Annotation {
         }
 
         return geoJson;
+    }
 
+    toWkt(): string | null {
+        if(this.points.length < 2) return null
+        const headingFactor = 360 / this.nPoints;
+        const perimeterCoords: Coordinate[] = [];
+        for (let i = 0; i < this.nPoints; i++) {
+            const heading = headingFactor * i;
+            perimeterCoords.push((this.points.at(0) as Coordinate).atHeadingDistance(heading, this.radius as number))
+        }
+
+        const collection = new CoordinateCollection(perimeterCoords)
+        return collection.toWkt(AnnotationType.POLYGON);
     }
 
 }

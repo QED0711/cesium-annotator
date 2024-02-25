@@ -58,9 +58,8 @@ export class AnnotationGroup {
         this.registry.viewer.flyTo(entities, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
     }
     toGeoJson() {
-        const combinedResult = { type: "FeatureCollection" };
         const features = [];
-        const geoJsons = Array.from(this.annotations)
+        Array.from(this.annotations)
             .map(annotation => annotation.toGeoJson())
             .forEach(geoJson => {
             if (geoJson) {
@@ -68,6 +67,11 @@ export class AnnotationGroup {
             }
         });
         return { type: "FeatureCollection", features };
+    }
+    toWkt() {
+        return Array.from(this.annotations)
+            .map(annotation => annotation.toWkt())
+            .filter(wkt => !!wkt);
     }
 }
 /******************************************************************************

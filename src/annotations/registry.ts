@@ -84,9 +84,8 @@ export class AnnotationGroup {
     }
 
     toGeoJson(): {[key: string]: any} {
-        const combinedResult = {type: "FeatureCollection"} 
         const features: {}[] = [];
-        const geoJsons = Array.from(this.annotations)
+        Array.from(this.annotations)
             .map(annotation => annotation.toGeoJson())
             .forEach(geoJson => {
                 if(geoJson) {
@@ -94,6 +93,12 @@ export class AnnotationGroup {
                 }
             });
         return {type: "FeatureCollection", features}
+    }
+
+    toWkt(): string[] {
+        return Array.from(this.annotations)
+            .map(annotation => annotation.toWkt())
+            .filter(wkt => !!wkt) as string[];
     }
 }
 

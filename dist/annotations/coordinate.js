@@ -211,5 +211,32 @@ export class CoordinateCollection {
         };
         return result;
     }
+    toWkt(annotationType) {
+        let coords = null;
+        if (annotationType === AnnotationType.POINT) {
+            if (this.coordinates.length === 0)
+                return null;
+            const { lat, lng } = this.coordinates[0];
+            return `POINT (${lng} ${lat})`;
+        }
+        if (annotationType === AnnotationType.POLYLINE) {
+            if (this.coordinates.length < 2)
+                return null;
+            return `LINESTRING (${this.coordinates.map(({ lng, lat }) => `${lng} ${lat}`).join(", ")})`;
+        }
+        if (annotationType === AnnotationType.POLYGON) {
+            if (this.coordinates.length < 3)
+                return null;
+            return `POLYGON ((${this.coordinates.map(({ lng, lat }) => `${lng} ${lat}`).join(", ")}, ${this.coordinates[0].lng} ${this.coordinates[0].lat}))`;
+        }
+        if (annotationType === AnnotationType.RECTANGLE) {
+            if (this.coordinates.length < 2)
+                return null;
+            const bbox = this.getMinMaxBbox();
+            return `POLYGON ((${bbox.lngMin} ${bbox.latMin}, ${bbox.lngMin} ${bbox.latMax}, ${bbox.lngMax} ${bbox.latMax}, ${bbox.lngMax} ${bbox.latMin}, ${bbox.lngMin} ${bbox.latMin}))`;
+        }
+        // Note: RING type handled in ring annotation
+        return null;
+    }
 }
 //# sourceMappingURL=coordinate.js.map

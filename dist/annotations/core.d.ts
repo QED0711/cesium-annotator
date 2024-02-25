@@ -70,6 +70,7 @@ export declare class Annotation {
     toGeoJson(): {
         [key: string]: any;
     } | null;
+    toWkt(): string | null;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
 }

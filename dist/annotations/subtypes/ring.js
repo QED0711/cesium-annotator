@@ -124,7 +124,6 @@ export default class Ring extends Annotation {
             const heading = headingFactor * i;
             perimeterCoords.push(this.points.at(0).atHeadingDistance(heading, this.radius));
         }
-        perimeterCoords.push(perimeterCoords[0]); // close the perimerter
         const collection = new CoordinateCollection(perimeterCoords);
         const geoJson = collection.toGeoJson(AnnotationType.POLYGON);
         if (geoJson) {
@@ -136,6 +135,18 @@ export default class Ring extends Annotation {
             };
         }
         return geoJson;
+    }
+    toWkt() {
+        if (this.points.length < 2)
+            return null;
+        const headingFactor = 360 / this.nPoints;
+        const perimeterCoords = [];
+        for (let i = 0; i < this.nPoints; i++) {
+            const heading = headingFactor * i;
+            perimeterCoords.push(this.points.at(0).atHeadingDistance(heading, this.radius));
+        }
+        const collection = new CoordinateCollection(perimeterCoords);
+        return collection.toWkt(AnnotationType.POLYGON);
     }
 }
 //# sourceMappingURL=ring.js.map

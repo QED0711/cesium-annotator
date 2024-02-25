@@ -284,6 +284,9 @@ export class Annotation {
     toGeoJson() {
         return this.points.toGeoJson(this.annotationType);
     }
+    toWkt() {
+        return this.points.toWkt(this.annotationType);
+    }
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate) { }
     draw() { }

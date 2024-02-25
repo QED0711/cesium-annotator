@@ -52,4 +52,5 @@ export declare class CoordinateCollection {
     toGeoJson(annotationType: AnnotationType): {
         [key: string]: any;
     } | null;
+    toWkt(annotationType: AnnotationType): string | null;
 }

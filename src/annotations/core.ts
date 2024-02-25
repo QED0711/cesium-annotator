@@ -366,6 +366,10 @@ export class Annotation {
         return this.points.toGeoJson(this.annotationType);
     }
 
+    toWkt(): string | null {
+        return this.points.toWkt(this.annotationType);
+    }
+
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate: Coordinate) { }
     draw() { }

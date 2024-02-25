@@ -25,4 +25,5 @@ export default class Ring extends Annotation {
     toGeoJson(): {
         [key: string]: any;
     } | null;
+    toWkt(): string | null;
 }
