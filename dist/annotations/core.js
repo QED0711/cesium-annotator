@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { AnnotationType, HandleType } from '../utils/types';
 import { CoordinateCollection } from './coordinate';
+import * as Cesium from 'cesium';
 /*
     ANNOTATION BASE CLASS
 */
@@ -274,6 +275,14 @@ export class Annotation {
         this.clearRedoHistory();
         this.draw();
         this.syncHandles();
+    }
+    flyTo(options) {
+        if (!this.entity)
+            return;
+        this.viewerInterface.viewer.flyTo(this.entity, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
+    }
+    toGeoJson() {
+        return this.points.toGeoJson(this.annotationType);
     }
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate) { }

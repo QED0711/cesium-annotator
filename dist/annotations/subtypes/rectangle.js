@@ -76,6 +76,7 @@ export default class Rectangle extends Annotation {
             }
         }
         if (entity) {
+            entity._canActivate = true;
             entity._annotation = this;
             this.entity = entity;
         }

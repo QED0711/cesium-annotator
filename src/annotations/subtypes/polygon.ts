@@ -89,6 +89,7 @@ export default class Polygon extends Annotation {
         }
 
         if (entity) {
+            entity._canActivate = true;
             entity._annotation = this;
             this.entity = entity;
         }

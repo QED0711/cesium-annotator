@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { RegistryInit } from '../utils/types';
+import { FlyToOptions, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
@@ -16,12 +16,14 @@ import { nanoid } from 'nanoid';
  * ***************************** GROUP ***************************** 
  *****************************************************************************/
 export class AnnotationGroup {
+    registry: Registry
     id: string;
     name?: string
     annotations: Set<Annotation>;
 
-    constructor(name?: string) {
+    constructor(registry: Registry, name?: string) {
         this.id = nanoid();
+        this.registry = registry;
         this.name = name;
         this.annotations = new Set<Annotation>();
     }
@@ -67,6 +69,32 @@ export class AnnotationGroup {
             annotation.delete();
         }
     }
+
+    flyTo(options?: FlyToOptions){
+        const entities = Array.from(this.annotations).map(annotation => annotation.entity).filter(entity => !!entity) as Cesium.Entity[];
+        if(entities.length === 0) return;
+        this.registry.viewer.flyTo(
+            entities, 
+            {
+                duration: 0,
+                offset: new Cesium.HeadingPitchRange(0, -90),
+                ...(options ?? {})
+            }
+        );
+    }
+
+    toGeoJson(): {[key: string]: any} {
+        const combinedResult = {type: "FeatureCollection"} 
+        const features: {}[] = [];
+        const geoJsons = Array.from(this.annotations)
+            .map(annotation => annotation.toGeoJson())
+            .forEach(geoJson => {
+                if(geoJson) {
+                    features.push(geoJson.features[0])
+                }
+            });
+        return {type: "FeatureCollection", features}
+    }
 }
 
 /******************************************************************************
@@ -88,7 +116,8 @@ export class Registry {
         this.groups = [];
         this.useAltitude = init.useAltitude ?? true;
 
-        this.viewerInterface = new ViewerInterface(this.viewer, {useAltitude: this.useAltitude});
+        // this.viewerInterface = new ViewerInterface(this.viewer, {useAltitude: this.useAltitude});
+        this.viewerInterface = ViewerInterface.registerViewer(this.viewer, {useAltitude: this.useAltitude});
     }
 
     getAnnotationByID(id: string): Annotation | null | undefined {
@@ -111,7 +140,7 @@ export class Registry {
     }
 
     createGroup(name?: string): AnnotationGroup {
-        const group = new AnnotationGroup(name);
+        const group = new AnnotationGroup(this, name);
         this.groups.push(group)
         return group;
     }

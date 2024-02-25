@@ -1,21 +1,41 @@
 import * as Cesium from 'cesium';
 import { Coordinate } from './coordinate';
-/******************************************************************************
- * ***************************** VIEWER INTERFACE *****************************
- *****************************************************************************/
 export class ViewerInterface {
     constructor(viewer, options) {
-        var _a;
+        var _a, _b;
+        // TODO: Only one viewerInterface should exist per viewer. use s tatic method to get or create a viewerInterface based on the viewer
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
         this.useAltitude = (_a = options.useAltitude) !== null && _a !== void 0 ? _a : true;
         this.longPressComplete = false;
         this.init();
+        const constructor = this.constructor;
+        constructor.interfaces = (_b = constructor.interfaces) !== null && _b !== void 0 ? _b : [];
+        constructor.interfaces.push(this);
+    }
+    static registerViewer(viewer, options) {
+        var _a, _b;
+        const existingInterface = (_b = (_a = this.interfaces) === null || _a === void 0 ? void 0 : _a.find) === null || _b === void 0 ? void 0 : _b.call(_a, intfc => intfc.viewer === viewer);
+        if (existingInterface)
+            return existingInterface;
+        return new ViewerInterface(viewer, options);
     }
     init() {
         // tracking long press initiation
         this.pointerDownHandler = (e) => {
+            let foundEntity = this.queryEntityAtPixel();
+            if (foundEntity !== null && (foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._canActivate)) {
+                if (foundEntity._annotation) {
+                    foundEntity = foundEntity;
+                    foundEntity._annotation.registry.activateByID(foundEntity._annotation.id);
+                }
+                // for point types
+                if (foundEntity._parentAnnotation) {
+                    foundEntity = foundEntity;
+                    foundEntity._parentAnnotation.registry.activateByID(foundEntity._parentAnnotation.id);
+                }
+            }
             this.longPressTimeout = setTimeout(() => {
                 this.longPressComplete = true;
                 let foundEntity = this.queryEntityAtPixel();

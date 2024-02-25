@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
-import { CoordinateInit, DistanceUnit, HandleEntity } from '../utils/types';
+import { AnnotationType, CoordinateInit, DistanceUnit, HandleEntity } from '../utils/types';
 
 export class Coordinate {
     id: string;
@@ -186,12 +186,72 @@ export class CoordinateCollection {
         let data = this.coordinates;
 
         return {
-            next(){
-                return idx < data.length 
-                    ? {value: data[idx++], done: false}
-                    : {done: true, value: null}
+            next() {
+                return idx < data.length
+                    ? { value: data[idx++], done: false }
+                    : { done: true, value: null }
             }
         }
     }
+
+    toGeoJson(annotationType: AnnotationType): {[key: string]: any} | null {
+        let coords: number[] | number[][] | number[][][] | null = null,
+            geomType: string = "",
+            properties: { [key: string]: any } = {}
+
+        if (annotationType === AnnotationType.POINT) {
+            if (this.coordinates.length === 0) return null
+            geomType = "Point"
+            const { lat, lng, alt } = this.coordinates[0];
+            coords = [lng, lat, alt ?? 0.0];
+        }
+
+        if (annotationType === AnnotationType.POLYLINE) {
+            if (this.coordinates.length < 2) return null;
+            geomType = "LineString"
+            coords = this.coordinates.map(({ lng, lat, alt }) => [lng, lat, alt ?? 0.0])
+        }
+
+        if (annotationType === AnnotationType.POLYGON) {
+            if (this.coordinates.length < 3) return null;
+            geomType = "Polygon"
+            coords = this.coordinates.map(({ lng, lat, alt }) => [lng, lat, alt ?? 0.0])
+            coords.push(coords[0])
+            coords = [coords];
+        }
+
+        if (annotationType === AnnotationType.RECTANGLE) {
+            if (this.coordinates.length < 2) return null;
+            geomType = "Polygon"
+            const bbox = this.getMinMaxBbox();
+            coords = [[
+                [bbox.lngMin, bbox.latMin],
+                [bbox.lngMin, bbox.latMax],
+                [bbox.lngMax, bbox.latMax],
+                [bbox.lngMax, bbox.latMin],
+                [bbox.lngMin, bbox.latMin],
+            ]];
+        }
+
+        // Note: RING type handled in ring annotation
+
+        if (!coords || coords.length === 0) return null
+
+        const result = {
+            type: "FeatureCollection",
+            features: [
+                {
+                    type: "Feature",
+                    properties,
+                    geometry: {
+                        type: geomType,
+                        coordinates: coords,
+                    }
+                }
+            ]
+        }
+        return result
+    }
+
 
 }

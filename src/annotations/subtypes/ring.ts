@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, FlyToOptions } from "../../utils/types";
 import { Annotation } from "../core";
-import { Coordinate } from '../coordinate';
+import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
 
 export type RingInitOptions = AnnotationBaseInit & {
@@ -125,6 +125,7 @@ export default class Ring extends Annotation {
         }
 
         if (entity) {
+            entity._canActivate = true;
             entity._annotation = this;
             this.entity = entity;
         }
@@ -143,7 +144,34 @@ export default class Ring extends Annotation {
         return null;
     }
 
+
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void {}
+
+    toGeoJson(): { [key: string]: any; } | null {
+
+        if(this.points.length < 2) return null
+        const headingFactor = 360 / this.nPoints;
+        const perimeterCoords: Coordinate[] = [];
+        for (let i = 0; i < this.nPoints; i++) {
+            const heading = headingFactor * i;
+            perimeterCoords.push((this.points.at(0) as Coordinate).atHeadingDistance(heading, this.radius as number))
+        }
+        perimeterCoords.push(perimeterCoords[0]) // close the perimerter
+
+        const collection = new CoordinateCollection(perimeterCoords)
+        const geoJson = collection.toGeoJson(AnnotationType.POLYGON);
+        if(geoJson) {
+            const center: Coordinate = this.points.at(0) as Coordinate;
+            geoJson.features[0].properties = {
+                annotationType: AnnotationType.RING,
+                center: [center.lng, center.lat, center.alt], 
+                radius: this.radius,
+            }
+        }
+
+        return geoJson;
+
+    }
 
 }

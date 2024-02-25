@@ -49,6 +49,7 @@ export enum HandleType {
 }
 
 export type AnnotationEntity = Cesium.Entity & {
+    _canActivate: boolean,
     _annotation: Annotation,
     // _isHandle?: boolean,
     // _handleIdx?: number,
@@ -56,6 +57,7 @@ export type AnnotationEntity = Cesium.Entity & {
 }
 
 export type HandleEntity = Cesium.Entity & {
+    _canActivate: boolean,
     _parentAnnotation: Annotation,
     _isHandle: boolean,
     _handleIdx: number,
@@ -72,4 +74,11 @@ export type MidPointHandleEntity = AnnotationEntity & {
     _isMidpointHandle: boolean,
     _coordinate: Coordinate,
     _idxBookends: number[]
+}
+
+// CESIUM OPTIONS
+export type FlyToOptions = {
+    duration?: number,
+    maximumHeight?: number,
+    offset?: Cesium.HeadingPitchRange
 }

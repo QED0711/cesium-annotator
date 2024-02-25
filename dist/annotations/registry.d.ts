@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { RegistryInit } from '../utils/types';
+import { FlyToOptions, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
@@ -11,10 +11,11 @@ import RingAnnotation, { RingInitOptions } from './subtypes/ring';
  * ***************************** GROUP *****************************
  *****************************************************************************/
 export declare class AnnotationGroup {
+    registry: Registry;
     id: string;
     name?: string;
     annotations: Set<Annotation>;
-    constructor(name?: string);
+    constructor(registry: Registry, name?: string);
     capture(annotation: Annotation): void;
     release(annotation: Annotation): void;
     releaseAll(): void;
@@ -22,6 +23,10 @@ export declare class AnnotationGroup {
     show(): void;
     hide(): void;
     deleteAll(): void;
+    flyTo(options?: FlyToOptions): void;
+    toGeoJson(): {
+        [key: string]: any;
+    };
 }
 /******************************************************************************
  * ***************************** REGISTRY *****************************

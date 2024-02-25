@@ -1,9 +1,9 @@
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
 export declare class Annotation {
-    protected registry: Registry;
+    registry: Registry;
     protected viewerInterface: ViewerInterface;
     protected annotationType: AnnotationType;
     id: string;
@@ -66,6 +66,10 @@ export declare class Annotation {
     removeStaleHandles(): void;
     syncHandles(): void;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
+    flyTo(options?: FlyToOptions): void;
+    toGeoJson(): {
+        [key: string]: any;
+    } | null;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;
 }

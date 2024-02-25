@@ -2,9 +2,6 @@ import * as Cesium from 'cesium';
 import { Annotation } from './core';
 import { Coordinate } from './coordinate';
 import { AnnotationEntity, HandleEntity, ViewerInterfaceInitOptions } from '../utils/types';
-/******************************************************************************
- * ***************************** VIEWER INTERFACE *****************************
- *****************************************************************************/
 export declare class ViewerInterface {
     viewer: Cesium.Viewer;
     events: {
@@ -21,7 +18,9 @@ export declare class ViewerInterface {
     private longPressTimeout?;
     longPressComplete: boolean;
     useAltitude: boolean;
-    constructor(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions);
+    static interfaces: ViewerInterface[];
+    private constructor();
+    static registerViewer(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions): ViewerInterface;
     init(): void;
     removeHandlers(): void;
     getCoordinateAtPixel(x?: number, y?: number): Coordinate | null;

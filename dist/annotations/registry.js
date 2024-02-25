@@ -1,3 +1,4 @@
+import * as Cesium from 'cesium';
 import { ViewerInterface } from './viewerInterface';
 import PointAnnotation from './subtypes/point';
 import PolylineAnnotation from './subtypes/polyline';
@@ -9,8 +10,9 @@ import { nanoid } from 'nanoid';
  * ***************************** GROUP *****************************
  *****************************************************************************/
 export class AnnotationGroup {
-    constructor(name) {
+    constructor(registry, name) {
         this.id = nanoid();
+        this.registry = registry;
         this.name = name;
         this.annotations = new Set();
     }
@@ -49,6 +51,24 @@ export class AnnotationGroup {
             annotation.delete();
         }
     }
+    flyTo(options) {
+        const entities = Array.from(this.annotations).map(annotation => annotation.entity).filter(entity => !!entity);
+        if (entities.length === 0)
+            return;
+        this.registry.viewer.flyTo(entities, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
+    }
+    toGeoJson() {
+        const combinedResult = { type: "FeatureCollection" };
+        const features = [];
+        const geoJsons = Array.from(this.annotations)
+            .map(annotation => annotation.toGeoJson())
+            .forEach(geoJson => {
+            if (geoJson) {
+                features.push(geoJson.features[0]);
+            }
+        });
+        return { type: "FeatureCollection", features };
+    }
 }
 /******************************************************************************
  * ***************************** REGISTRY *****************************
@@ -61,7 +81,8 @@ export class Registry {
         this.annotations = [];
         this.groups = [];
         this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : true;
-        this.viewerInterface = new ViewerInterface(this.viewer, { useAltitude: this.useAltitude });
+        // this.viewerInterface = new ViewerInterface(this.viewer, {useAltitude: this.useAltitude});
+        this.viewerInterface = ViewerInterface.registerViewer(this.viewer, { useAltitude: this.useAltitude });
     }
     getAnnotationByID(id) {
         return this.annotations.find(annotation => annotation.id === id);
@@ -80,7 +101,7 @@ export class Registry {
         }
     }
     createGroup(name) {
-        const group = new AnnotationGroup(name);
+        const group = new AnnotationGroup(this, name);
         this.groups.push(group);
         return group;
     }

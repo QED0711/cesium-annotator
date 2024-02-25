@@ -22,4 +22,7 @@ export default class Ring extends Annotation {
     syncHandles(): void;
     getArea(): number | null;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
+    toGeoJson(): {
+        [key: string]: any;
+    } | null;
 }

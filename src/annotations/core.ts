@@ -1,14 +1,15 @@
 import { nanoid } from 'nanoid';
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
-import { Coordinate, CoordinateCollection} from './coordinate';
+import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
+import * as Cesium from 'cesium';
 
 /* 
     ANNOTATION BASE CLASS
 */
 export class Annotation {
-    protected registry: Registry;
+    registry: Registry;
     protected viewerInterface: ViewerInterface;
     protected annotationType: AnnotationType;
 
@@ -23,7 +24,7 @@ export class Annotation {
     handleType: HandleType;
     isActive: boolean;
 
-    attributes: {[key: string]: any} | null;
+    attributes: { [key: string]: any } | null;
 
     protected undoHistory: CoordinateCollection[];
     protected redoHistory: CoordinateCollection[];
@@ -122,9 +123,9 @@ export class Annotation {
         group.release(this);
     }
 
-    leaveAllGroups(){
+    leaveAllGroups() {
         const groups = Array.from(this.groups);
-        for(let group of groups) {
+        for (let group of groups) {
             this.leaveGroup(group);
         }
     }
@@ -146,13 +147,13 @@ export class Annotation {
     }
 
     show() {
-        if(this.entity) {
+        if (this.entity) {
             this.entity.show = true;
         }
     }
 
     hide() {
-        if(this.entity) {
+        if (this.entity) {
             this.entity.show = false;
         }
     }
@@ -181,9 +182,9 @@ export class Annotation {
         this.pointerDownDetected = true;
         let existingEntity = this.viewerInterface.queryEntityAtPixel();
 
-        if ((existingEntity as HandleEntity)?._isHandle ) {
+        if ((existingEntity as HandleEntity)?._isHandle) {
             existingEntity = existingEntity as HandleEntity;
-            if(existingEntity?._handleIdx !== undefined && existingEntity?._handleCoordinateID){
+            if (existingEntity?._handleIdx !== undefined && existingEntity?._handleCoordinateID) {
                 this.handleFound = { index: existingEntity._handleIdx, handleID: existingEntity._handleCoordinateID }
                 this.viewerInterface.lock();
                 this.preDragHistoricalRecord = this.points.clone();
@@ -197,7 +198,7 @@ export class Annotation {
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                if(coordinate) this.points.set(this.handleFound.index, coordinate);
+                if (coordinate) this.points.set(this.handleFound.index, coordinate);
             }
             this.dragDetected = true;
         }
@@ -208,7 +209,7 @@ export class Annotation {
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
 
-        if(this.bypassPointerUp) {
+        if (this.bypassPointerUp) {
             this.bypassPointerUp = false;
             return;
         }
@@ -290,7 +291,7 @@ export class Annotation {
     updateHandleIdxs(): void {
         for (let i = 0; i < this.points.length; i++) {
             const handleID = this.points.at(i)?.id ?? null;
-            if(handleID !== null) {
+            if (handleID !== null) {
                 const handle = this.handles[handleID];
                 handle._handleIdx = i;
             }
@@ -312,11 +313,11 @@ export class Annotation {
     }
 
     syncHandles(): void {
-        if(this.isActive) {
-            for(let i = 0; i < this.points.length; i++) {
+        if (this.isActive) {
+            for (let i = 0; i < this.points.length; i++) {
                 const point = this.points.at(i);
-                if(!point) continue
-                if(point.id in this.handles) continue;
+                if (!point) continue
+                if (point.id in this.handles) continue;
 
                 const handle = this.viewerInterface.viewer.entities.add({
                     position: point.cartesian3,
@@ -347,6 +348,22 @@ export class Annotation {
         this.draw();
         this.syncHandles();
 
+    }
+
+    flyTo(options?: FlyToOptions) {
+        if(!this.entity) return;
+        this.viewerInterface.viewer.flyTo(
+            this.entity, 
+            {
+                duration: 0, 
+                offset: new Cesium.HeadingPitchRange(0, -90),
+                ...(options ?? {})
+            }
+        )
+    }
+
+    toGeoJson(): {[key: string]: any} | null {
+        return this.points.toGeoJson(this.annotationType);
     }
 
     // SUBCLASS IMPLEMENTATIONS
