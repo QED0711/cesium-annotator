@@ -24,10 +24,11 @@ export class ViewerInterface {
     private pointerUpHandler?: ((e: PointerEvent) => void) | null;
 
     private longPressTimeout?: number | NodeJS.Timeout;
+    private detectedPointerMove: boolean
     longPressComplete: boolean;
     useAltitude: boolean
 
-    static interfaces: ViewerInterface[]; 
+    static interfaces: ViewerInterface[];
 
     private constructor(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions) {
         // TODO: Only one viewerInterface should exist per viewer. use s tatic method to get or create a viewerInterface based on the viewer
@@ -38,6 +39,7 @@ export class ViewerInterface {
         this.useAltitude = options.useAltitude ?? true;
 
         this.longPressComplete = false;
+        this.detectedPointerMove = false;
 
         this.init();
 
@@ -48,7 +50,7 @@ export class ViewerInterface {
 
     static registerViewer(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions): ViewerInterface {
         const existingInterface = this.interfaces?.find?.(intfc => intfc.viewer === viewer)
-        if(existingInterface) return existingInterface;
+        if (existingInterface) return existingInterface;
 
         return new ViewerInterface(viewer, options);
     }
@@ -56,28 +58,13 @@ export class ViewerInterface {
     init() {
         // tracking long press initiation
         this.pointerDownHandler = (e: PointerEvent) => {
-            
-            let foundEntity = this.queryEntityAtPixel();
-            if(foundEntity !== null && (foundEntity as AnnotationEntity | HandleEntity)?._canActivate) {
-                if((foundEntity as AnnotationEntity)._annotation) {
-                    foundEntity = foundEntity as AnnotationEntity;
-                    foundEntity._annotation.registry.activateByID(foundEntity._annotation.id);
-                }
-                // for point types
-                if((foundEntity as HandleEntity)._parentAnnotation) {
-                    foundEntity = foundEntity as HandleEntity;
-                    foundEntity._parentAnnotation.registry.activateByID(foundEntity._parentAnnotation.id);
-                }
-
-            }
-
-
+            this.detectedPointerMove = false
             this.longPressTimeout = setTimeout(() => {
                 this.longPressComplete = true;
                 let foundEntity = this.queryEntityAtPixel();
-                if ((foundEntity as HandleEntity)?._isHandle ) {
+                if ((foundEntity as HandleEntity)?._isHandle) {
                     foundEntity = foundEntity as HandleEntity;
-                    if(foundEntity._handleIdx !== undefined) {
+                    if (foundEntity._handleIdx !== undefined) {
                         foundEntity._parentAnnotation.removePointAtIndex(foundEntity._handleIdx);
                     }
                 }
@@ -89,12 +76,30 @@ export class ViewerInterface {
             clearTimeout(this.longPressTimeout);
             this.cursorX = e.offsetX;
             this.cursorY = e.offsetY;
+            this.detectedPointerMove = true;
         }
 
         // track long press exit
         this.pointerUpHandler = (e: PointerEvent) => {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
+
+            if(!this.detectedPointerMove) {
+                let foundEntity = this.queryEntityAtPixel();
+                if (foundEntity !== null && (foundEntity as AnnotationEntity | HandleEntity)?._canActivate) {
+                    if ((foundEntity as AnnotationEntity)._annotation) {
+                        foundEntity = foundEntity as AnnotationEntity;
+                        foundEntity._annotation.registry.activateByID(foundEntity._annotation.id);
+                    }
+                    // for point types
+                    if ((foundEntity as HandleEntity)._parentAnnotation) {
+                        foundEntity = foundEntity as HandleEntity;
+                        foundEntity._parentAnnotation.registry.activateByID(foundEntity._parentAnnotation.id);
+                    }
+    
+                }
+            }
+            this.detectedPointerMove = false;
         }
 
         this.canvas.addEventListener("pointermove", this.pointerMoveHandler)

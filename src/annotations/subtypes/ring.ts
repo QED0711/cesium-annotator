@@ -50,13 +50,13 @@ export default class Ring extends Annotation {
         } else {
             this.points.set(1, coordinate)
         }
-        if(this.points.length === 2) {
+        if (this.points.length === 2) {
             this.radius = (this.points.at(0) as Coordinate).distanceTo(this.points.at(1) as Coordinate);
         }
     }
 
     draw(): void {
-        if(this.points.length < 2 || this.radius === null) return
+        if (this.points.length < 2 || this.radius === null) return
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
             this.removeEntity();
@@ -138,7 +138,7 @@ export default class Ring extends Annotation {
     }
 
     getArea(): number | null {
-        if(this.radius !== null) {
+        if (this.radius !== null) {
             return Math.PI * this.radius ** 2
         }
         return null;
@@ -146,11 +146,11 @@ export default class Ring extends Annotation {
 
 
     // OVERRIDES
-    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void {}
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
 
     toGeoJson(): { [key: string]: any; } | null {
 
-        if(this.points.length < 2) return null
+        if (this.points.length < 2) return null
         const headingFactor = 360 / this.nPoints;
         const perimeterCoords: Coordinate[] = [];
         for (let i = 0; i < this.nPoints; i++) {
@@ -160,12 +160,13 @@ export default class Ring extends Annotation {
 
         const collection = new CoordinateCollection(perimeterCoords)
         const geoJson = collection.toGeoJson(AnnotationType.POLYGON);
-        if(geoJson) {
-            const center: Coordinate = this.points.at(0) as Coordinate;
+        if (geoJson) {
+            const p1: Coordinate = this.points.at(0) as Coordinate;
+            const p2: Coordinate = this.points.at(1) as Coordinate;
             geoJson.features[0].properties = {
                 annotationType: AnnotationType.RING,
-                center: [center.lng, center.lat, center.alt], 
-                radius: this.radius,
+                center: { lng: p1.lng, lat: p1.lat, alt: p1.alt },
+                perimeterPoint: { lng: p2.lng, lat: p2.lat, alt: p2.alt },
             }
         }
 
@@ -173,7 +174,7 @@ export default class Ring extends Annotation {
     }
 
     toWkt(): string | null {
-        if(this.points.length < 2) return null
+        if (this.points.length < 2) return null
         const headingFactor = 360 / this.nPoints;
         const perimeterCoords: Coordinate[] = [];
         for (let i = 0; i < this.nPoints; i++) {

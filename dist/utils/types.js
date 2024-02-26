@@ -19,4 +19,10 @@ export var HandleType;
     HandleType[HandleType["POINT"] = 0] = "POINT";
     HandleType[HandleType["BILLBOARD"] = 1] = "BILLBOARD";
 })(HandleType || (HandleType = {}));
+export var GeoJsonType;
+(function (GeoJsonType) {
+    GeoJsonType["POINT"] = "Point";
+    GeoJsonType["POLYLINE"] = "LineString";
+    GeoJsonType["POLYGON"] = "Polygon";
+})(GeoJsonType || (GeoJsonType = {}));
 //# sourceMappingURL=types.js.map

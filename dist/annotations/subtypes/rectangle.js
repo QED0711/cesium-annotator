@@ -105,5 +105,14 @@ export default class Rectangle extends Annotation {
     }
     // OVERRIDES
     insertCoordinateAtIndex(coordinate, idx) { }
+    toGeoJson() {
+        const geoJson = super.toGeoJson();
+        if (geoJson) {
+            const { lng: lng1, lat: lat1, alt: alt1 } = this.points.at(0);
+            const { lng: lng2, lat: lat2, alt: alt2 } = this.points.at(1);
+            geoJson.features[0].properties = Object.assign({ annotationType: AnnotationType.RECTANGLE, vert1: { lng: lng1, lat: lat1, alt: alt1 }, vert2: { lng: lng2, lat: lat2, alt: alt2 } }, geoJson.features[0].properties);
+        }
+        return geoJson;
+    }
 }
 //# sourceMappingURL=rectangle.js.map

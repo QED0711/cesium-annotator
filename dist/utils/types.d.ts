@@ -66,3 +66,25 @@ export type FlyToOptions = {
     maximumHeight?: number;
     offset?: Cesium.HeadingPitchRange;
 };
+export type GeoJsonLoaderOptions = {
+    propertiesInitKey?: string;
+};
+export declare enum GeoJsonType {
+    POINT = "Point",
+    POLYLINE = "LineString",
+    POLYGON = "Polygon"
+}
+export type GeoJsonFeature = {
+    type: string;
+    properties: {
+        [key: string]: any;
+    };
+    geometry: {
+        coordinates: number[] | number[][] | number[][][];
+        type: GeoJsonType | string;
+    };
+};
+export type GeoJsonFeatureCollection = {
+    type: string;
+    features: GeoJsonFeature[];
+};

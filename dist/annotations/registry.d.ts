@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { FlyToOptions, RegistryInit } from '../utils/types';
+import { FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
@@ -38,6 +38,9 @@ export declare class Registry {
     groups: AnnotationGroup[];
     viewer: Cesium.Viewer;
     viewerInterface: ViewerInterface;
+    loaders: {
+        [key: string]: (geom: any) => Annotation | null;
+    };
     useAltitude: boolean;
     constructor(init: RegistryInit);
     getAnnotationByID(id: string): Annotation | null | undefined;
@@ -55,4 +58,7 @@ export declare class Registry {
     addPolygon(options: PolygonInitOptions): PolygonAnnotation;
     addRectangle(options: RectangleInitOptions): RectangleAnnotation;
     addRing(options: RingInitOptions): RingAnnotation;
+    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Annotation | null;
+    defineCustomLoader(loaderName: string, func: (geom: any) => Annotation | null): void;
+    loadWith(loaderName: string, geom: any): Annotation | null;
 }

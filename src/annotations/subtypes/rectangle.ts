@@ -137,7 +137,24 @@ export default class Rectangle extends Annotation {
     }
 
     // OVERRIDES
-    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void {}
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
+
+    toGeoJson(): { [key: string]: any; } | null {
+        const geoJson = super.toGeoJson();
+
+        if (geoJson) {
+            const { lng: lng1, lat: lat1, alt: alt1 } = this.points.at(0) as Coordinate;
+            const { lng: lng2, lat: lat2, alt: alt2 } = this.points.at(1) as Coordinate;
+            geoJson.features[0].properties = {
+                annotationType: AnnotationType.RECTANGLE,
+                vert1: { lng: lng1, lat: lat1, alt: alt1 },
+                vert2: { lng: lng2, lat: lat2, alt: alt2 },
+                ...geoJson.features[0].properties
+            }
+        }
+
+        return geoJson;
+    }
 
 }
 

@@ -14,7 +14,7 @@ export type AnnotationBaseInit = {
     liveUpdate?: boolean,
     userInteractive?: boolean,
     handleType?: HandleType
-    attributes?: {[key: string]: any}
+    attributes?: { [key: string]: any }
 }
 
 export type RegistryInit = {
@@ -81,4 +81,29 @@ export type FlyToOptions = {
     duration?: number,
     maximumHeight?: number,
     offset?: Cesium.HeadingPitchRange
+}
+
+// GEOJSON FORMATTING
+export type GeoJsonLoaderOptions = {
+    propertiesInitKey?: string
+}
+
+export enum GeoJsonType {
+    POINT = "Point",
+    POLYLINE = "LineString",
+    POLYGON = "Polygon",
+}
+
+export type GeoJsonFeature = {
+    type: string,
+    properties: { [key: string]: any },
+    geometry: {
+        coordinates: number[] | number[][] | number[][][],
+        type: GeoJsonType | string
+    }
+}
+
+export type GeoJsonFeatureCollection = {
+    type: string,
+    features: GeoJsonFeature[]
 }

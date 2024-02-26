@@ -9,6 +9,7 @@ export class ViewerInterface {
         this.events = {};
         this.useAltitude = (_a = options.useAltitude) !== null && _a !== void 0 ? _a : true;
         this.longPressComplete = false;
+        this.detectedPointerMove = false;
         this.init();
         const constructor = this.constructor;
         constructor.interfaces = (_b = constructor.interfaces) !== null && _b !== void 0 ? _b : [];
@@ -24,18 +25,7 @@ export class ViewerInterface {
     init() {
         // tracking long press initiation
         this.pointerDownHandler = (e) => {
-            let foundEntity = this.queryEntityAtPixel();
-            if (foundEntity !== null && (foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._canActivate)) {
-                if (foundEntity._annotation) {
-                    foundEntity = foundEntity;
-                    foundEntity._annotation.registry.activateByID(foundEntity._annotation.id);
-                }
-                // for point types
-                if (foundEntity._parentAnnotation) {
-                    foundEntity = foundEntity;
-                    foundEntity._parentAnnotation.registry.activateByID(foundEntity._parentAnnotation.id);
-                }
-            }
+            this.detectedPointerMove = false;
             this.longPressTimeout = setTimeout(() => {
                 this.longPressComplete = true;
                 let foundEntity = this.queryEntityAtPixel();
@@ -52,11 +42,27 @@ export class ViewerInterface {
             clearTimeout(this.longPressTimeout);
             this.cursorX = e.offsetX;
             this.cursorY = e.offsetY;
+            this.detectedPointerMove = true;
         };
         // track long press exit
         this.pointerUpHandler = (e) => {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
+            if (!this.detectedPointerMove) {
+                let foundEntity = this.queryEntityAtPixel();
+                if (foundEntity !== null && (foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._canActivate)) {
+                    if (foundEntity._annotation) {
+                        foundEntity = foundEntity;
+                        foundEntity._annotation.registry.activateByID(foundEntity._annotation.id);
+                    }
+                    // for point types
+                    if (foundEntity._parentAnnotation) {
+                        foundEntity = foundEntity;
+                        foundEntity._parentAnnotation.registry.activateByID(foundEntity._parentAnnotation.id);
+                    }
+                }
+            }
+            this.detectedPointerMove = false;
         };
         this.canvas.addEventListener("pointermove", this.pointerMoveHandler);
         this.canvas.addEventListener("pointerdown", this.pointerDownHandler);

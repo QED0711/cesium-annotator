@@ -53,6 +53,8 @@ export class Annotation {
         func(this);
     }
     activate() {
+        if (!this.userInteractive)
+            return;
         this.isActive = true;
         this.showHandles();
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);

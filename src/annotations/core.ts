@@ -91,6 +91,7 @@ export class Annotation {
     }
 
     activate() {
+        if(!this.userInteractive) return;
         this.isActive = true;
         this.showHandles();
 

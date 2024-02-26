@@ -19,4 +19,7 @@ export default class Rectangle extends Annotation {
     getPerimeter(unit?: DistanceUnit): number | null;
     getArea(unit?: DistanceUnit): number;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
+    toGeoJson(): {
+        [key: string]: any;
+    } | null;
 }

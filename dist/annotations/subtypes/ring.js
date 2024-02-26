@@ -127,11 +127,12 @@ export default class Ring extends Annotation {
         const collection = new CoordinateCollection(perimeterCoords);
         const geoJson = collection.toGeoJson(AnnotationType.POLYGON);
         if (geoJson) {
-            const center = this.points.at(0);
+            const p1 = this.points.at(0);
+            const p2 = this.points.at(1);
             geoJson.features[0].properties = {
                 annotationType: AnnotationType.RING,
-                center: [center.lng, center.lat, center.alt],
-                radius: this.radius,
+                center: { lng: p1.lng, lat: p1.lat, alt: p1.alt },
+                perimeterPoint: { lng: p2.lng, lat: p2.lat, alt: p2.alt },
             };
         }
         return geoJson;
