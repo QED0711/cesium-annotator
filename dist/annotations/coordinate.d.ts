@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
-import { AnnotationType, CoordinateInit, DistanceUnit, HandleEntity } from '../utils/types';
+import { AnnotationType, CoordinateInit, DistanceUnit, GeoJsonFeatureCollection, HandleEntity } from '../utils/types';
 export declare class Coordinate {
     id: string;
     lng: number;
@@ -49,8 +49,6 @@ export declare class CoordinateCollection {
     };
     toCartesian3Array(): Cesium.Cartesian3[];
     [Symbol.iterator](): Iterator<Coordinate>;
-    toGeoJson(annotationType: AnnotationType): {
-        [key: string]: any;
-    } | null;
+    toGeoJson(annotationType: AnnotationType): GeoJsonFeatureCollection | null;
     toWkt(annotationType: AnnotationType): string | null;
 }

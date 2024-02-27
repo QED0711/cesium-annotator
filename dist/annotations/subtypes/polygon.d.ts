@@ -1,18 +1,20 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit } from "../../utils/types";
+import { AnnotationBaseInit, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 export type PolygonInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions;
+    polygonProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties?: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
     midpointMarkers?: boolean;
 };
 export default class Polygon extends Annotation {
     drawAsLine: boolean;
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions;
+    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     private midpointMarkers;
     private midPointHandles;
     constructor(registry: Registry, options: PolygonInitOptions);
@@ -22,4 +24,5 @@ export default class Polygon extends Annotation {
     syncHandles(): void;
     hideHandles(): void;
     showHandles(): void;
+    toGeoJson(): GeoJsonFeatureCollection | null;
 }

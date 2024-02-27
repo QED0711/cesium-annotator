@@ -158,7 +158,7 @@ export class CoordinateCollection {
         };
     }
     toGeoJson(annotationType) {
-        let coords = null, geomType = "", properties = {};
+        let coords = null, geomType = "", properties = { initOptions: {} };
         if (annotationType === AnnotationType.POINT) {
             if (this.coordinates.length === 0)
                 return null;

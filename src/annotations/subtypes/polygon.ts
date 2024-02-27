@@ -1,13 +1,14 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity, EventType, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 
 export type PolygonInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions,
+    polygonProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions,
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
+    entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean
     midpointMarkers?: boolean,
 }
@@ -15,8 +16,9 @@ export type PolygonInitOptions = AnnotationBaseInit & {
 export default class Polygon extends Annotation {
 
     drawAsLine: boolean;
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions;
+    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     private midpointMarkers: boolean;
     private midPointHandles: Cesium.Entity[];
 
@@ -24,8 +26,9 @@ export default class Polygon extends Annotation {
         super(registry, options);
 
         this.annotationType = AnnotationType.POLYGON;
-        this.entityProperties = options.entityProperties ?? {};
+        this.polygonProperties = options.polygonProperties ?? {};
         this.handleProperties = options.handleProperties ?? {};
+        this.entityProperties = options.entityProperties ?? {};
 
         this.drawAsLine = options.drawAsLine ?? false;
 
@@ -35,7 +38,7 @@ export default class Polygon extends Annotation {
 
     appendCoordinate(coordinate: Coordinate): void {
         this.points.push(coordinate);
-        this.emit("append", { annotation: this });
+        this.emit(EventType.APPEND, { annotation: this });
     }
 
     draw(): void {
@@ -48,8 +51,9 @@ export default class Polygon extends Annotation {
                     polyline: {
                         positions: [...this.points.coordinates.map(c => c.cartesian3), (this.points.at(0) as Coordinate).cartesian3],
                         width: 2,
-                        ...this.entityProperties as Cesium.PolylineGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolylineGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             } else {
                 if (this.points.length < 3) return;
@@ -57,8 +61,9 @@ export default class Polygon extends Annotation {
                     id: this.id,
                     polygon: {
                         hierarchy: this.points.toCartesian3Array(),
-                        ...this.entityProperties as Cesium.PolygonGraphics.ConstructorOptions,
-                    }
+                        ...this.polygonProperties as Cesium.PolygonGraphics.ConstructorOptions,
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             }
         } else if (!this.entity) {
@@ -70,8 +75,9 @@ export default class Polygon extends Annotation {
                             return [...this.points.coordinates.map(c => c.cartesian3), (this.points.at(0) as Coordinate).cartesian3]
                         }, false),
                         width: 2,
-                        ...this.entityProperties as Cesium.PolylineGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolylineGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             } else { // POLYGON
                 if (this.points.length < 3) return;
@@ -82,8 +88,9 @@ export default class Polygon extends Annotation {
                             const positions = this.points.toCartesian3Array();
                             return new Cesium.PolygonHierarchy(positions);
                         }, false),
-                        ...this.entityProperties as Cesium.PolygonGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolygonGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             }
         }
@@ -93,7 +100,7 @@ export default class Polygon extends Annotation {
             entity._annotation = this;
             this.entity = entity;
         }
-        this.emit("update", { annotation: this });
+        this.emit(EventType.UPDATE, { annotation: this });
     }
 
     handlePointerDown(e: PointerEvent): void {
@@ -150,6 +157,23 @@ export default class Polygon extends Annotation {
         for (let handle of Object.values(this.midPointHandles)) {
             handle.show = true;
         }
+    }
+
+    toGeoJson(): GeoJsonFeatureCollection | null {
+        const geoJson = super.toGeoJson();
+        if(geoJson) {
+            const properties = geoJson.features[0].properties;
+            properties.initOptions = {
+                polygonProperties: this.polygonProperties,
+                handleProperties: this.handleProperties,
+                entityProperties: this.entityProperties,
+                drawAsLine: this.drawAsLine,
+                midPointMarkers: this.midpointMarkers,
+                ...properties.initOptions,
+            }
+            return geoJson;
+        }
+        return null
     }
 
 }

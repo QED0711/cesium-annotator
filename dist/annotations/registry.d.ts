@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, RegistryInit } from '../utils/types';
+import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import PointAnnotation, { PointInitOptions } from './subtypes/point';
@@ -38,14 +38,21 @@ export declare class Registry {
     groups: AnnotationGroup[];
     viewer: Cesium.Viewer;
     viewerInterface: ViewerInterface;
+    events: {
+        [eventName: string]: ((payload: AnnotationEventPayload) => void)[];
+    };
     loaders: {
         [key: string]: (geom: any) => Annotation | null;
     };
     useAltitude: boolean;
     constructor(init: RegistryInit);
+    getActiveAnnotation(): Annotation | null;
     getAnnotationByID(id: string): Annotation | null | undefined;
     deleteByID(id: string): void;
     activateByID(id: string): void;
+    registerEvent(event: EventListItem): void;
+    registerEvents(events: EventListItem[]): void;
+    applyEvents(annotation: Annotation): void;
     createGroup(name?: string): AnnotationGroup;
     getGroupByID(id: string): AnnotationGroup | null;
     getGroupByName(name: string): AnnotationGroup | null;
@@ -58,7 +65,9 @@ export declare class Registry {
     addPolygon(options: PolygonInitOptions): PolygonAnnotation;
     addRectangle(options: RectangleInitOptions): RectangleAnnotation;
     addRing(options: RingInitOptions): RingAnnotation;
-    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Annotation | null;
+    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Annotation[] | null;
+    private loadFeatureFromGeoJson;
+    private loadFeatureCollectionFromGeoJson;
     defineCustomLoader(loaderName: string, func: (geom: any) => Annotation | null): void;
     loadWith(loaderName: string, geom: any): Annotation | null;
 }

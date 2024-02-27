@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, HandleEntity, HandleType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, EventType, GeoJsonFeature, GeoJsonFeatureCollection, HandleEntity, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { Registry } from "../registry";
 import { CoordinateCollection, Coordinate } from '../coordinate';
@@ -15,7 +15,7 @@ export default class PointAnnotation extends Annotation {
     entityProperties: Cesium.PointGraphics.ConstructorOptions;
     pointProperties: Cesium.PointGraphics.ConstructorOptions;
     billboardProperties: Cesium.BillboardGraphics.ConstructorOptions;
-    
+
     constructor(registry: Registry, options: PointInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.POINT;
@@ -26,14 +26,14 @@ export default class PointAnnotation extends Annotation {
 
     appendCoordinate(coordinate: Coordinate) {
         this.points = new CoordinateCollection([coordinate]);
-        this.emit("append", { annotation: this });
+        this.emit(EventType.APPEND, { annotation: this });
     }
 
     draw() {
         let entity: HandleEntity | null = null;
 
         let point, billboard;
-        if(this.handleType === HandleType.BILLBOARD) {
+        if (this.handleType === HandleType.BILLBOARD) {
             billboard = {
                 scale: 1.0,
                 ...this.billboardProperties
@@ -44,10 +44,10 @@ export default class PointAnnotation extends Annotation {
                 ...this.pointProperties
             } as Cesium.PointGraphics.ConstructorOptions
         }
-        
+
         if (!this.liveUpdate) {
             this.removeEntity();
-            if(this.points.length === 0) return;
+            if (this.points.length === 0) return;
 
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
@@ -57,7 +57,7 @@ export default class PointAnnotation extends Annotation {
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
             }) as HandleEntity
         } else if (!this.entity) {
-            if(this.points.length === 0) return;
+            if (this.points.length === 0) return;
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position: new Cesium.CallbackProperty(() => {
@@ -77,12 +77,31 @@ export default class PointAnnotation extends Annotation {
             entity._handleCoordinateID = this.points.at(0)?.id;
             this.entity = entity;
         }
-        
-        this.emit("update", { annotation: this });
+
+        this.emit(EventType.UPDATE, { annotation: this });
     }
 
     // OVERRIDES
-    syncHandles(): void {}
-    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void {}
+
+    toGeoJson(): GeoJsonFeatureCollection | null {
+        const geoJson = super.toGeoJson()
+
+        if (geoJson) {
+            const properties = geoJson.features?.[0]?.properties;
+            if(properties) {
+                properties.initOptions = {
+                    pointProperties: this.pointProperties,
+                    billboardProperties: this.billboardProperties,
+                    entityProperties: this.entityProperties,
+                    ...properties.initOptions
+                }
+            }
+            return geoJson
+        }
+        return null;
+    }
+
+    syncHandles(): void { }
+    insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
 
 }

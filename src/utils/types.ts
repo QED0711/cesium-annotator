@@ -14,6 +14,7 @@ export type AnnotationBaseInit = {
     liveUpdate?: boolean,
     userInteractive?: boolean,
     handleType?: HandleType
+    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
     attributes?: { [key: string]: any }
 }
 
@@ -76,6 +77,27 @@ export type MidPointHandleEntity = AnnotationEntity & {
     _idxBookends: number[]
 }
 
+// EVENTS 
+export enum EventType {
+    UPDATE = "update",
+    ACTIVATE = "activate",
+    APPEND = "append",
+    DEACTIVATE = "deactivate",
+    REMOVE_ENTITY = "removeEntity",
+    UNDO = "undo",
+    REDO = "redo",
+    DELETE = "delete"
+}
+
+export type AnnotationEventPayload = {
+    annotation: Annotation
+}
+
+export type EventListItem = {
+    eventName: EventType,
+    callback: (payload: AnnotationEventPayload) => void,
+}
+
 // CESIUM OPTIONS
 export type FlyToOptions = {
     duration?: number,
@@ -85,7 +107,9 @@ export type FlyToOptions = {
 
 // GEOJSON FORMATTING
 export type GeoJsonLoaderOptions = {
-    propertiesInitKey?: string
+    propertiesInitKey?: string,
+    preInitCallback?: (payload: { geoJson: GeoJsonFeature }) => GeoJsonFeature | null | undefined | void,
+    preDrawCallback?: (payload: { annotation: Annotation, geoJson: GeoJsonFeature | GeoJsonFeatureCollection }) => Annotation | null | undefined | void
 }
 
 export enum GeoJsonType {

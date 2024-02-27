@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -22,6 +22,7 @@ export class Annotation {
     entity: AnnotationEntity | HandleEntity | null;
     handles: { [coordinateID: string]: HandleEntity }
     handleType: HandleType;
+    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     isActive: boolean;
 
     attributes: { [key: string]: any } | null;
@@ -35,7 +36,7 @@ export class Annotation {
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: CoordinateCollection | null;
 
-    protected events: { [eventName: string]: ((payload: { [key: string]: any }) => void)[] };
+    protected events: { [eventName: string]: ((payload: AnnotationEventPayload) => void)[] };
 
     constructor(registry: Registry, options: AnnotationBaseInit) {
 
@@ -53,6 +54,7 @@ export class Annotation {
         this.entity = null;
         this.handles = {};
         this.handleType = options.handleType ?? HandleType.POINT;
+        this.handleProperties = options.handleProperties ?? {};
 
         this.attributes = options.attributes ?? null;
 
@@ -71,15 +73,15 @@ export class Annotation {
         return this.points;
     }
 
-    on(eventName: string, callback: (payload: { [key: string]: any }) => void) {
+    on(eventName: string, callback: (payload: AnnotationEventPayload) => void) {
         if (eventName in this.events) {
-            this.events.eventName.push(callback);
+            this.events[eventName].push(callback);
         } else {
             this.events[eventName] = [callback];
         }
     }
 
-    emit(eventName: string, payload: { [key: string]: any }) {
+    emit(eventName: string, payload: AnnotationEventPayload) {
         if (!(eventName in this.events)) return;
         for (let handler of this.events[eventName]) {
             handler(payload);
@@ -91,29 +93,30 @@ export class Annotation {
     }
 
     activate() {
-        if(!this.userInteractive) return;
+        if (!this.userInteractive) return;
         this.isActive = true;
+        this.syncHandles();
         this.showHandles();
 
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
         this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
         this.viewerInterface.registerListener("pointerup", this.handlePointerUp, this);
 
-        this.emit("activate", { annotation: this });
+        this.emit(EventType.ACTIVATE, { annotation: this });
     }
 
     deactivate() {
         this.isActive = false;
         this.hideHandles();
         this.viewerInterface.unregisterListenersByAnnotationID(this.id);
-        this.emit("deactivate", { annotation: this });
+        this.emit(EventType.DEACTIVATE, { annotation: this });
     }
 
     delete() {
         this.deactivate();
         this.removeEntity();
         this.leaveAllGroups();
-        this.emit("delete", { annotation: this });
+        this.emit(EventType.DELETE, { annotation: this });
     }
 
     joinGroup(group: AnnotationGroup) {
@@ -136,7 +139,7 @@ export class Annotation {
             this.viewerInterface.viewer.entities.remove(this.entity)
             this.entity = null;
         }
-        this.emit("removeEntity", { annotation: this });
+        this.emit(EventType.REMOVE_ENTITY, { annotation: this });
     }
 
     removeHandleByCoordinateID(id: string) {
@@ -260,7 +263,7 @@ export class Annotation {
         this.points = prev ?? new CoordinateCollection();
         this.draw();
         this.syncHandles();
-        this.emit("undo", { annotation: this })
+        this.emit(EventType.UNDO, { annotation: this })
     }
 
 
@@ -272,7 +275,7 @@ export class Annotation {
             this.draw();
             this.syncHandles();
         }
-        this.emit("redo", { annotation: this });
+        this.emit(EventType.REDO, { annotation: this });
     }
 
     recordPointsToUndoHistory() {
@@ -294,7 +297,7 @@ export class Annotation {
             const handleID = this.points.at(i)?.id ?? null;
             if (handleID !== null) {
                 const handle = this.handles[handleID];
-                handle._handleIdx = i;
+                if (handle) handle._handleIdx = i;
             }
         }
     }
@@ -319,20 +322,34 @@ export class Annotation {
                 const point = this.points.at(i);
                 if (!point) continue
                 if (point.id in this.handles) continue;
+                // TODO: handle when handle type is billboard vs point
+                let handle;
+                if (this.handleType === HandleType.POINT) {
+                    handle = this.viewerInterface.viewer.entities.add({
+                        position: point.cartesian3,
+                        point: {
+                            pixelSize: 10,
+                            ...this.handleProperties as Cesium.PointGraphics.ConstructorOptions
+                        }
+                    }) as HandleEntity
+                } else if (this.handleType === HandleType.BILLBOARD) {
+                    handle = this.viewerInterface.viewer.entities.add({
+                        position: point.cartesian3,
+                        billboard: {
+                            scale: 1.0,
+                            ...this.handleProperties as Cesium.BillboardGraphics.ConstructorOptions
+                        }
+                    }) as HandleEntity;
+                }
 
-                const handle = this.viewerInterface.viewer.entities.add({
-                    position: point.cartesian3,
-                    point: {
-                        pixelSize: 10,
-                    }
-                }) as HandleEntity
+                if (handle) {
+                    handle._parentAnnotation = this;
+                    handle._isHandle = true;
+                    handle._handleCoordinateID = point.id
+                    handle._handleIdx = i;
 
-                handle._parentAnnotation = this;
-                handle._isHandle = true;
-                handle._handleCoordinateID = point.id
-                handle._handleIdx = i;
-
-                this.handles[point.id] = handle;
+                    this.handles[point.id] = handle;
+                }
             }
         }
 
@@ -352,19 +369,31 @@ export class Annotation {
     }
 
     flyTo(options?: FlyToOptions) {
-        if(!this.entity) return;
+        if (!this.entity) return;
         this.viewerInterface.viewer.flyTo(
-            this.entity, 
+            this.entity,
             {
-                duration: 0, 
+                duration: 0,
                 offset: new Cesium.HeadingPitchRange(0, -90),
                 ...(options ?? {})
             }
         )
     }
 
-    toGeoJson(): {[key: string]: any} | null {
-        return this.points.toGeoJson(this.annotationType);
+    toGeoJson(): GeoJsonFeatureCollection | null {
+        const geoJson = this.points.toGeoJson(this.annotationType);
+        if (geoJson) {
+            const properties = geoJson.features[0].properties
+            properties.initOptions = {
+                id: this.id,
+                liveUpdate: this.liveUpdate,
+                userInteractive: this.userInteractive,
+                handleType: this.handleType,
+                attributes: this.attributes,
+                ...properties.initOptions
+            }
+        }
+        return geoJson
     }
 
     toWkt(): string | null {

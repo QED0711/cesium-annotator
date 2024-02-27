@@ -31,7 +31,6 @@ export class ViewerInterface {
     static interfaces: ViewerInterface[];
 
     private constructor(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions) {
-        // TODO: Only one viewerInterface should exist per viewer. use s tatic method to get or create a viewerInterface based on the viewer
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};

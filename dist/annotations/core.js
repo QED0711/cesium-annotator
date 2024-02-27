@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AnnotationType, HandleType } from '../utils/types';
+import { AnnotationType, HandleType, EventType } from '../utils/types';
 import { CoordinateCollection } from './coordinate';
 import * as Cesium from 'cesium';
 /*
@@ -36,7 +36,7 @@ export class Annotation {
     }
     on(eventName, callback) {
         if (eventName in this.events) {
-            this.events.eventName.push(callback);
+            this.events[eventName].push(callback);
         }
         else {
             this.events[eventName] = [callback];
@@ -56,23 +56,24 @@ export class Annotation {
         if (!this.userInteractive)
             return;
         this.isActive = true;
+        this.syncHandles();
         this.showHandles();
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
         this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
         this.viewerInterface.registerListener("pointerup", this.handlePointerUp, this);
-        this.emit("activate", { annotation: this });
+        this.emit(EventType.ACTIVATE, { annotation: this });
     }
     deactivate() {
         this.isActive = false;
         this.hideHandles();
         this.viewerInterface.unregisterListenersByAnnotationID(this.id);
-        this.emit("deactivate", { annotation: this });
+        this.emit(EventType.DEACTIVATE, { annotation: this });
     }
     delete() {
         this.deactivate();
         this.removeEntity();
         this.leaveAllGroups();
-        this.emit("delete", { annotation: this });
+        this.emit(EventType.DELETE, { annotation: this });
     }
     joinGroup(group) {
         group.capture(this);
@@ -91,7 +92,7 @@ export class Annotation {
             this.viewerInterface.viewer.entities.remove(this.entity);
             this.entity = null;
         }
-        this.emit("removeEntity", { annotation: this });
+        this.emit(EventType.REMOVE_ENTITY, { annotation: this });
     }
     removeHandleByCoordinateID(id) {
         const handleEntity = this.handles[id];
@@ -200,7 +201,7 @@ export class Annotation {
         this.points = prev !== null && prev !== void 0 ? prev : new CoordinateCollection();
         this.draw();
         this.syncHandles();
-        this.emit("undo", { annotation: this });
+        this.emit(EventType.UNDO, { annotation: this });
     }
     redo() {
         const next = this.redoHistory.pop();
@@ -210,7 +211,7 @@ export class Annotation {
             this.draw();
             this.syncHandles();
         }
-        this.emit("redo", { annotation: this });
+        this.emit(EventType.REDO, { annotation: this });
     }
     recordPointsToUndoHistory() {
         if (this.points.length > 0) {
@@ -229,7 +230,8 @@ export class Annotation {
             const handleID = (_b = (_a = this.points.at(i)) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : null;
             if (handleID !== null) {
                 const handle = this.handles[handleID];
-                handle._handleIdx = i;
+                if (handle)
+                    handle._handleIdx = i;
             }
         }
     }
@@ -254,6 +256,7 @@ export class Annotation {
                     continue;
                 if (point.id in this.handles)
                     continue;
+                // TODO: handle when handle type is billboard vs point
                 const handle = this.viewerInterface.viewer.entities.add({
                     position: point.cartesian3,
                     point: {
@@ -284,7 +287,12 @@ export class Annotation {
         this.viewerInterface.viewer.flyTo(this.entity, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
     }
     toGeoJson() {
-        return this.points.toGeoJson(this.annotationType);
+        const geoJson = this.points.toGeoJson(this.annotationType);
+        if (geoJson) {
+            const properties = geoJson.features[0].properties;
+            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, handleType: this.handleType, attributes: this.attributes }, properties.initOptions);
+        }
+        return geoJson;
     }
     toWkt() {
         return this.points.toWkt(this.annotationType);

@@ -61,6 +61,23 @@ export type MidPointHandleEntity = AnnotationEntity & {
     _coordinate: Coordinate;
     _idxBookends: number[];
 };
+export declare enum EventType {
+    UPDATE = "update",
+    ACTIVATE = "activate",
+    APPEND = "append",
+    DEACTIVATE = "deactivate",
+    REMOVE_ENTITY = "removeEntity",
+    UNDO = "undo",
+    REDO = "redo",
+    DELETE = "delete"
+}
+export type AnnotationEventPayload = {
+    annotation: Annotation;
+};
+export type EventListItem = {
+    eventName: EventType;
+    callback: (payload: AnnotationEventPayload) => void;
+};
 export type FlyToOptions = {
     duration?: number;
     maximumHeight?: number;
@@ -68,6 +85,13 @@ export type FlyToOptions = {
 };
 export type GeoJsonLoaderOptions = {
     propertiesInitKey?: string;
+    preInitCallback?: (payload: {
+        geoJson: GeoJsonFeature;
+    }) => GeoJsonFeature | null | undefined | void;
+    preDrawCallback?: (payload: {
+        annotation: Annotation;
+        geoJson: GeoJsonFeature | GeoJsonFeatureCollection;
+    }) => Annotation | null | undefined | void;
 };
 export declare enum GeoJsonType {
     POINT = "Point",

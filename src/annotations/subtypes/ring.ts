@@ -1,20 +1,22 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, FlyToOptions } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, EventType, FlyToOptions, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
 
 export type RingInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions,
+    polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions,
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
+    entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean,
     nPoints?: number,
 }
 
 export default class Ring extends Annotation {
 
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
+    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine: boolean
     nPoints: number
     private radius: number | null;
@@ -22,8 +24,9 @@ export default class Ring extends Annotation {
     constructor(registry: Registry, options: RingInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.RING;
-        this.entityProperties = options.entityProperties ?? {};
+        this.polygonProperties = options.polygonProperties ?? {};
         this.handleProperties = options.handleProperties ?? {};
+        this.entityProperties = options.entityProperties ?? {};
         this.drawAsLine = options.drawAsLine ?? false;
         this.nPoints = options.nPoints ?? 360
         this.radius = null;
@@ -72,8 +75,9 @@ export default class Ring extends Annotation {
                     polyline: {
                         positions: [...perimeterCoords, perimeterCoords[0]],
                         width: 2,
-                        ...this.entityProperties as Cesium.PolylineGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolylineGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             } else {
                 entity = this.viewerInterface.viewer.entities.add({
@@ -82,8 +86,9 @@ export default class Ring extends Annotation {
                     ellipse: {
                         semiMajorAxis: this.radius,
                         semiMinorAxis: this.radius,
-                        ...this.entityProperties as Cesium.EllipseGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.EllipseGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             }
         } else if (!this.entity) {
@@ -102,8 +107,9 @@ export default class Ring extends Annotation {
                             return perimeterCoords;
                         }, false),
                         width: 2,
-                        ...this.entityProperties as Cesium.PolylineGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolylineGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity
             } else {
                 entity = this.viewerInterface.viewer.entities.add({
@@ -118,8 +124,9 @@ export default class Ring extends Annotation {
                         semiMinorAxis: new Cesium.CallbackProperty(() => {
                             return this.radius
                         }, false),
-                        ...this.entityProperties as Cesium.EllipseGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.EllipseGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity;
             }
         }
@@ -129,7 +136,7 @@ export default class Ring extends Annotation {
             entity._annotation = this;
             this.entity = entity;
         }
-        this.emit("update", { annotation: this });
+        this.emit(EventType.UPDATE, { annotation: this });
     }
 
 
@@ -148,7 +155,7 @@ export default class Ring extends Annotation {
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
 
-    toGeoJson(): { [key: string]: any; } | null {
+    toGeoJson(): GeoJsonFeatureCollection | null {
 
         if (this.points.length < 2) return null
         const headingFactor = 360 / this.nPoints;
@@ -167,9 +174,20 @@ export default class Ring extends Annotation {
                 annotationType: AnnotationType.RING,
                 center: { lng: p1.lng, lat: p1.lat, alt: p1.alt },
                 perimeterPoint: { lng: p2.lng, lat: p2.lat, alt: p2.alt },
+                initOptions: {
+                    id: this.id,
+                    liveUpdate: this.liveUpdate,
+                    userInteractive: this.userInteractive,
+                    handleType: this.handleType,
+                    attributes: this.attributes,
+                    polygonProperties: this.polygonProperties,
+                    handleProperties: this.handleProperties,
+                    entityProperties: this.entityProperties,
+                    drawAsLine: this.drawAsLine,
+                    nPoints: this.nPoints,
+                }
             }
         }
-
         return geoJson;
     }
 

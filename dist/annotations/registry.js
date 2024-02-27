@@ -87,9 +87,13 @@ export class Registry {
         this.annotations = [];
         this.groups = [];
         this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : true;
+        this.events = {};
         this.loaders = {};
-        // this.viewerInterface = new ViewerInterface(this.viewer, {useAltitude: this.useAltitude});
         this.viewerInterface = ViewerInterface.registerViewer(this.viewer, { useAltitude: this.useAltitude });
+    }
+    getActiveAnnotation() {
+        var _a;
+        return (_a = this.annotations.find(annotation => annotation.isActive)) !== null && _a !== void 0 ? _a : null;
     }
     getAnnotationByID(id) {
         return this.annotations.find(annotation => annotation.id === id);
@@ -105,6 +109,26 @@ export class Registry {
     activateByID(id) {
         for (let annotation of this.annotations) {
             annotation.id === id ? annotation.activate() : annotation.deactivate();
+        }
+    }
+    registerEvent(event) {
+        if (event.eventName in this.events) {
+            this.events[event.eventName].push(event.callback);
+        }
+        else {
+            this.events[event.eventName] = [event.callback];
+        }
+    }
+    registerEvents(events) {
+        for (let event of events) {
+            this.registerEvent(event);
+        }
+    }
+    applyEvents(annotation) {
+        for (let eventName of Object.keys(this.events)) {
+            for (let callback of this.events[eventName]) {
+                annotation.on(eventName, callback);
+            }
         }
     }
     createGroup(name) {
@@ -131,78 +155,106 @@ export class Registry {
     // FACTORIES
     addPoint(options) {
         const annotation = new PointAnnotation(this, options);
+        this.applyEvents(annotation);
         this.annotations.push(annotation);
         return annotation;
     }
     addPolyline(options) {
         const annotation = new PolylineAnnotation(this, options);
+        this.applyEvents(annotation);
         this.annotations.push(annotation);
         return annotation;
     }
     addPolygon(options) {
         const annotation = new PolygonAnnotation(this, options);
+        this.applyEvents(annotation);
         this.annotations.push(annotation);
         return annotation;
     }
     addRectangle(options) {
         const annotation = new RectangleAnnotation(this, options);
+        this.applyEvents(annotation);
         this.annotations.push(annotation);
         return annotation;
     }
     addRing(options) {
         const annotation = new RingAnnotation(this, options);
+        this.applyEvents(annotation);
         this.annotations.push(annotation);
         return annotation;
     }
     // LOADERS
     loadFromGeoJson(geoJson, options) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
-        options = options !== null && options !== void 0 ? options : {};
         if (geoJson.type === "Feature") {
-            geoJson = geoJson;
-            if (((_a = geoJson.geometry) === null || _a === void 0 ? void 0 : _a.type) === GeoJsonType.POINT) {
-                const annotation = this.addPoint((_d = (_b = geoJson.properties) === null || _b === void 0 ? void 0 : _b[(_c = options.propertiesInitKey) !== null && _c !== void 0 ? _c : ""]) !== null && _d !== void 0 ? _d : {});
-                const gjCoords = geoJson.geometry.coordinates;
-                const point = new Coordinate({ lng: gjCoords[0], lat: gjCoords[1], alt: ((_e = gjCoords[2]) !== null && _e !== void 0 ? _e : 0) });
-                annotation.appendCoordinate(point);
-                annotation.draw();
-                return annotation;
-            }
-            if (((_f = geoJson.geometry) === null || _f === void 0 ? void 0 : _f.type) === GeoJsonType.POLYLINE) {
-                const annotation = this.addPolyline((_j = (_g = geoJson.properties) === null || _g === void 0 ? void 0 : _g[(_h = options.propertiesInitKey) !== null && _h !== void 0 ? _h : ""]) !== null && _j !== void 0 ? _j : {});
-                const coords = geoJson.geometry.coordinates;
-                for (let c of coords) {
-                    annotation.appendCoordinate(new Coordinate({ lng: c[0], lat: c[1], alt: (_k = c[2]) !== null && _k !== void 0 ? _k : 0.0 }));
-                }
-                annotation.draw();
-                return annotation;
-            }
-            if (((_l = geoJson.geometry) === null || _l === void 0 ? void 0 : _l.type) === GeoJsonType.POLYGON) {
-                // Rectangle 
-                if (geoJson.properties.annotationType === AnnotationType.RECTANGLE) {
-                    const annotation = this.addRectangle((_p = (_m = geoJson.properties) === null || _m === void 0 ? void 0 : _m[(_o = options.propertiesInitKey) !== null && _o !== void 0 ? _o : ""]) !== null && _p !== void 0 ? _p : {});
-                    annotation.appendCoordinate(new Coordinate(geoJson.properties.vert1));
-                    annotation.appendCoordinate(new Coordinate(geoJson.properties.vert2));
-                    annotation.draw();
-                    return annotation;
-                }
-                // Ring 
-                else if (geoJson.properties.annotationType === AnnotationType.RING) {
-                    const annotation = this.addRing((_s = (_q = geoJson.properties) === null || _q === void 0 ? void 0 : _q[(_r = options.propertiesInitKey) !== null && _r !== void 0 ? _r : ""]) !== null && _s !== void 0 ? _s : {});
-                    annotation.appendCoordinate(new Coordinate(geoJson.properties.center));
-                    annotation.appendCoordinate(new Coordinate(geoJson.properties.perimeterPoint));
-                    annotation.draw();
-                    return annotation;
-                }
-                // Polygon 
-                else {
-                    const annotation = this.addPolygon((_v = (_t = geoJson.properties) === null || _t === void 0 ? void 0 : _t[(_u = options.propertiesInitKey) !== null && _u !== void 0 ? _u : ""]) !== null && _v !== void 0 ? _v : {});
-                }
-            }
+            const annotation = this.loadFeatureFromGeoJson(geoJson, options);
+            return annotation ? [annotation] : null;
         }
-        else if (geoJson.type === "FeatureCollection") {
+        if (geoJson.type === "FeatureCollection") {
+            return this.loadFeatureCollectionFromGeoJson(geoJson, options);
         }
         return null;
+    }
+    loadFeatureFromGeoJson(geoJson, options) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
+        options = options !== null && options !== void 0 ? options : {};
+        options.propertiesInitKey = (_a = options.propertiesInitKey) !== null && _a !== void 0 ? _a : "initOptions";
+        // callback is executed to change the geoJson prior to initializing annotation(s) from it.
+        geoJson = (_c = (_b = options.preInitCallback) === null || _b === void 0 ? void 0 : _b.call(options, { geoJson })) !== null && _c !== void 0 ? _c : geoJson;
+        let annotation = null;
+        if (((_d = geoJson.geometry) === null || _d === void 0 ? void 0 : _d.type) === GeoJsonType.POINT) {
+            annotation = this.addPoint((_g = (_e = geoJson.properties) === null || _e === void 0 ? void 0 : _e[(_f = options.propertiesInitKey) !== null && _f !== void 0 ? _f : ""]) !== null && _g !== void 0 ? _g : {});
+            const gjCoords = geoJson.geometry.coordinates;
+            const point = new Coordinate({ lng: gjCoords[0], lat: gjCoords[1], alt: ((_h = gjCoords[2]) !== null && _h !== void 0 ? _h : 0) });
+            annotation.appendCoordinate(point);
+        }
+        if (((_j = geoJson.geometry) === null || _j === void 0 ? void 0 : _j.type) === GeoJsonType.POLYLINE) {
+            annotation = this.addPolyline((_m = (_k = geoJson.properties) === null || _k === void 0 ? void 0 : _k[(_l = options.propertiesInitKey) !== null && _l !== void 0 ? _l : ""]) !== null && _m !== void 0 ? _m : {});
+            const coords = geoJson.geometry.coordinates;
+            for (let c of coords) {
+                annotation.appendCoordinate(new Coordinate({ lng: c[0], lat: c[1], alt: (_o = c[2]) !== null && _o !== void 0 ? _o : 0.0 }));
+            }
+        }
+        if (((_p = geoJson.geometry) === null || _p === void 0 ? void 0 : _p.type) === GeoJsonType.POLYGON) {
+            // Rectangle 
+            if (geoJson.properties.annotationType === AnnotationType.RECTANGLE) {
+                annotation = this.addRectangle((_s = (_q = geoJson.properties) === null || _q === void 0 ? void 0 : _q[(_r = options.propertiesInitKey) !== null && _r !== void 0 ? _r : ""]) !== null && _s !== void 0 ? _s : {});
+                annotation.appendCoordinate(new Coordinate(geoJson.properties.vert1));
+                annotation.appendCoordinate(new Coordinate(geoJson.properties.vert2));
+                annotation.draw();
+                return annotation;
+            }
+            // Ring 
+            else if (geoJson.properties.annotationType === AnnotationType.RING) {
+                annotation = this.addRing((_v = (_t = geoJson.properties) === null || _t === void 0 ? void 0 : _t[(_u = options.propertiesInitKey) !== null && _u !== void 0 ? _u : ""]) !== null && _v !== void 0 ? _v : {});
+                annotation.appendCoordinate(new Coordinate(geoJson.properties.center));
+                annotation.appendCoordinate(new Coordinate(geoJson.properties.perimeterPoint));
+                annotation.draw();
+                return annotation;
+            }
+            // Polygon 
+            else {
+                annotation = this.addPolygon((_y = (_w = geoJson.properties) === null || _w === void 0 ? void 0 : _w[(_x = options.propertiesInitKey) !== null && _x !== void 0 ? _x : ""]) !== null && _y !== void 0 ? _y : {});
+                const coords = (_z = geoJson.geometry.coordinates[0]) !== null && _z !== void 0 ? _z : [];
+                for (let c of coords.slice(0, -1)) {
+                    annotation.appendCoordinate(new Coordinate({ lng: c[0], lat: c[1], alt: (_0 = c[2]) !== null && _0 !== void 0 ? _0 : 0.0 }));
+                }
+            }
+        }
+        if (annotation) {
+            annotation = (_2 = (_1 = options.preDrawCallback) === null || _1 === void 0 ? void 0 : _1.call(options, { annotation, geoJson })) !== null && _2 !== void 0 ? _2 : annotation;
+            this.applyEvents(annotation);
+            annotation.draw();
+            return annotation;
+        }
+        return null;
+    }
+    loadFeatureCollectionFromGeoJson(geoJson, options) {
+        const results = [];
+        for (let feature of geoJson.features) {
+            const annotation = this.loadFeatureFromGeoJson(feature, options);
+            annotation && results.push(annotation);
+        }
+        return results;
     }
     defineCustomLoader(loaderName, func) {
         this.loaders[loaderName] = func.bind(this);

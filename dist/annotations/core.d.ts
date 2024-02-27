@@ -1,4 +1,4 @@
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, GeoJsonFeatureCollection } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -28,18 +28,12 @@ export declare class Annotation {
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: CoordinateCollection | null;
     protected events: {
-        [eventName: string]: ((payload: {
-            [key: string]: any;
-        }) => void)[];
+        [eventName: string]: ((payload: AnnotationEventPayload) => void)[];
     };
     constructor(registry: Registry, options: AnnotationBaseInit);
     get current(): CoordinateCollection;
-    on(eventName: string, callback: (payload: {
-        [key: string]: any;
-    }) => void): void;
-    emit(eventName: string, payload: {
-        [key: string]: any;
-    }): void;
+    on(eventName: string, callback: (payload: AnnotationEventPayload) => void): void;
+    emit(eventName: string, payload: AnnotationEventPayload): void;
     executeCallback(func: (annotation: Annotation) => {}): void;
     activate(): void;
     deactivate(): void;
@@ -67,9 +61,7 @@ export declare class Annotation {
     syncHandles(): void;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
     flyTo(options?: FlyToOptions): void;
-    toGeoJson(): {
-        [key: string]: any;
-    } | null;
+    toGeoJson(): GeoJsonFeatureCollection | null;
     toWkt(): string | null;
     appendCoordinate(coordinate: Coordinate): void;
     draw(): void;

@@ -1,27 +1,30 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 export type PolylineInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions,
+    polylineProperties?: Cesium.PolylineGraphics.ConstructorOptions,
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
+    entityProperties?: Cesium.Entity.ConstructorOptions,
     midpointMarkers?: boolean,
 }
 
 export default class Polyline extends Annotation {
 
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions;
+    polylineProperties: Cesium.PolylineGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties?: Cesium.Entity.ConstructorOptions;
     private midpointMarkers: boolean;
     private midPointHandles: Cesium.Entity[];
 
     constructor(registry: Registry, options: PolylineInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.POLYLINE;
-        this.entityProperties = options.entityProperties ?? {};
+        this.polylineProperties = options.polylineProperties ?? {};
         this.handleProperties = options.handleProperties ?? {};
+        this.entityProperties = options.entityProperties ?? {};
 
         this.midpointMarkers = options.midpointMarkers ?? true,
 
@@ -30,7 +33,7 @@ export default class Polyline extends Annotation {
 
     appendCoordinate(coordinate: Coordinate): void {
         this.points.push(coordinate);
-        this.emit("append", { annotation: this });
+        this.emit(EventType.APPEND, { annotation: this });
     }
 
     draw(): void {
@@ -42,8 +45,9 @@ export default class Polyline extends Annotation {
                 polyline: {
                     positions: this.points.toCartesian3Array(),
                     width: 2,
-                    ...this.entityProperties
-                }
+                    ...this.polylineProperties
+                },
+                ...this.entityProperties
             }) as AnnotationEntity
         } else if (!this.entity) {
             entity = this.viewerInterface.viewer.entities.add({
@@ -53,8 +57,9 @@ export default class Polyline extends Annotation {
                         return this.points.toCartesian3Array();
                     }, false),
                     width: 2,
-                    ...this.entityProperties
-                }
+                    ...this.polylineProperties
+                },
+                ...this.entityProperties
             }) as AnnotationEntity
         }
 
@@ -63,7 +68,7 @@ export default class Polyline extends Annotation {
             entity._annotation = this;
             this.entity = entity
         }
-        this.emit("update", { annotation: this })
+        this.emit(EventType.UPDATE, { annotation: this });
     }
 
     handlePointerDown(e: PointerEvent): void {
@@ -118,6 +123,23 @@ export default class Polyline extends Annotation {
         for (let handle of Object.values(this.midPointHandles)) {
             handle.show = true;
         }
+    }
+
+    // OVERRIDES
+    toGeoJson(): GeoJsonFeatureCollection | null {
+        const geoJson = super.toGeoJson();
+        if(geoJson) {
+            const properties = geoJson.features[0].properties;
+            properties.initOptions = {
+                polylineProperties: this.polylineProperties,
+                handleProperties: this.handleProperties,
+                entityProperties: this.entityProperties,
+                midPointMarkers: this.midpointMarkers,
+                ...properties.initOptions,
+            }
+            return geoJson;
+        }
+        return null
     }
 
     // SUBCLASS SPECIFIC METHODS

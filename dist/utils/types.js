@@ -19,6 +19,18 @@ export var HandleType;
     HandleType[HandleType["POINT"] = 0] = "POINT";
     HandleType[HandleType["BILLBOARD"] = 1] = "BILLBOARD";
 })(HandleType || (HandleType = {}));
+// EVENTS 
+export var EventType;
+(function (EventType) {
+    EventType["UPDATE"] = "update";
+    EventType["ACTIVATE"] = "activate";
+    EventType["APPEND"] = "append";
+    EventType["DEACTIVATE"] = "deactivate";
+    EventType["REMOVE_ENTITY"] = "removeEntity";
+    EventType["UNDO"] = "undo";
+    EventType["REDO"] = "redo";
+    EventType["DELETE"] = "delete";
+})(EventType || (EventType = {}));
 export var GeoJsonType;
 (function (GeoJsonType) {
     GeoJsonType["POINT"] = "Point";

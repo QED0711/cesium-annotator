@@ -1,16 +1,17 @@
 import * as Cesium from 'cesium';
-import { AnnotationType } from "../../utils/types";
+import { AnnotationType, EventType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
 export default class Ring extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         super(registry, options);
         this.annotationType = AnnotationType.RING;
-        this.entityProperties = (_a = options.entityProperties) !== null && _a !== void 0 ? _a : {};
+        this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
         this.handleProperties = (_b = options.handleProperties) !== null && _b !== void 0 ? _b : {};
-        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
-        this.nPoints = (_d = options.nPoints) !== null && _d !== void 0 ? _d : 360;
+        this.entityProperties = (_c = options.entityProperties) !== null && _c !== void 0 ? _c : {};
+        this.drawAsLine = (_d = options.drawAsLine) !== null && _d !== void 0 ? _d : false;
+        this.nPoints = (_e = options.nPoints) !== null && _e !== void 0 ? _e : 360;
         this.radius = null;
     }
     // Note: This implementation is needed to set the radius property any time a handle is dragged
@@ -53,24 +54,15 @@ export default class Ring extends Annotation {
                     const heading = headingFactor * i;
                     perimeterCoords.push(this.points.at(0).atHeadingDistance(heading, this.radius).cartesian3);
                 }
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    polyline: Object.assign({ positions: [...perimeterCoords, perimeterCoords[0]], width: 2 }, this.entityProperties)
-                });
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: [...perimeterCoords, perimeterCoords[0]], width: 2 }, this.polygonProperties) }, this.entityProperties));
             }
             else {
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3,
-                    ellipse: Object.assign({ semiMajorAxis: this.radius, semiMinorAxis: this.radius }, this.entityProperties)
-                });
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3, ellipse: Object.assign({ semiMajorAxis: this.radius, semiMinorAxis: this.radius }, this.polygonProperties) }, this.entityProperties));
             }
         }
         else if (!this.entity) {
             if (this.drawAsLine) {
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
                             const headingFactor = 360 / this.nPoints;
                             const perimeterCoords = [];
                             for (let i = 0; i < this.nPoints; i++) {
@@ -79,22 +71,17 @@ export default class Ring extends Annotation {
                             }
                             perimeterCoords.push(perimeterCoords[0]); // close the perimerter
                             return perimeterCoords;
-                        }, false), width: 2 }, this.entityProperties)
-                });
+                        }, false), width: 2 }, this.polygonProperties) }, this.entityProperties));
             }
             else {
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    position: new Cesium.CallbackProperty(() => {
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: new Cesium.CallbackProperty(() => {
                         var _a;
                         return (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3;
-                    }, false),
-                    ellipse: Object.assign({ semiMajorAxis: new Cesium.CallbackProperty(() => {
+                    }, false), ellipse: Object.assign({ semiMajorAxis: new Cesium.CallbackProperty(() => {
                             return this.radius;
                         }, false), semiMinorAxis: new Cesium.CallbackProperty(() => {
                             return this.radius;
-                        }, false) }, this.entityProperties)
-                });
+                        }, false) }, this.polygonProperties) }, this.entityProperties));
             }
         }
         if (entity) {
@@ -102,7 +89,7 @@ export default class Ring extends Annotation {
             entity._annotation = this;
             this.entity = entity;
         }
-        this.emit("update", { annotation: this });
+        this.emit(EventType.UPDATE, { annotation: this });
     }
     syncHandles() {
         super.syncHandles();
@@ -133,6 +120,18 @@ export default class Ring extends Annotation {
                 annotationType: AnnotationType.RING,
                 center: { lng: p1.lng, lat: p1.lat, alt: p1.alt },
                 perimeterPoint: { lng: p2.lng, lat: p2.lat, alt: p2.alt },
+                initOptions: {
+                    id: this.id,
+                    liveUpdate: this.liveUpdate,
+                    userInteractive: this.userInteractive,
+                    handleType: this.handleType,
+                    attributes: this.attributes,
+                    polygonProperties: this.polygonProperties,
+                    handleProperties: this.handleProperties,
+                    entityProperties: this.entityProperties,
+                    drawAsLine: this.drawAsLine,
+                    nPoints: this.nPoints,
+                }
             };
         }
         return geoJson;

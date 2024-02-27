@@ -1,17 +1,19 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit } from "../../utils/types";
+import { AnnotationBaseInit, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 export type RingInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
+    polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties?: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
     nPoints?: number;
 };
 export default class Ring extends Annotation {
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
+    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine: boolean;
     nPoints: number;
     private radius;
@@ -22,8 +24,6 @@ export default class Ring extends Annotation {
     syncHandles(): void;
     getArea(): number | null;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
-    toGeoJson(): {
-        [key: string]: any;
-    } | null;
+    toGeoJson(): GeoJsonFeatureCollection | null;
     toWkt(): string | null;
 }

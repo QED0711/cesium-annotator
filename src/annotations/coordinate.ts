@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
-import { AnnotationType, CoordinateInit, DistanceUnit, HandleEntity } from '../utils/types';
+import { AnnotationType, CoordinateInit, DistanceUnit, GeoJsonFeature, GeoJsonFeatureCollection, HandleEntity } from '../utils/types';
 
 export class Coordinate {
     id: string;
@@ -194,10 +194,10 @@ export class CoordinateCollection {
         }
     }
 
-    toGeoJson(annotationType: AnnotationType): { [key: string]: any } | null {
+    toGeoJson(annotationType: AnnotationType): GeoJsonFeatureCollection | null {
         let coords: number[] | number[][] | number[][][] | null = null,
             geomType: string = "",
-            properties: { [key: string]: any } = {}
+            properties: { [key: string]: any } = {initOptions: {}}
 
         if (annotationType === AnnotationType.POINT) {
             if (this.coordinates.length === 0) return null

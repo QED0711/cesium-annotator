@@ -1,16 +1,18 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, DistanceUnit } from "../../utils/types";
+import { AnnotationBaseInit, DistanceUnit, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 export type RectangleInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions;
+    polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions;
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties?: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
 };
 export default class Rectangle extends Annotation {
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions;
+    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
     constructor(registry: Registry, options: RectangleInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
@@ -19,7 +21,5 @@ export default class Rectangle extends Annotation {
     getPerimeter(unit?: DistanceUnit): number | null;
     getArea(unit?: DistanceUnit): number;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
-    toGeoJson(): {
-        [key: string]: any;
-    } | null;
+    toGeoJson(): GeoJsonFeatureCollection | null;
 }

@@ -1,26 +1,29 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, EventType, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 export type RectangleInitOptions = AnnotationBaseInit & {
-    entityProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions,
+    polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions,
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
+    entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean,
 }
 
 export default class Rectangle extends Annotation {
 
-    entityProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions
+    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
+    entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean
 
     constructor(registry: Registry, options: RectangleInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.RECTANGLE;
-        this.entityProperties = options.entityProperties ?? {};
+        this.polygonProperties = options.polygonProperties ?? {};
         this.handleProperties = options.handleProperties ?? {};
+        this.entityProperties = options.entityProperties ?? {};
         this.drawAsLine = options.drawAsLine ?? false
     }
 
@@ -50,16 +53,18 @@ export default class Rectangle extends Annotation {
                     polyline: {
                         positions,
                         width: 2,
-                        ...this.entityProperties as Cesium.PolylineGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolylineGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity
             } else if (this.points.length === 2) {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
                     polygon: {
                         hierarchy: positions,
-                        ...this.entityProperties as Cesium.PolygonGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolygonGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity
             }
         } else if (!this.entity) {
@@ -78,8 +83,9 @@ export default class Rectangle extends Annotation {
                             ]
                         }, false),
                         width: 2,
-                        ...this.entityProperties as Cesium.PolylineGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolylineGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity
             } else if (this.points.length === 2) {
                 entity = this.viewerInterface.viewer.entities.add({
@@ -94,8 +100,9 @@ export default class Rectangle extends Annotation {
                                 Cesium.Cartesian3.fromDegrees(bbox.lngMax, bbox.latMin),
                             ]);
                         }, false),
-                        ...this.entityProperties as Cesium.PolygonGraphics.ConstructorOptions
-                    }
+                        ...this.polygonProperties as Cesium.PolygonGraphics.ConstructorOptions
+                    },
+                    ...this.entityProperties
                 }) as AnnotationEntity
             }
         }
@@ -105,7 +112,7 @@ export default class Rectangle extends Annotation {
             entity._annotation = this;
             this.entity = entity;
         }
-        this.emit("update", { annotation: this });
+        this.emit(EventType.UPDATE, { annotation: this });
     }
 
     syncHandles(): void {
@@ -139,7 +146,7 @@ export default class Rectangle extends Annotation {
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
 
-    toGeoJson(): { [key: string]: any; } | null {
+    toGeoJson(): GeoJsonFeatureCollection | null {
         const geoJson = super.toGeoJson();
 
         if (geoJson) {
@@ -149,10 +156,19 @@ export default class Rectangle extends Annotation {
                 annotationType: AnnotationType.RECTANGLE,
                 vert1: { lng: lng1, lat: lat1, alt: alt1 },
                 vert2: { lng: lng2, lat: lat2, alt: alt2 },
-                ...geoJson.features[0].properties
+                initOptions: {
+                    id: this.id,
+                    liveUpdate: this.liveUpdate,
+                    userInteractive: this.userInteractive,
+                    handleType: this.handleType,
+                    attributes: this.attributes,
+                    polygonProperties: this.polygonProperties,
+                    handleProperties: this.handleProperties,
+                    entityProperties: this.entityProperties,
+                    drawAsLine: this.drawAsLine,
+                },
             }
         }
-
         return geoJson;
     }
 

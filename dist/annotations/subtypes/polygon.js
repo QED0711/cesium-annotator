@@ -1,59 +1,48 @@
 import * as Cesium from 'cesium';
-import { AnnotationType } from "../../utils/types";
+import { AnnotationType, EventType } from "../../utils/types";
 import { Annotation } from "../core";
 export default class Polygon extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         super(registry, options);
         this.annotationType = AnnotationType.POLYGON;
-        this.entityProperties = (_a = options.entityProperties) !== null && _a !== void 0 ? _a : {};
+        this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
         this.handleProperties = (_b = options.handleProperties) !== null && _b !== void 0 ? _b : {};
-        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
-        this.midpointMarkers = (_d = options.midpointMarkers) !== null && _d !== void 0 ? _d : true;
+        this.entityProperties = (_c = options.entityProperties) !== null && _c !== void 0 ? _c : {};
+        this.drawAsLine = (_d = options.drawAsLine) !== null && _d !== void 0 ? _d : false;
+        this.midpointMarkers = (_e = options.midpointMarkers) !== null && _e !== void 0 ? _e : true;
         this.midPointHandles = [];
     }
     appendCoordinate(coordinate) {
         this.points.push(coordinate);
-        this.emit("append", { annotation: this });
+        this.emit(EventType.APPEND, { annotation: this });
     }
     draw() {
         let entity = null;
         if (!this.liveUpdate) {
             this.removeEntity();
             if (this.drawAsLine) {
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    polyline: Object.assign({ positions: [...this.points.coordinates.map(c => c.cartesian3), this.points.at(0).cartesian3], width: 2 }, this.entityProperties)
-                });
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: [...this.points.coordinates.map(c => c.cartesian3), this.points.at(0).cartesian3], width: 2 }, this.polygonProperties) }, this.entityProperties));
             }
             else {
                 if (this.points.length < 3)
                     return;
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    polygon: Object.assign({ hierarchy: this.points.toCartesian3Array() }, this.entityProperties)
-                });
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polygon: Object.assign({ hierarchy: this.points.toCartesian3Array() }, this.polygonProperties) }, this.entityProperties));
             }
         }
         else if (!this.entity) {
             if (this.drawAsLine) { // POLYLINE
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
                             return [...this.points.coordinates.map(c => c.cartesian3), this.points.at(0).cartesian3];
-                        }, false), width: 2 }, this.entityProperties)
-                });
+                        }, false), width: 2 }, this.polygonProperties) }, this.entityProperties));
             }
             else { // POLYGON
                 if (this.points.length < 3)
                     return;
-                entity = this.viewerInterface.viewer.entities.add({
-                    id: this.id,
-                    polygon: Object.assign({ hierarchy: new Cesium.CallbackProperty(() => {
+                entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polygon: Object.assign({ hierarchy: new Cesium.CallbackProperty(() => {
                             const positions = this.points.toCartesian3Array();
                             return new Cesium.PolygonHierarchy(positions);
-                        }, false) }, this.entityProperties)
-                });
+                        }, false) }, this.polygonProperties) }, this.entityProperties));
             }
         }
         if (entity) {
@@ -61,7 +50,7 @@ export default class Polygon extends Annotation {
             entity._annotation = this;
             this.entity = entity;
         }
-        this.emit("update", { annotation: this });
+        this.emit(EventType.UPDATE, { annotation: this });
     }
     handlePointerDown(e) {
         super.handlePointerDown(e);
@@ -112,6 +101,15 @@ export default class Polygon extends Annotation {
         for (let handle of Object.values(this.midPointHandles)) {
             handle.show = true;
         }
+    }
+    toGeoJson() {
+        const geoJson = super.toGeoJson();
+        if (geoJson) {
+            const properties = geoJson.features[0].properties;
+            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, handleProperties: this.handleProperties, entityProperties: this.entityProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointMarkers }, properties.initOptions);
+            return geoJson;
+        }
+        return null;
     }
 }
 //# sourceMappingURL=polygon.js.map

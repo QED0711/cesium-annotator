@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationType, HandleType } from "../../utils/types";
+import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
 export default class PointAnnotation extends Annotation {
@@ -13,7 +13,7 @@ export default class PointAnnotation extends Annotation {
     }
     appendCoordinate(coordinate) {
         this.points = new CoordinateCollection([coordinate]);
-        this.emit("append", { annotation: this });
+        this.emit(EventType.APPEND, { annotation: this });
     }
     draw() {
         var _a, _b;
@@ -49,9 +49,21 @@ export default class PointAnnotation extends Annotation {
             entity._handleCoordinateID = (_b = this.points.at(0)) === null || _b === void 0 ? void 0 : _b.id;
             this.entity = entity;
         }
-        this.emit("update", { annotation: this });
+        this.emit(EventType.UPDATE, { annotation: this });
     }
     // OVERRIDES
+    toGeoJson() {
+        var _a, _b;
+        const geoJson = super.toGeoJson();
+        if (geoJson) {
+            const properties = (_b = (_a = geoJson.features) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.properties;
+            if (properties) {
+                properties.initOptions = Object.assign({ pointProperties: this.pointProperties, billboardProperties: this.billboardProperties, entityProperties: this.entityProperties }, properties.initOptions);
+            }
+            return geoJson;
+        }
+        return null;
+    }
     syncHandles() { }
     insertCoordinateAtIndex(coordinate, idx) { }
 }
