@@ -6,7 +6,6 @@ import { Registry } from '../registry';
 
 export type RectangleInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions,
-    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
     entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean,
 }
@@ -14,7 +13,6 @@ export type RectangleInitOptions = AnnotationBaseInit & {
 export default class Rectangle extends Annotation {
 
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions
-    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
     entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean
 
@@ -22,7 +20,6 @@ export default class Rectangle extends Annotation {
         super(registry, options);
         this.annotationType = AnnotationType.RECTANGLE;
         this.polygonProperties = options.polygonProperties ?? {};
-        this.handleProperties = options.handleProperties ?? {};
         this.entityProperties = options.entityProperties ?? {};
         this.drawAsLine = options.drawAsLine ?? false
     }

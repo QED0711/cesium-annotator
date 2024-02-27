@@ -4,13 +4,12 @@ import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 export default class Rectangle extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         super(registry, options);
         this.annotationType = AnnotationType.RECTANGLE;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
-        this.handleProperties = (_b = options.handleProperties) !== null && _b !== void 0 ? _b : {};
-        this.entityProperties = (_c = options.entityProperties) !== null && _c !== void 0 ? _c : {};
-        this.drawAsLine = (_d = options.drawAsLine) !== null && _d !== void 0 ? _d : false;
+        this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
+        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
     }
     appendCoordinate(coordinate) {
         if (this.points.length < 2) {

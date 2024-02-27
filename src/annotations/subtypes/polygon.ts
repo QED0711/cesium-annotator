@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity, EventType, GeoJsonFeatureCollection } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
@@ -7,33 +7,36 @@ import { Registry } from '../registry';
 
 export type PolygonInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions,
-    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
     entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean
-    midpointMarkers?: boolean,
+    midpointHandles?: boolean,
+    midpointHandleType?: HandleType,
+    midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
 }
 
 export default class Polygon extends Annotation {
 
     drawAsLine: boolean;
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions;
-    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
-    private midpointMarkers: boolean;
-    private midPointHandles: Cesium.Entity[];
+    midpointHandles: boolean;
+    midpointHandleType: HandleType;
+    midpointHandleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
+    private mpHandles: Cesium.Entity[];
 
     constructor(registry: Registry, options: PolygonInitOptions) {
         super(registry, options);
 
         this.annotationType = AnnotationType.POLYGON;
         this.polygonProperties = options.polygonProperties ?? {};
-        this.handleProperties = options.handleProperties ?? {};
         this.entityProperties = options.entityProperties ?? {};
 
         this.drawAsLine = options.drawAsLine ?? false;
 
-        this.midpointMarkers = options.midpointMarkers ?? true;
-        this.midPointHandles = [];
+        this.midpointHandles = options.midpointHandles ?? true;
+        this.midpointHandleType = options.midpointHandleType ?? HandleType.POINT,
+        this.midpointHandleProperties = options.midpointHandleProperties ?? {};
+        this.mpHandles = [];
     }
 
     appendCoordinate(coordinate: Coordinate): void {
@@ -115,46 +118,51 @@ export default class Polygon extends Annotation {
     syncHandles(): void {
         super.syncHandles();
 
-        if(!this.midpointMarkers) return;
+        if(!this.midpointHandles) return;
 
-        for(let mph of this.midPointHandles) {
+        for(let mph of this.mpHandles) {
             this.viewerInterface.viewer.entities.remove(mph);
         }
-        this.midPointHandles = [];
+        this.mpHandles = [];
         if (this.points.length >= 3) {
+            let point: Cesium.PointGraphics.ConstructorOptions | undefined;
+            let billboard: Cesium.BillboardGraphics.ConstructorOptions | undefined;
+            if(this.midpointHandleType === HandleType.POINT) {
+                point = {pixelSize: 5, ...this.midpointHandleProperties} as Cesium.PointGraphics.ConstructorOptions;
+            } else if (this.midpointHandleType === HandleType.BILLBOARD) {
+                billboard = this.midpointHandleProperties as Cesium.BillboardGraphics.ConstructorOptions;
+            }
             for (let i = 0; i < this.points.length; i++) {
-                const point = this.points.at(i);
-                if(!point) continue;
+                const pnt = this.points.at(i);
+                if(!pnt) continue;
                 const nextPoint = i === this.points.length - 1 ? this.points.at(0) : this.points.at(i+1);
-                const midPoint = point.segmentDistance(nextPoint as Coordinate, 2)[0] as Coordinate;
+                const midPoint = pnt.segmentDistance(nextPoint as Coordinate, 2)[0] as Coordinate;
 
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,
-                    point: {
-                        pixelSize: 5,
-                        color: Cesium.Color.BLUE, 
-                    } as Cesium.PointGraphics.ConstructorOptions
+                    point,
+                    billboard
                 }) as MidPointHandleEntity;
 
                 mpHandle._isMidpointHandle = true;
                 mpHandle._annotation = this;
                 mpHandle._coordinate = midPoint;
                 mpHandle._idxBookends = [i, i + 1];
-                this.midPointHandles.push(mpHandle)
+                this.mpHandles.push(mpHandle)
             }
         }
     }
 
     hideHandles(): void {
         super.hideHandles();
-        for (let handle of Object.values(this.midPointHandles)) {
+        for (let handle of Object.values(this.mpHandles)) {
             handle.show = false;
         }
     }
 
     showHandles(): void {
         super.showHandles();
-        for (let handle of Object.values(this.midPointHandles)) {
+        for (let handle of Object.values(this.mpHandles)) {
             handle.show = true;
         }
     }
@@ -165,10 +173,9 @@ export default class Polygon extends Annotation {
             const properties = geoJson.features[0].properties;
             properties.initOptions = {
                 polygonProperties: this.polygonProperties,
-                handleProperties: this.handleProperties,
                 entityProperties: this.entityProperties,
                 drawAsLine: this.drawAsLine,
-                midPointMarkers: this.midpointMarkers,
+                midPointMarkers: this.midpointHandles,
                 ...properties.initOptions,
             }
             return geoJson;

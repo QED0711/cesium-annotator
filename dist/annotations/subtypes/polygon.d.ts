@@ -5,7 +5,6 @@ import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 export type PolygonInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions;
-    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
     midpointMarkers?: boolean;
@@ -13,7 +12,6 @@ export type PolygonInitOptions = AnnotationBaseInit & {
 export default class Polygon extends Annotation {
     drawAsLine: boolean;
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions;
-    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
     private midpointMarkers;
     private midPointHandles;

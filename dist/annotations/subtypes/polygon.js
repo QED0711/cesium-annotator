@@ -3,14 +3,13 @@ import { AnnotationType, EventType } from "../../utils/types";
 import { Annotation } from "../core";
 export default class Polygon extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         super(registry, options);
         this.annotationType = AnnotationType.POLYGON;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
-        this.handleProperties = (_b = options.handleProperties) !== null && _b !== void 0 ? _b : {};
-        this.entityProperties = (_c = options.entityProperties) !== null && _c !== void 0 ? _c : {};
-        this.drawAsLine = (_d = options.drawAsLine) !== null && _d !== void 0 ? _d : false;
-        this.midpointMarkers = (_e = options.midpointMarkers) !== null && _e !== void 0 ? _e : true;
+        this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
+        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
+        this.midpointMarkers = (_d = options.midpointMarkers) !== null && _d !== void 0 ? _d : true;
         this.midPointHandles = [];
     }
     appendCoordinate(coordinate) {
@@ -106,7 +105,7 @@ export default class Polygon extends Annotation {
         const geoJson = super.toGeoJson();
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, handleProperties: this.handleProperties, entityProperties: this.entityProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointMarkers }, properties.initOptions);
+            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, entityProperties: this.entityProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointMarkers }, properties.initOptions);
             return geoJson;
         }
         return null;

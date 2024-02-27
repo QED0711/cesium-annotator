@@ -6,7 +6,6 @@ import { Registry } from '../registry';
 
 export type RingInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions,
-    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
     entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean,
     nPoints?: number,
@@ -15,7 +14,6 @@ export type RingInitOptions = AnnotationBaseInit & {
 export default class Ring extends Annotation {
 
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
-    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine: boolean
     nPoints: number
@@ -25,7 +23,6 @@ export default class Ring extends Annotation {
         super(registry, options);
         this.annotationType = AnnotationType.RING;
         this.polygonProperties = options.polygonProperties ?? {};
-        this.handleProperties = options.handleProperties ?? {};
         this.entityProperties = options.entityProperties ?? {};
         this.drawAsLine = options.drawAsLine ?? false;
         this.nPoints = options.nPoints ?? 360

@@ -322,7 +322,6 @@ export class Annotation {
                 const point = this.points.at(i);
                 if (!point) continue
                 if (point.id in this.handles) continue;
-                // TODO: handle when handle type is billboard vs point
                 let handle;
                 if (this.handleType === HandleType.POINT) {
                     handle = this.viewerInterface.viewer.entities.add({
@@ -389,6 +388,7 @@ export class Annotation {
                 liveUpdate: this.liveUpdate,
                 userInteractive: this.userInteractive,
                 handleType: this.handleType,
+                handleProperties: this.handleProperties,
                 attributes: this.attributes,
                 ...properties.initOptions
             }

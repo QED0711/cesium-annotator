@@ -5,14 +5,12 @@ import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 export type RingInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
-    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
     nPoints?: number;
 };
 export default class Ring extends Annotation {
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
-    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine: boolean;
     nPoints: number;

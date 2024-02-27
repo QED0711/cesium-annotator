@@ -7,7 +7,7 @@ import * as Cesium from 'cesium';
 */
 export class Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         this.registry = registry;
         this.viewerInterface = registry.viewerInterface;
         this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
@@ -21,7 +21,8 @@ export class Annotation {
         this.entity = null;
         this.handles = {};
         this.handleType = (_d = options.handleType) !== null && _d !== void 0 ? _d : HandleType.POINT;
-        this.attributes = (_e = options.attributes) !== null && _e !== void 0 ? _e : null;
+        this.handleProperties = (_e = options.handleProperties) !== null && _e !== void 0 ? _e : {};
+        this.attributes = (_f = options.attributes) !== null && _f !== void 0 ? _f : null;
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
@@ -257,17 +258,26 @@ export class Annotation {
                 if (point.id in this.handles)
                     continue;
                 // TODO: handle when handle type is billboard vs point
-                const handle = this.viewerInterface.viewer.entities.add({
-                    position: point.cartesian3,
-                    point: {
-                        pixelSize: 10,
-                    }
-                });
-                handle._parentAnnotation = this;
-                handle._isHandle = true;
-                handle._handleCoordinateID = point.id;
-                handle._handleIdx = i;
-                this.handles[point.id] = handle;
+                let handle;
+                if (this.handleType === HandleType.POINT) {
+                    handle = this.viewerInterface.viewer.entities.add({
+                        position: point.cartesian3,
+                        point: Object.assign({ pixelSize: 10 }, this.handleProperties)
+                    });
+                }
+                else if (this.handleType === HandleType.BILLBOARD) {
+                    handle = this.viewerInterface.viewer.entities.add({
+                        position: point.cartesian3,
+                        billboard: Object.assign({ scale: 1.0 }, this.handleProperties)
+                    });
+                }
+                if (handle) {
+                    handle._parentAnnotation = this;
+                    handle._isHandle = true;
+                    handle._handleCoordinateID = point.id;
+                    handle._handleIdx = i;
+                    this.handles[point.id] = handle;
+                }
             }
         }
         this.updateHandleIdxs();
@@ -290,7 +300,7 @@ export class Annotation {
         const geoJson = this.points.toGeoJson(this.annotationType);
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, handleType: this.handleType, attributes: this.attributes }, properties.initOptions);
+            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, handleType: this.handleType, handleProperties: this.handleProperties, attributes: this.attributes }, properties.initOptions);
         }
         return geoJson;
     }

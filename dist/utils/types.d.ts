@@ -11,6 +11,7 @@ export type AnnotationBaseInit = {
     liveUpdate?: boolean;
     userInteractive?: boolean;
     handleType?: HandleType;
+    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     attributes?: {
         [key: string]: any;
     };

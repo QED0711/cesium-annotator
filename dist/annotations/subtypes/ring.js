@@ -4,14 +4,13 @@ import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
 export default class Ring extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         super(registry, options);
         this.annotationType = AnnotationType.RING;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
-        this.handleProperties = (_b = options.handleProperties) !== null && _b !== void 0 ? _b : {};
-        this.entityProperties = (_c = options.entityProperties) !== null && _c !== void 0 ? _c : {};
-        this.drawAsLine = (_d = options.drawAsLine) !== null && _d !== void 0 ? _d : false;
-        this.nPoints = (_e = options.nPoints) !== null && _e !== void 0 ? _e : 360;
+        this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
+        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
+        this.nPoints = (_d = options.nPoints) !== null && _d !== void 0 ? _d : 360;
         this.radius = null;
     }
     // Note: This implementation is needed to set the radius property any time a handle is dragged

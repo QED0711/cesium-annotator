@@ -3,7 +3,6 @@ import { Coordinate } from './coordinate';
 export class ViewerInterface {
     constructor(viewer, options) {
         var _a, _b;
-        // TODO: Only one viewerInterface should exist per viewer. use s tatic method to get or create a viewerInterface based on the viewer
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};

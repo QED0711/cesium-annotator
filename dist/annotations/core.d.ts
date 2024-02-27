@@ -2,6 +2,7 @@ import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
+import * as Cesium from 'cesium';
 export declare class Annotation {
     registry: Registry;
     protected viewerInterface: ViewerInterface;
@@ -16,6 +17,7 @@ export declare class Annotation {
         [coordinateID: string]: HandleEntity;
     };
     handleType: HandleType;
+    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     isActive: boolean;
     attributes: {
         [key: string]: any;

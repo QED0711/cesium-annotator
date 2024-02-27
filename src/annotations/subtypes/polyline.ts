@@ -1,34 +1,37 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
 
 export type PolylineInitOptions = AnnotationBaseInit & {
     polylineProperties?: Cesium.PolylineGraphics.ConstructorOptions,
-    handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
     entityProperties?: Cesium.Entity.ConstructorOptions,
-    midpointMarkers?: boolean,
+    midpointHandles?: boolean,
+    midpointHandleType?: HandleType,
+    midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
 }
 
 export default class Polyline extends Annotation {
 
     polylineProperties: Cesium.PolylineGraphics.ConstructorOptions;
-    handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;
-    private midpointMarkers: boolean;
-    private midPointHandles: Cesium.Entity[];
+    midpointHandles: boolean;
+    midpointHandleType: HandleType;
+    midpointHandleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
+    private mpHandles: Cesium.Entity[];
 
     constructor(registry: Registry, options: PolylineInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.POLYLINE;
         this.polylineProperties = options.polylineProperties ?? {};
-        this.handleProperties = options.handleProperties ?? {};
         this.entityProperties = options.entityProperties ?? {};
 
-        this.midpointMarkers = options.midpointMarkers ?? true,
+        this.midpointHandles = options.midpointHandles ?? true,
+        this.midpointHandleType = options.midpointHandleType ?? HandleType.POINT,
+        this.midpointHandleProperties = options.midpointHandleProperties ?? {};
 
-        this.midPointHandles = [];
+        this.mpHandles = [];
     }
 
     appendCoordinate(coordinate: Coordinate): void {
@@ -83,44 +86,49 @@ export default class Polyline extends Annotation {
     syncHandles(): void {
         super.syncHandles();
 
-        if(!this.midpointMarkers) return;
+        if(!this.midpointHandles) return;
 
-        for(let mph of this.midPointHandles) {
+        for(let mph of this.mpHandles) {
             this.viewerInterface.viewer.entities.remove(mph);
         }
-        this.midPointHandles = [];
+        this.mpHandles = [];
         if (this.points.length >= 2) {
+            let point: Cesium.PointGraphics.ConstructorOptions | undefined;
+            let billboard: Cesium.BillboardGraphics.ConstructorOptions | undefined;
+            if(this.midpointHandleType === HandleType.POINT) {
+                point = {pixelSize: 5, ...this.midpointHandleProperties} as Cesium.PointGraphics.ConstructorOptions;
+            } else if (this.midpointHandleType === HandleType.BILLBOARD) {
+                billboard = this.midpointHandleProperties as Cesium.BillboardGraphics.ConstructorOptions;
+            }
             for (let i = 0; i < this.points.length - 1; i++) {
-                const point = this.points.at(i) as Coordinate;
-                const midPoint = point.segmentDistance(this.points.at(i+1) as Coordinate, 2)[0] as Coordinate;
+                const pnt = this.points.at(i) as Coordinate;
+                const midPoint = pnt.segmentDistance(this.points.at(i+1) as Coordinate, 2)[0] as Coordinate;
 
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,
-                    point: {
-                        pixelSize: 5,
-                        color: Cesium.Color.BLUE, 
-                    } as Cesium.PointGraphics.ConstructorOptions
+                    point, 
+                    billboard
                 }) as MidPointHandleEntity;
 
                 mpHandle._isMidpointHandle = true;
                 mpHandle._annotation = this;
                 mpHandle._coordinate = midPoint;
                 mpHandle._idxBookends = [i, i + 1];
-                this.midPointHandles.push(mpHandle)
+                this.mpHandles.push(mpHandle)
             }
         }
     }
 
     hideHandles(): void {
         super.hideHandles();
-        for (let handle of Object.values(this.midPointHandles)) {
+        for (let handle of Object.values(this.mpHandles)) {
             handle.show = false;
         }
     }
 
     showHandles(): void {
         super.showHandles();
-        for (let handle of Object.values(this.midPointHandles)) {
+        for (let handle of Object.values(this.mpHandles)) {
             handle.show = true;
         }
     }
@@ -132,9 +140,10 @@ export default class Polyline extends Annotation {
             const properties = geoJson.features[0].properties;
             properties.initOptions = {
                 polylineProperties: this.polylineProperties,
-                handleProperties: this.handleProperties,
                 entityProperties: this.entityProperties,
-                midPointMarkers: this.midpointMarkers,
+                midpointHandles: this.midpointHandles,
+                midpointHandleType: this.midpointHandleType,
+                midpointHandleProperties: this.midpointHandleProperties,
                 ...properties.initOptions,
             }
             return geoJson;
