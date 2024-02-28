@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
-import { Coordinate } from '../coordinate';
+import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
 
 export type PolylineInitOptions = AnnotationBaseInit & {
@@ -174,6 +174,25 @@ export default class Polyline extends Annotation {
             headingArr.push((this.points.at(i - 1) as Coordinate).headingTo(this.points.at(i) as Coordinate));
         }
         return headingArr;
+    }
 
+    getPointsOnPath(distance: number, unit: DistanceUnit): CoordinateCollection | null {
+        if(this.points.length < 2) return null;
+
+        const collection = new CoordinateCollection([this.points.at(0) as Coordinate]);
+        for(let i = 1; i < this.points.length; i++) {
+            const p1 = this.points.at(i -1) as Coordinate;
+            const p2 = this.points.at(i) as Coordinate;
+            const segDist = p1.distanceTo(p2, unit);
+            const segHeading = p1.headingTo(p2);
+            const pointsInSeg = Math.floor(segDist / distance);
+            for(let n = 0; n < pointsInSeg; n++) {
+                const coord = p1.atHeadingDistance(segHeading, distance * n, unit);
+                collection.push(coord);
+            }
+            collection.push(p2);
+        }
+
+        return collection;
     }
 }

@@ -149,7 +149,11 @@ export class CoordinateCollection {
         return coord ?? null;
     }
 
-    filter(callback: (val: any, i: number) => {}): CoordinateCollection {
+    map(callback: (val: any, i: number) => any): CoordinateCollection | any[] {
+        return new CoordinateCollection(this.coordinates.map(callback))
+    }
+
+    filter(callback: (val: any, i: number) => Coordinate): CoordinateCollection {
         return new CoordinateCollection(this.coordinates.filter(callback));
     }
 
