@@ -25,7 +25,8 @@ export type RegistryInit = {
 }
 
 export type ViewerInterfaceInitOptions = {
-    useAltitude?: boolean
+    overrideDefaultClickEvents?: boolean,
+    useAltitude?: boolean,
 }
 
 export enum DistanceUnit {

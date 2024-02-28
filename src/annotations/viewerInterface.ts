@@ -25,8 +25,10 @@ export class ViewerInterface {
 
     private longPressTimeout?: number | NodeJS.Timeout;
     private detectedPointerMove: boolean
+    private lastPointerUpTime: number;
     longPressComplete: boolean;
-    useAltitude: boolean
+    overrideDefaultClickEvents: boolean;
+    useAltitude: boolean;
 
     static interfaces: ViewerInterface[];
 
@@ -35,10 +37,12 @@ export class ViewerInterface {
         this.canvas = viewer.canvas;
         this.events = {};
 
+        this.overrideDefaultClickEvents = options.overrideDefaultClickEvents ?? true;
         this.useAltitude = options.useAltitude ?? true;
 
         this.longPressComplete = false;
         this.detectedPointerMove = false;
+        this.lastPointerUpTime = 0;
 
         this.init();
 
@@ -83,7 +87,8 @@ export class ViewerInterface {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
 
-            if(!this.detectedPointerMove) {
+            const now = Date.now();
+            if(!this.detectedPointerMove && now - this.lastPointerUpTime > 200) {
                 let foundEntity = this.queryEntityAtPixel();
                 if (foundEntity !== null && (foundEntity as AnnotationEntity | HandleEntity)?._canActivate) {
                     if ((foundEntity as AnnotationEntity)._annotation) {
@@ -95,15 +100,21 @@ export class ViewerInterface {
                         foundEntity = foundEntity as HandleEntity;
                         foundEntity._parentAnnotation.registry.activateByID(foundEntity._parentAnnotation.id);
                     }
-    
                 }
             }
             this.detectedPointerMove = false;
+            this.lastPointerUpTime = now;
         }
 
-        this.canvas.addEventListener("pointermove", this.pointerMoveHandler)
-        this.canvas.addEventListener("pointerdown", this.pointerDownHandler)
+        this.canvas.addEventListener("pointermove", this.pointerMoveHandler);
+        this.canvas.addEventListener("pointerdown", this.pointerDownHandler);
         this.canvas.addEventListener("pointerup", this.pointerUpHandler);
+
+        // Override default screen space events
+        if(this.overrideDefaultClickEvents) {
+            this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+        }
     }
 
     removeHandlers() {
@@ -163,7 +174,6 @@ export class ViewerInterface {
     registerListener(eventName: string, callback: Function, annotation: Annotation) {
         const func = callback.bind(annotation);
         this.canvas.addEventListener(eventName, func)
-
         this.events[annotation.id] = { ...(this.events[annotation.id] ?? {}), [eventName]: func }
     }
 
@@ -171,8 +181,9 @@ export class ViewerInterface {
         const listeners = this.events[id];
         if (!!listeners) {
             for (let [eventName, func] of Object.entries(listeners)) {
-                this.canvas.removeEventListener(eventName, func);
+                this.viewer.canvas.removeEventListener(eventName, func);
             }
         }
+        delete this.events[id];
     }
 }

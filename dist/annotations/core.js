@@ -28,6 +28,8 @@ export class Annotation {
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false;
+        this.lasterPointerUpTime = 0;
+        this.movedDetected = false;
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
         this.events = {};
@@ -142,6 +144,7 @@ export class Annotation {
         }
     }
     handlePointerMove(e) {
+        this.movedDetected = true;
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
             if (this.handleFound !== null) {
@@ -158,12 +161,25 @@ export class Annotation {
         this.pointerDownDetected = false;
         if (this.bypassPointerUp) {
             this.bypassPointerUp = false;
+            this.movedDetected = false;
             return;
         }
+        // longpress logic
         if (this.viewerInterface.longPressComplete) {
             this.handleFound = null;
+            this.movedDetected = false;
             return;
         }
+        // double click logic
+        const now = Date.now();
+        if (now - this.lasterPointerUpTime < 200 && this.movedDetected === false) {
+            this.registry.deactivateByID(this.id);
+            this.lasterPointerUpTime = now;
+            this.movedDetected = false;
+            return;
+        }
+        this.lasterPointerUpTime = now;
+        this.movedDetected = false;
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
             if (coordinate)
@@ -257,7 +273,6 @@ export class Annotation {
                     continue;
                 if (point.id in this.handles)
                     continue;
-                // TODO: handle when handle type is billboard vs point
                 let handle;
                 if (this.handleType === HandleType.POINT) {
                     handle = this.viewerInterface.viewer.entities.add({

@@ -17,7 +17,9 @@ export declare class ViewerInterface {
     private pointerUpHandler?;
     private longPressTimeout?;
     private detectedPointerMove;
+    private lastPointerUpTime;
     longPressComplete: boolean;
+    overrideDefaultClickEvents: boolean;
     useAltitude: boolean;
     static interfaces: ViewerInterface[];
     private constructor();

@@ -2,16 +2,18 @@ import * as Cesium from 'cesium';
 import { Coordinate } from './coordinate';
 export class ViewerInterface {
     constructor(viewer, options) {
-        var _a, _b;
+        var _a, _b, _c;
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
-        this.useAltitude = (_a = options.useAltitude) !== null && _a !== void 0 ? _a : true;
+        this.overrideDefaultClickEvents = (_a = options.overrideDefaultClickEvents) !== null && _a !== void 0 ? _a : true;
+        this.useAltitude = (_b = options.useAltitude) !== null && _b !== void 0 ? _b : true;
         this.longPressComplete = false;
         this.detectedPointerMove = false;
+        this.lastPointerUpTime = 0;
         this.init();
         const constructor = this.constructor;
-        constructor.interfaces = (_b = constructor.interfaces) !== null && _b !== void 0 ? _b : [];
+        constructor.interfaces = (_c = constructor.interfaces) !== null && _c !== void 0 ? _c : [];
         constructor.interfaces.push(this);
     }
     static registerViewer(viewer, options) {
@@ -47,7 +49,8 @@ export class ViewerInterface {
         this.pointerUpHandler = (e) => {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
-            if (!this.detectedPointerMove) {
+            const now = Date.now();
+            if (!this.detectedPointerMove && now - this.lastPointerUpTime > 200) {
                 let foundEntity = this.queryEntityAtPixel();
                 if (foundEntity !== null && (foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._canActivate)) {
                     if (foundEntity._annotation) {
@@ -62,10 +65,16 @@ export class ViewerInterface {
                 }
             }
             this.detectedPointerMove = false;
+            this.lastPointerUpTime = now;
         };
         this.canvas.addEventListener("pointermove", this.pointerMoveHandler);
         this.canvas.addEventListener("pointerdown", this.pointerDownHandler);
         this.canvas.addEventListener("pointerup", this.pointerUpHandler);
+        // Override default screen space events
+        if (this.overrideDefaultClickEvents) {
+            this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+            this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+        }
     }
     removeHandlers() {
         !!this.pointerDownHandler && this.canvas.removeEventListener("pointerdown", this.pointerDownHandler);
@@ -120,9 +129,10 @@ export class ViewerInterface {
         const listeners = this.events[id];
         if (!!listeners) {
             for (let [eventName, func] of Object.entries(listeners)) {
-                this.canvas.removeEventListener(eventName, func);
+                this.viewer.canvas.removeEventListener(eventName, func);
             }
         }
+        delete this.events[id];
     }
 }
 //# sourceMappingURL=viewerInterface.js.map

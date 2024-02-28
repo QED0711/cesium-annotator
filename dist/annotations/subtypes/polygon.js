@@ -1,16 +1,18 @@
 import * as Cesium from 'cesium';
-import { AnnotationType, EventType } from "../../utils/types";
+import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 export default class Polygon extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f;
         super(registry, options);
         this.annotationType = AnnotationType.POLYGON;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
         this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
         this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
-        this.midpointMarkers = (_d = options.midpointMarkers) !== null && _d !== void 0 ? _d : true;
-        this.midPointHandles = [];
+        this.midpointHandles = (_d = options.midpointHandles) !== null && _d !== void 0 ? _d : true;
+        this.midpointHandleType = (_e = options.midpointHandleType) !== null && _e !== void 0 ? _e : HandleType.POINT,
+            this.midpointHandleProperties = (_f = options.midpointHandleProperties) !== null && _f !== void 0 ? _f : {};
+        this.mpHandles = [];
     }
     appendCoordinate(coordinate) {
         this.points.push(coordinate);
@@ -61,43 +63,49 @@ export default class Polygon extends Annotation {
     }
     syncHandles() {
         super.syncHandles();
-        if (!this.midpointMarkers)
+        if (!this.midpointHandles)
             return;
-        for (let mph of this.midPointHandles) {
+        for (let mph of this.mpHandles) {
             this.viewerInterface.viewer.entities.remove(mph);
         }
-        this.midPointHandles = [];
+        this.mpHandles = [];
         if (this.points.length >= 3) {
+            let point;
+            let billboard;
+            if (this.midpointHandleType === HandleType.POINT) {
+                point = Object.assign({ pixelSize: 5 }, this.midpointHandleProperties);
+            }
+            else if (this.midpointHandleType === HandleType.BILLBOARD) {
+                billboard = this.midpointHandleProperties;
+            }
             for (let i = 0; i < this.points.length; i++) {
-                const point = this.points.at(i);
-                if (!point)
+                const pnt = this.points.at(i);
+                if (!pnt)
                     continue;
                 const nextPoint = i === this.points.length - 1 ? this.points.at(0) : this.points.at(i + 1);
-                const midPoint = point.segmentDistance(nextPoint, 2)[0];
+                const midPoint = pnt.segmentDistance(nextPoint, 2)[0];
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,
-                    point: {
-                        pixelSize: 5,
-                        color: Cesium.Color.BLUE,
-                    }
+                    point,
+                    billboard
                 });
                 mpHandle._isMidpointHandle = true;
                 mpHandle._annotation = this;
                 mpHandle._coordinate = midPoint;
                 mpHandle._idxBookends = [i, i + 1];
-                this.midPointHandles.push(mpHandle);
+                this.mpHandles.push(mpHandle);
             }
         }
     }
     hideHandles() {
         super.hideHandles();
-        for (let handle of Object.values(this.midPointHandles)) {
+        for (let handle of Object.values(this.mpHandles)) {
             handle.show = false;
         }
     }
     showHandles() {
         super.showHandles();
-        for (let handle of Object.values(this.midPointHandles)) {
+        for (let handle of Object.values(this.mpHandles)) {
             handle.show = true;
         }
     }
@@ -105,7 +113,7 @@ export default class Polygon extends Annotation {
         const geoJson = super.toGeoJson();
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, entityProperties: this.entityProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointMarkers }, properties.initOptions);
+            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, entityProperties: this.entityProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointHandles }, properties.initOptions);
             return geoJson;
         }
         return null;

@@ -111,6 +111,10 @@ export class Registry {
             annotation.id === id ? annotation.activate() : annotation.deactivate();
         }
     }
+    deactivateByID(id) {
+        var _a, _b;
+        (_b = (_a = this.annotations.find(annotation => annotation.id === id)) === null || _a === void 0 ? void 0 : _a.deactivate) === null || _b === void 0 ? void 0 : _b.call(_a);
+    }
     registerEvent(event) {
         if (event.eventName in this.events) {
             this.events[event.eventName].push(event.callback);

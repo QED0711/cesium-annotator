@@ -50,6 +50,7 @@ export declare class Registry {
     getAnnotationByID(id: string): Annotation | null | undefined;
     deleteByID(id: string): void;
     activateByID(id: string): void;
+    deactivateByID(id: string): void;
     registerEvent(event: EventListItem): void;
     registerEvents(events: EventListItem[]): void;
     applyEvents(annotation: Annotation): void;

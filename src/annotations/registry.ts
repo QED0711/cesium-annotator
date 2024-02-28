@@ -154,6 +154,10 @@ export class Registry {
         }
     }
 
+    deactivateByID(id: string) {
+        this.annotations.find(annotation => annotation.id === id)?.deactivate?.();
+    }
+
     registerEvent(event: EventListItem) {
         if (event.eventName in this.events) {
             this.events[event.eventName].push(event.callback);
