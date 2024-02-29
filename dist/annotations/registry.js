@@ -8,9 +8,6 @@ import { RectangleAnnotation } from './subtypes/rectangle';
 import { RingAnnotation } from './subtypes/ring';
 import { nanoid } from 'nanoid';
 import { Coordinate } from './coordinate';
-/******************************************************************************
- * ***************************** GROUP *****************************
- *****************************************************************************/
 export class AnnotationGroup {
     constructor(registry, options) {
         var _a, _b;
@@ -80,9 +77,26 @@ export class AnnotationGroup {
             .filter(wkt => !!wkt);
     }
 }
-/******************************************************************************
- * ***************************** REGISTRY *****************************
- *****************************************************************************/
+/**
+ *
+ * @example
+ * ```ts
+ * import { Registry } from 'cesium-annotator';
+ * const viewer = new Cesium.Viewer("map-id", {...});
+ * const registry = new Registry({
+ *      id: "myRegistry",
+ *      viewer,
+ * })
+ *
+ * // add annotations to the registry
+ *
+ * const point: PointAnnotation = registry.addPoint({});
+ * const line: PolylineAnnotation = registry.addPolyline({});
+ * const polygon: PolygonAnnotation = registry.addPolygon({});
+ * const rect: RectangleAnnotation = registry.addRectangle({});
+ * const ring: RingAnnotation = registry.addRing({});
+ * ```
+ */
 export class Registry {
     constructor(init) {
         var _a;
@@ -111,9 +125,17 @@ export class Registry {
         }
     }
     activateByID(id) {
+        let activated = null;
         for (let annotation of this.annotations) {
-            annotation.id === id ? annotation.activate() : annotation.deactivate();
+            if (annotation.id === id) {
+                annotation.activate();
+                activated = annotation;
+            }
+            else {
+                annotation.deactivate();
+            }
         }
+        return activated;
     }
     deactivateByID(id) {
         var _a, _b;

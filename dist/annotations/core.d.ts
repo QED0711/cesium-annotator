@@ -46,6 +46,7 @@ export declare class Annotation {
     leaveGroup(group: AnnotationGroup): void;
     leaveAllGroups(): void;
     joinGroupByRecord(groupRecord: GroupRecord): void;
+    isMemberOf(group: AnnotationGroup): boolean;
     protected groupsToRecords(): GroupRecord[];
     removeEntity(): void;
     removeHandleByCoordinateID(id: string): void;

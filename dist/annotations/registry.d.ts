@@ -7,9 +7,6 @@ import { PolylineAnnotation, PolylineInitOptions } from './subtypes/polyline';
 import { PolygonAnnotation, PolygonInitOptions } from './subtypes/polygon';
 import { RectangleAnnotation, RectangleInitOptions } from './subtypes/rectangle';
 import { RingAnnotation, RingInitOptions } from './subtypes/ring';
-/******************************************************************************
- * ***************************** GROUP *****************************
- *****************************************************************************/
 export declare class AnnotationGroup {
     registry: Registry;
     id: string;
@@ -30,9 +27,26 @@ export declare class AnnotationGroup {
     };
     toWkt(): string[];
 }
-/******************************************************************************
- * ***************************** REGISTRY *****************************
- *****************************************************************************/
+/**
+ *
+ * @example
+ * ```ts
+ * import { Registry } from 'cesium-annotator';
+ * const viewer = new Cesium.Viewer("map-id", {...});
+ * const registry = new Registry({
+ *      id: "myRegistry",
+ *      viewer,
+ * })
+ *
+ * // add annotations to the registry
+ *
+ * const point: PointAnnotation = registry.addPoint({});
+ * const line: PolylineAnnotation = registry.addPolyline({});
+ * const polygon: PolygonAnnotation = registry.addPolygon({});
+ * const rect: RectangleAnnotation = registry.addRectangle({});
+ * const ring: RingAnnotation = registry.addRing({});
+ * ```
+ */
 export declare class Registry {
     id: string;
     annotations: Annotation[];
@@ -50,7 +64,7 @@ export declare class Registry {
     getActiveAnnotation(): Annotation | null;
     getAnnotationByID(id: string): Annotation | null | undefined;
     deleteByID(id: string): void;
-    activateByID(id: string): void;
+    activateByID(id: string): Annotation | null;
     deactivateByID(id: string): void;
     registerEvent(event: EventListItem): void;
     registerEvents(events: EventListItem[]): void;

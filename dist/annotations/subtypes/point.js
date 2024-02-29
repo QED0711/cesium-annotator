@@ -2,6 +2,16 @@ import * as Cesium from 'cesium';
 import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
+/**
+ * See {@link Registry} for registry creation;
+ *
+ * *PointAnnotation* should not be invoked directly. It should be created through a call to `addPoint` on a {@link Registry} instance.
+ *
+ * @example
+ * ```ts
+ * let point: PointAnnotation = registry.addPoint({});
+ * ```
+ */
 export class PointAnnotation extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c;

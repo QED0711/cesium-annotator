@@ -97,6 +97,9 @@ export class Annotation {
         const group = this.registry.getOrCreateGroup(groupRecord);
         this.joinGroup(group);
     }
+    isMemberOf(group) {
+        return !!Array.from(this.groups).find(g => g.id === group.id);
+    }
     groupsToRecords() {
         return Array.from(this.groups).map(group => group.toRecord());
     }

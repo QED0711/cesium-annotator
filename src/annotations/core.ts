@@ -148,6 +148,10 @@ export class Annotation {
         this.joinGroup(group);
     }
 
+    isMemberOf(group: AnnotationGroup): boolean {
+        return !!Array.from(this.groups).find(g => g.id === group.id);
+    }
+
     protected groupsToRecords(): GroupRecord[] {
         return Array.from(this.groups).map(group => group.toRecord());
     }

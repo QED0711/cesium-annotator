@@ -13,9 +13,6 @@ import { Coordinate } from './coordinate';
 
 
 
-/******************************************************************************
- * ***************************** GROUP ***************************** 
- *****************************************************************************/
 export class AnnotationGroup {
     registry: Registry
     id: string;
@@ -107,9 +104,27 @@ export class AnnotationGroup {
     }
 }
 
-/******************************************************************************
- * ***************************** REGISTRY ***************************** 
- *****************************************************************************/
+/**
+ * 
+ * @example
+ * ```ts
+ * import { Registry } from 'cesium-annotator';
+ * const viewer = new Cesium.Viewer("map-id", {...});
+ * const registry = new Registry({
+ *      id: "myRegistry",
+ *      viewer,
+ * })
+ *
+ * // add annotations to the registry
+ *
+ * const point: PointAnnotation = registry.addPoint({});
+ * const line: PolylineAnnotation = registry.addPolyline({});
+ * const polygon: PolygonAnnotation = registry.addPolygon({});
+ * const rect: RectangleAnnotation = registry.addRectangle({});
+ * const ring: RingAnnotation = registry.addRing({});
+ * ```
+ */
+
 export class Registry {
     id: string;
     annotations: Annotation[];
@@ -152,10 +167,17 @@ export class Registry {
         }
     }
 
-    activateByID(id: string) {
+    activateByID(id: string): Annotation | null {
+        let activated: Annotation | null = null;
         for (let annotation of this.annotations) {
-            annotation.id === id ? annotation.activate() : annotation.deactivate()
+            if(annotation.id === id) {
+                annotation.activate();
+                activated = annotation;
+            } else {
+                annotation.deactivate();
+            }
         }
+        return activated;
     }
 
     deactivateByID(id: string) {

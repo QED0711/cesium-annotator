@@ -16,26 +16,6 @@ export class Coordinate {
     static fromDegrees(lng, lat, alt) {
         return new this({ lng, lat, alt });
     }
-    static cloneCoordinateArray(coordinates) {
-        return coordinates.map(c => c.clone());
-    }
-    static coordinateArrayToCartesian3(coordinates) {
-        return coordinates.map(c => c.cartesian3);
-    }
-    static getMinMaxBbox(coordinates) {
-        let lngMin = Infinity, lngMax = -Infinity, latMin = Infinity, latMax = -Infinity;
-        for (let coordinate of coordinates) {
-            if (coordinate.lng < lngMin)
-                lngMin = coordinate.lng;
-            if (coordinate.lng > lngMax)
-                lngMax = coordinate.lng;
-            if (coordinate.lat < latMin)
-                latMin = coordinate.lat;
-            if (coordinate.lat > latMax)
-                latMax = coordinate.lat;
-        }
-        return { lngMin, lngMax, latMin, latMax };
-    }
     clone() {
         const coordinate = new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
         coordinate.id = this.id;
@@ -51,7 +31,7 @@ export class Coordinate {
         this.alt = (_b = values.alt) !== null && _b !== void 0 ? _b : this.alt;
         this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
     }
-    distanceTo(point2, unit) {
+    distanceTo(point2, unit = DistanceUnit.METERS) {
         const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
         unit !== null && unit !== void 0 ? unit : (unit = DistanceUnit.METERS);
         switch (unit) {

@@ -26,28 +26,6 @@ export class Coordinate {
         return new this({ lng, lat, alt });
     }
 
-    static cloneCoordinateArray(coordinates: Coordinate[]): Coordinate[] {
-        return coordinates.map(c => c.clone());
-    }
-
-    static coordinateArrayToCartesian3(coordinates: Coordinate[]): Cesium.Cartesian3[] {
-        return coordinates.map(c => c.cartesian3);
-    }
-
-    static getMinMaxBbox(coordinates: Coordinate[]) {
-        let lngMin = Infinity,
-            lngMax = -Infinity,
-            latMin = Infinity,
-            latMax = -Infinity;
-        for (let coordinate of coordinates) {
-            if (coordinate.lng < lngMin) lngMin = coordinate.lng;
-            if (coordinate.lng > lngMax) lngMax = coordinate.lng;
-            if (coordinate.lat < latMin) latMin = coordinate.lat;
-            if (coordinate.lat > latMax) latMax = coordinate.lat;
-        }
-        return { lngMin, lngMax, latMin, latMax };
-    }
-
     clone(): Coordinate {
         const coordinate = new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
         coordinate.id = this.id;
@@ -65,7 +43,7 @@ export class Coordinate {
         this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
     }
 
-    distanceTo(point2: Coordinate, unit?: DistanceUnit): number {
+    distanceTo(point2: Coordinate, unit: DistanceUnit = DistanceUnit.METERS): number {
         const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
 
         unit ??= DistanceUnit.METERS;

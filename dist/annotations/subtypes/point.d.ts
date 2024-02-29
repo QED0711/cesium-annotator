@@ -8,6 +8,16 @@ export type PointInitOptions = AnnotationBaseInit & {
     billboardProperties?: Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;
 };
+/**
+ * See {@link Registry} for registry creation;
+ *
+ * *PointAnnotation* should not be invoked directly. It should be created through a call to `addPoint` on a {@link Registry} instance.
+ *
+ * @example
+ * ```ts
+ * let point: PointAnnotation = registry.addPoint({});
+ * ```
+ */
 export declare class PointAnnotation extends Annotation {
     entityProperties: Cesium.PointGraphics.ConstructorOptions;
     pointProperties: Cesium.PointGraphics.ConstructorOptions;
