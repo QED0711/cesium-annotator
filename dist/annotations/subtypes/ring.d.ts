@@ -9,7 +9,7 @@ export type RingInitOptions = AnnotationBaseInit & {
     drawAsLine?: boolean;
     nPoints?: number;
 };
-export default class Ring extends Annotation {
+export declare class RingAnnotation extends Annotation {
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine: boolean;

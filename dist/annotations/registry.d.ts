@@ -1,21 +1,22 @@
 import * as Cesium from 'cesium';
-import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, RegistryInit } from '../utils/types';
+import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
-import PointAnnotation, { PointInitOptions } from './subtypes/point';
-import PolylineAnnotation, { PolylineInitOptions } from './subtypes/polyline';
-import PolygonAnnotation, { PolygonInitOptions } from './subtypes/polygon';
-import RectangleAnnotation, { RectangleInitOptions } from './subtypes/rectangle';
-import RingAnnotation, { RingInitOptions } from './subtypes/ring';
+import { PointAnnotation, PointInitOptions } from './subtypes/point';
+import { PolylineAnnotation, PolylineInitOptions } from './subtypes/polyline';
+import { PolygonAnnotation, PolygonInitOptions } from './subtypes/polygon';
+import { RectangleAnnotation, RectangleInitOptions } from './subtypes/rectangle';
+import { RingAnnotation, RingInitOptions } from './subtypes/ring';
 /******************************************************************************
  * ***************************** GROUP *****************************
  *****************************************************************************/
 export declare class AnnotationGroup {
     registry: Registry;
     id: string;
-    name?: string;
+    name: string;
     annotations: Set<Annotation>;
-    constructor(registry: Registry, name?: string);
+    constructor(registry: Registry, options: GroupInitOptions);
+    toRecord(): GroupRecord;
     capture(annotation: Annotation): void;
     release(annotation: Annotation): void;
     releaseAll(): void;
@@ -54,7 +55,7 @@ export declare class Registry {
     registerEvent(event: EventListItem): void;
     registerEvents(events: EventListItem[]): void;
     applyEvents(annotation: Annotation): void;
-    createGroup(name?: string): AnnotationGroup;
+    getOrCreateGroup(options: GroupInitOptions): AnnotationGroup;
     getGroupByID(id: string): AnnotationGroup | null;
     getGroupByName(name: string): AnnotationGroup | null;
     deleteGroupByID(id: string, options: {

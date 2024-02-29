@@ -14,7 +14,7 @@ export type PolygonInitOptions = AnnotationBaseInit & {
     midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
 }
 
-export default class Polygon extends Annotation {
+export class PolygonAnnotation extends Annotation {
 
     drawAsLine: boolean;
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions;

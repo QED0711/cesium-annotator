@@ -1,22 +1,26 @@
 import * as Cesium from 'cesium';
 import { AnnotationType, GeoJsonType } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
-import PointAnnotation from './subtypes/point';
-import PolylineAnnotation from './subtypes/polyline';
-import PolygonAnnotation from './subtypes/polygon';
-import RectangleAnnotation from './subtypes/rectangle';
-import RingAnnotation from './subtypes/ring';
+import { PointAnnotation } from './subtypes/point';
+import { PolylineAnnotation } from './subtypes/polyline';
+import { PolygonAnnotation } from './subtypes/polygon';
+import { RectangleAnnotation } from './subtypes/rectangle';
+import { RingAnnotation } from './subtypes/ring';
 import { nanoid } from 'nanoid';
 import { Coordinate } from './coordinate';
 /******************************************************************************
  * ***************************** GROUP *****************************
  *****************************************************************************/
 export class AnnotationGroup {
-    constructor(registry, name) {
-        this.id = nanoid();
+    constructor(registry, options) {
+        var _a, _b;
         this.registry = registry;
-        this.name = name;
+        this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
+        this.name = (_b = options.name) !== null && _b !== void 0 ? _b : "";
         this.annotations = new Set();
+    }
+    toRecord() {
+        return { id: this.id, name: this.name };
     }
     capture(annotation) {
         this.annotations.add(annotation);
@@ -135,8 +139,11 @@ export class Registry {
             }
         }
     }
-    createGroup(name) {
-        const group = new AnnotationGroup(this, name);
+    getOrCreateGroup(options) {
+        const existingGroup = this.groups.find(group => group.name === options.name || group.id === options.id);
+        if (existingGroup)
+            return existingGroup;
+        const group = new AnnotationGroup(this, options);
         this.groups.push(group);
         return group;
     }

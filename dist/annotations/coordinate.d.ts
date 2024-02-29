@@ -38,7 +38,8 @@ export declare class CoordinateCollection {
     clone(): CoordinateCollection;
     push(coord: Coordinate): void;
     pop(): Coordinate | null;
-    filter(callback: (val: any, i: number) => {}): CoordinateCollection;
+    map(callback: (val: any, i: number) => any): CoordinateCollection | any[];
+    filter(callback: (val: any, i: number) => boolean): CoordinateCollection;
     set(idx: number, coord: Coordinate): CoordinateCollection;
     insertAtIndex(index: number, coordinate: Coordinate): CoordinateCollection;
     getMinMaxBbox(): {

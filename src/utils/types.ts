@@ -15,6 +15,7 @@ export type AnnotationBaseInit = {
     userInteractive?: boolean,
     handleType?: HandleType
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
+    groupRecords?: GroupRecord[],
     attributes?: { [key: string]: any }
 }
 
@@ -28,6 +29,13 @@ export type ViewerInterfaceInitOptions = {
     overrideDefaultClickEvents?: boolean,
     useAltitude?: boolean,
 }
+
+export type GroupInitOptions = {
+    id?: string,
+    name?: string
+}
+
+// ENUMS
 
 export enum DistanceUnit {
     METERS = "meters",
@@ -76,6 +84,11 @@ export type MidPointHandleEntity = AnnotationEntity & {
     _isMidpointHandle: boolean,
     _coordinate: Coordinate,
     _idxBookends: number[]
+}
+
+export type GroupRecord = {
+    id: string,
+    name: string
 }
 
 // EVENTS 

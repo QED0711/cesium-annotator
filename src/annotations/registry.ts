@@ -1,15 +1,15 @@
 import * as Cesium from 'cesium';
-import { AnnotationEventPayload, AnnotationType, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, RegistryInit } from '../utils/types';
+import { AnnotationEventPayload, AnnotationType, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
-import PointAnnotation, { PointInitOptions } from './subtypes/point';
-import PolylineAnnotation, { PolylineInitOptions } from './subtypes/polyline';
+import { PointAnnotation, PointInitOptions } from './subtypes/point';
+import { PolylineAnnotation, PolylineInitOptions } from './subtypes/polyline';
 
-import PolygonAnnotation, { PolygonInitOptions } from './subtypes/polygon';
-import RectangleAnnotation, { RectangleInitOptions } from './subtypes/rectangle';
-import RingAnnotation, { RingInitOptions } from './subtypes/ring';
+import { PolygonAnnotation, PolygonInitOptions } from './subtypes/polygon';
+import { RectangleAnnotation, RectangleInitOptions } from './subtypes/rectangle';
+import { RingAnnotation, RingInitOptions } from './subtypes/ring';
 import { nanoid } from 'nanoid';
-import { Coordinate, CoordinateCollection } from './coordinate';
+import { Coordinate } from './coordinate';
 
 
 
@@ -19,14 +19,18 @@ import { Coordinate, CoordinateCollection } from './coordinate';
 export class AnnotationGroup {
     registry: Registry
     id: string;
-    name?: string
+    name: string
     annotations: Set<Annotation>;
 
-    constructor(registry: Registry, name?: string) {
-        this.id = nanoid();
+    constructor(registry: Registry, options: GroupInitOptions) {
         this.registry = registry;
-        this.name = name;
+        this.id = options.id ?? nanoid();
+        this.name = options.name ?? "";
         this.annotations = new Set<Annotation>();
+    }
+
+    toRecord(): GroupRecord {
+        return { id: this.id, name: this.name };
     }
 
     capture(annotation: Annotation): void {
@@ -180,8 +184,11 @@ export class Registry {
         }
     }
 
-    createGroup(name?: string): AnnotationGroup {
-        const group = new AnnotationGroup(this, name);
+    getOrCreateGroup(options: GroupInitOptions): AnnotationGroup {
+        const existingGroup = this.groups.find(group => group.name === options.name || group.id === options.id);
+        if (existingGroup) return existingGroup;
+
+        const group = new AnnotationGroup(this, options);
         this.groups.push(group)
         return group;
     }
@@ -326,10 +333,6 @@ export class Registry {
     loadWith(loaderName: string, geom: any): Annotation | null {
         return this.loaders[loaderName]?.(geom) ?? null;
     }
-
-
-
-
 }
 
 

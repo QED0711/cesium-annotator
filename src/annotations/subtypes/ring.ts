@@ -11,7 +11,7 @@ export type RingInitOptions = AnnotationBaseInit & {
     nPoints?: number,
 }
 
-export default class Ring extends Annotation {
+export class RingAnnotation extends Annotation {
 
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
@@ -176,6 +176,7 @@ export default class Ring extends Annotation {
                     liveUpdate: this.liveUpdate,
                     userInteractive: this.userInteractive,
                     handleType: this.handleType,
+                    groupRecords: this.groupsToRecords(),
                     attributes: this.attributes,
                     polygonProperties: this.polygonProperties,
                     handleProperties: this.handleProperties,

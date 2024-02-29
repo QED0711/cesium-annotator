@@ -10,7 +10,7 @@ export type PointInitOptions = AnnotationBaseInit & {
     entityProperties?: Cesium.Entity.ConstructorOptions,
 }
 
-export default class PointAnnotation extends Annotation {
+export class PointAnnotation extends Annotation {
 
     entityProperties: Cesium.PointGraphics.ConstructorOptions;
     pointProperties: Cesium.PointGraphics.ConstructorOptions;

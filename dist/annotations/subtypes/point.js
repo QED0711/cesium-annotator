@@ -2,7 +2,7 @@ import * as Cesium from 'cesium';
 import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
-export default class PointAnnotation extends Annotation {
+export class PointAnnotation extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c;
         super(registry, options);

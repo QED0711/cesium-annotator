@@ -8,7 +8,7 @@ export type PointInitOptions = AnnotationBaseInit & {
     billboardProperties?: Cesium.BillboardGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;
 };
-export default class PointAnnotation extends Annotation {
+export declare class PointAnnotation extends Annotation {
     entityProperties: Cesium.PointGraphics.ConstructorOptions;
     pointProperties: Cesium.PointGraphics.ConstructorOptions;
     billboardProperties: Cesium.BillboardGraphics.ConstructorOptions;

@@ -1,3 +1,4 @@
+// ENUMS
 export var DistanceUnit;
 (function (DistanceUnit) {
     DistanceUnit["METERS"] = "meters";

@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
-export default class Polygon extends Annotation {
+export class PolygonAnnotation extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c, _d, _e, _f;
         super(registry, options);

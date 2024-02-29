@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { AnnotationBaseInit, DistanceUnit, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
-import { Coordinate } from '../coordinate';
+import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
 export type PolylineInitOptions = AnnotationBaseInit & {
     polylineProperties?: Cesium.PolylineGraphics.ConstructorOptions;
@@ -10,7 +10,7 @@ export type PolylineInitOptions = AnnotationBaseInit & {
     midpointHandleType?: HandleType;
     midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
 };
-export default class Polyline extends Annotation {
+export declare class PolylineAnnotation extends Annotation {
     polylineProperties: Cesium.PolylineGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;
     midpointHandles: boolean;
@@ -28,4 +28,5 @@ export default class Polyline extends Annotation {
     getTotalDistance(unit?: DistanceUnit): number;
     getDistanceSegments(unit?: DistanceUnit): number[];
     getHeadingSegments(): number[];
+    getPointsOnPath(distance: number, unit: DistanceUnit): CoordinateCollection | null;
 }

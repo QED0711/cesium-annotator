@@ -12,7 +12,7 @@ export type PolylineInitOptions = AnnotationBaseInit & {
     midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
 }
 
-export default class Polyline extends Annotation {
+export class PolylineAnnotation extends Annotation {
 
     polylineProperties: Cesium.PolylineGraphics.ConstructorOptions;
     entityProperties?: Cesium.Entity.ConstructorOptions;

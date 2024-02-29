@@ -7,7 +7,7 @@ import * as Cesium from 'cesium';
 */
 export class Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         this.registry = registry;
         this.viewerInterface = registry.viewerInterface;
         this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
@@ -33,9 +33,7 @@ export class Annotation {
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
         this.events = {};
-    }
-    get current() {
-        return this.points;
+        this.initGroupRecords((_g = options.groupRecords) !== null && _g !== void 0 ? _g : []);
     }
     on(eventName, callback) {
         if (eventName in this.events) {
@@ -78,6 +76,11 @@ export class Annotation {
         this.leaveAllGroups();
         this.emit(EventType.DELETE, { annotation: this });
     }
+    initGroupRecords(records) {
+        for (let record of records) {
+            this.joinGroupByRecord(record);
+        }
+    }
     joinGroup(group) {
         group.capture(this);
     }
@@ -89,6 +92,13 @@ export class Annotation {
         for (let group of groups) {
             this.leaveGroup(group);
         }
+    }
+    joinGroupByRecord(groupRecord) {
+        const group = this.registry.getOrCreateGroup(groupRecord);
+        this.joinGroup(group);
+    }
+    groupsToRecords() {
+        return Array.from(this.groups).map(group => group.toRecord());
     }
     removeEntity() {
         if (!!this.entity) {
@@ -315,7 +325,7 @@ export class Annotation {
         const geoJson = this.points.toGeoJson(this.annotationType);
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, handleType: this.handleType, handleProperties: this.handleProperties, attributes: this.attributes }, properties.initOptions);
+            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, handleType: this.handleType, handleProperties: this.handleProperties, groupRecords: this.groupsToRecords(), attributes: this.attributes }, properties.initOptions);
         }
         return geoJson;
     }

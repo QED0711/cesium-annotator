@@ -10,7 +10,7 @@ export type RectangleInitOptions = AnnotationBaseInit & {
     drawAsLine?: boolean,
 }
 
-export default class Rectangle extends Annotation {
+export class RectangleAnnotation extends Annotation {
 
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions
     entityProperties: Cesium.Entity.ConstructorOptions;
@@ -158,6 +158,7 @@ export default class Rectangle extends Annotation {
                     liveUpdate: this.liveUpdate,
                     userInteractive: this.userInteractive,
                     handleType: this.handleType,
+                    groupRecords: this.groupsToRecords(),
                     attributes: this.attributes,
                     polygonProperties: this.polygonProperties,
                     handleProperties: this.handleProperties,

@@ -2,7 +2,7 @@ import * as Cesium from 'cesium';
 import { AnnotationType, EventType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
-export default class Ring extends Annotation {
+export class RingAnnotation extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c, _d;
         super(registry, options);
@@ -124,6 +124,7 @@ export default class Ring extends Annotation {
                     liveUpdate: this.liveUpdate,
                     userInteractive: this.userInteractive,
                     handleType: this.handleType,
+                    groupRecords: this.groupsToRecords(),
                     attributes: this.attributes,
                     polygonProperties: this.polygonProperties,
                     handleProperties: this.handleProperties,

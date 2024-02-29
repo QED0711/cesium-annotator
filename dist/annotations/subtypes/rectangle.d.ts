@@ -8,7 +8,7 @@ export type RectangleInitOptions = AnnotationBaseInit & {
     entityProperties?: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;
 };
-export default class Rectangle extends Annotation {
+export declare class RectangleAnnotation extends Annotation {
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean;

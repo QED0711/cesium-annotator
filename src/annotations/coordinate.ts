@@ -153,7 +153,7 @@ export class CoordinateCollection {
         return new CoordinateCollection(this.coordinates.map(callback))
     }
 
-    filter(callback: (val: any, i: number) => Coordinate): CoordinateCollection {
+    filter(callback: (val: any, i: number) => boolean): CoordinateCollection {
         return new CoordinateCollection(this.coordinates.filter(callback));
     }
 

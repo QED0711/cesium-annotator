@@ -118,6 +118,9 @@ export class CoordinateCollection {
         const coord = this.coordinates.pop();
         return coord !== null && coord !== void 0 ? coord : null;
     }
+    map(callback) {
+        return new CoordinateCollection(this.coordinates.map(callback));
+    }
     filter(callback) {
         return new CoordinateCollection(this.coordinates.filter(callback));
     }

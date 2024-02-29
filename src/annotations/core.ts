@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection, GroupRecord } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -71,10 +71,8 @@ export class Annotation {
         this.preDragHistoricalRecord = null
 
         this.events = {};
-    }
 
-    get current() {
-        return this.points;
+        this.initGroupRecords(options.groupRecords ?? []);
     }
 
     on(eventName: string, callback: (payload: AnnotationEventPayload) => void) {
@@ -85,7 +83,7 @@ export class Annotation {
         }
     }
 
-    emit(eventName: string, payload: AnnotationEventPayload) {
+    protected emit(eventName: string, payload: AnnotationEventPayload) {
         if (!(eventName in this.events)) return;
         for (let handler of this.events[eventName]) {
             handler(payload);
@@ -124,6 +122,12 @@ export class Annotation {
         this.emit(EventType.DELETE, { annotation: this });
     }
 
+    private initGroupRecords(records: GroupRecord[]) {
+        for(let record of records) {
+            this.joinGroupByRecord(record);
+        }
+    }
+
     joinGroup(group: AnnotationGroup) {
         group.capture(this);
     }
@@ -137,6 +141,15 @@ export class Annotation {
         for (let group of groups) {
             this.leaveGroup(group);
         }
+    }
+
+    joinGroupByRecord(groupRecord: GroupRecord) {
+        const group = this.registry.getOrCreateGroup(groupRecord);
+        this.joinGroup(group);
+    }
+
+    protected groupsToRecords(): GroupRecord[] {
+        return Array.from(this.groups).map(group => group.toRecord());
     }
 
     removeEntity() {
@@ -186,7 +199,7 @@ export class Annotation {
         this.syncHandles();
     }
 
-    handlePointerDown(e: PointerEvent) {
+    protected handlePointerDown(e: PointerEvent) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
         this.pointerDownDetected = true;
         let existingEntity = this.viewerInterface.queryEntityAtPixel();
@@ -201,7 +214,7 @@ export class Annotation {
         }
     }
 
-    handlePointerMove(e: PointerEvent) {
+    protected handlePointerMove(e: PointerEvent) {
         this.movedDetected = true;
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
@@ -214,7 +227,7 @@ export class Annotation {
         }
     }
 
-    handlePointerUp(e: PointerEvent) {
+    protected handlePointerUp(e: PointerEvent) {
         
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
@@ -299,21 +312,21 @@ export class Annotation {
         this.emit(EventType.REDO, { annotation: this });
     }
 
-    recordPointsToUndoHistory() {
+    protected recordPointsToUndoHistory() {
         if (this.points.length > 0) {
             this.undoHistory.push(this.points.clone());
         }
     }
 
-    manualAppendToUndoHistory(points: CoordinateCollection) {
+    protected manualAppendToUndoHistory(points: CoordinateCollection) {
         this.undoHistory.push(points.clone());
     }
 
-    clearRedoHistory() {
+    protected clearRedoHistory() {
         this.redoHistory = [];
     }
 
-    updateHandleIdxs(): void {
+    protected updateHandleIdxs(): void {
         for (let i = 0; i < this.points.length; i++) {
             const handleID = this.points.at(i)?.id ?? null;
             if (handleID !== null) {
@@ -323,7 +336,7 @@ export class Annotation {
         }
     }
 
-    removeStaleHandles(): void {
+    protected removeStaleHandles(): void {
         const pointIDs: { [coordinateID: string]: boolean } = {};
         for (let point of this.points) {
             pointIDs[point.id] = true;
@@ -337,7 +350,7 @@ export class Annotation {
         }
     }
 
-    syncHandles(): void {
+    protected syncHandles(): void {
         if (this.isActive) {
             for (let i = 0; i < this.points.length; i++) {
                 const point = this.points.at(i);
@@ -410,6 +423,7 @@ export class Annotation {
                 userInteractive: this.userInteractive,
                 handleType: this.handleType,
                 handleProperties: this.handleProperties,
+                groupRecords: this.groupsToRecords(),
                 attributes: this.attributes,
                 ...properties.initOptions
             }

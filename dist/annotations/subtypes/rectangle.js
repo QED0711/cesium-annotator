@@ -2,7 +2,7 @@ import * as Cesium from 'cesium';
 import { AnnotationType, DistanceUnit, EventType } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
-export default class Rectangle extends Annotation {
+export class RectangleAnnotation extends Annotation {
     constructor(registry, options) {
         var _a, _b, _c;
         super(registry, options);
@@ -107,6 +107,7 @@ export default class Rectangle extends Annotation {
                     liveUpdate: this.liveUpdate,
                     userInteractive: this.userInteractive,
                     handleType: this.handleType,
+                    groupRecords: this.groupsToRecords(),
                     attributes: this.attributes,
                     polygonProperties: this.polygonProperties,
                     handleProperties: this.handleProperties,
