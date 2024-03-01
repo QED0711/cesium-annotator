@@ -1,7 +1,7 @@
 /**
  * Installation: npm install cesium-annotator
  */
-export * from './annotations/core';
+// export * from './annotations/core';
 export * from './annotations/coordinate';
 export * from './annotations/registry';
 
@@ -11,4 +11,23 @@ export * from "./annotations/subtypes/polygon";
 export * from "./annotations/subtypes/rectangle";
 export * from "./annotations/subtypes/ring";
 
-export * from './utils/types'
+export {
+    CoordinateInit,
+    AnnotationBaseInit,
+    RegistryInit,
+    GroupInitOptions,
+
+    DistanceUnit,
+    AnnotationType,
+    HandleType,
+
+    EventType,
+    AnnotationEventPayload,
+    EventListItem,
+
+    FlyToOptions,
+    GeoJsonLoaderOptions,
+    GeoJsonType,
+    GeoJsonFeature,
+    GeoJsonFeatureCollection,
+} from './utils/types'
