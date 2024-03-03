@@ -168,20 +168,23 @@ export class Registry {
     }
 
     activateByID(id: string): Annotation | null {
-        let activated: Annotation | null = null;
-        for (let annotation of this.annotations) {
-            if(annotation.id === id) {
-                annotation.activate();
-                activated = annotation;
-            } else {
-                annotation.deactivate();
-            }
+        const annotation = this.annotations.find(a => a.id === id);
+        if(annotation) {
+            annotation.activate();
+            return annotation;
         }
-        return activated;
+        return null
     }
 
     deactivateByID(id: string) {
         this.annotations.find(annotation => annotation.id === id)?.deactivate?.();
+    }
+
+    deactivateAllExcept(id: string){
+        for(let annotation of this.annotations) {
+            if(annotation.id === id) continue;
+            annotation.deactivate();
+        }
     }
 
     registerEvent(event: EventListItem) {

@@ -59,16 +59,20 @@ export class Annotation {
         this.isActive = true;
         this.syncHandles();
         this.showHandles();
+        // in the event this is called at the annotation level, this will ensure that all other annotations are deactivated;
+        this.registry.deactivateAllExcept(this.id);
         this.viewerInterface.registerListener("pointerdown", this.handlePointerDown, this);
         this.viewerInterface.registerListener("pointermove", this.handlePointerMove, this);
         this.viewerInterface.registerListener("pointerup", this.handlePointerUp, this);
         this.emit(EventType.ACTIVATE, { annotation: this });
     }
     deactivate() {
-        this.isActive = false;
-        this.hideHandles();
-        this.viewerInterface.unregisterListenersByAnnotationID(this.id);
-        this.emit(EventType.DEACTIVATE, { annotation: this });
+        if (this.isActive) {
+            this.isActive = false;
+            this.hideHandles();
+            this.viewerInterface.unregisterListenersByAnnotationID(this.id);
+            this.emit(EventType.DEACTIVATE, { annotation: this });
+        }
     }
     delete() {
         this.deactivate();

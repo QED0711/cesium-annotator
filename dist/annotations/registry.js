@@ -125,21 +125,23 @@ export class Registry {
         }
     }
     activateByID(id) {
-        let activated = null;
-        for (let annotation of this.annotations) {
-            if (annotation.id === id) {
-                annotation.activate();
-                activated = annotation;
-            }
-            else {
-                annotation.deactivate();
-            }
+        const annotation = this.annotations.find(a => a.id === id);
+        if (annotation) {
+            annotation.activate();
+            return annotation;
         }
-        return activated;
+        return null;
     }
     deactivateByID(id) {
         var _a, _b;
         (_b = (_a = this.annotations.find(annotation => annotation.id === id)) === null || _a === void 0 ? void 0 : _a.deactivate) === null || _b === void 0 ? void 0 : _b.call(_a);
+    }
+    deactivateAllExcept(id) {
+        for (let annotation of this.annotations) {
+            if (annotation.id === id)
+                continue;
+            annotation.deactivate();
+        }
     }
     registerEvent(event) {
         if (event.eventName in this.events) {

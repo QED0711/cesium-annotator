@@ -66,6 +66,7 @@ export declare class Registry {
     deleteByID(id: string): void;
     activateByID(id: string): Annotation | null;
     deactivateByID(id: string): void;
+    deactivateAllExcept(id: string): void;
     registerEvent(event: EventListItem): void;
     registerEvents(events: EventListItem[]): void;
     applyEvents(annotation: Annotation): void;
