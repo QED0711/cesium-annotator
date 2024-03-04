@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, DistanceUnit, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
+import { AnnotationBaseInit, DistanceUnit, GeoJsonFeatureCollection, HandleType, DrawOptions } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
@@ -19,11 +19,12 @@ export declare class PolylineAnnotation extends Annotation {
     private mpHandles;
     constructor(registry: Registry, options: PolylineInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
-    draw(): void;
+    draw(options?: DrawOptions): void;
     handlePointerDown(e: PointerEvent): void;
     syncHandles(): void;
     hideHandles(): void;
     showHandles(): void;
+    removeHandles(): void;
     toGeoJson(): GeoJsonFeatureCollection | null;
     getTotalDistance(unit?: DistanceUnit): number;
     getDistanceSegments(unit?: DistanceUnit): number[];

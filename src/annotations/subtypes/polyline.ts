@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType, DrawOptions } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
@@ -39,7 +39,8 @@ export class PolylineAnnotation extends Annotation {
         this.emit(EventType.APPEND, { annotation: this });
     }
 
-    draw(): void {
+    draw(options?: DrawOptions): void {
+        options = options ?? {};
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
             this.removeEntity();
@@ -52,7 +53,8 @@ export class PolylineAnnotation extends Annotation {
                 },
                 ...this.entityProperties
             }) as AnnotationEntity
-        } else if (!this.entity) {
+        } else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 polyline: {
@@ -121,16 +123,24 @@ export class PolylineAnnotation extends Annotation {
 
     hideHandles(): void {
         super.hideHandles();
-        for (let handle of Object.values(this.mpHandles)) {
+        for (let handle of this.mpHandles) {
             handle.show = false;
         }
     }
 
     showHandles(): void {
         super.showHandles();
-        for (let handle of Object.values(this.mpHandles)) {
+        for (let handle of this.mpHandles) {
             handle.show = true;
         }
+    }
+
+    removeHandles(): void {
+        super.removeHandles();
+        for (let mpHandle of this.mpHandles) {
+            this.viewerInterface.viewer.entities.remove(mpHandle);
+        }
+        this.mpHandles = [];
     }
 
     // OVERRIDES

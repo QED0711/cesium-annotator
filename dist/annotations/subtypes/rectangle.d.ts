@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, DistanceUnit, GeoJsonFeatureCollection } from "../../utils/types";
+import { AnnotationBaseInit, DistanceUnit, DrawOptions, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
@@ -14,7 +14,7 @@ export declare class RectangleAnnotation extends Annotation {
     drawAsLine?: boolean;
     constructor(registry: Registry, options: RectangleInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
-    draw(): void;
+    draw(options?: DrawOptions): void;
     syncHandles(): void;
     getPerimeter(unit?: DistanceUnit): number | null;
     getArea(unit?: DistanceUnit): number;

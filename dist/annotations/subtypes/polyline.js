@@ -18,13 +18,15 @@ export class PolylineAnnotation extends Annotation {
         this.points.push(coordinate);
         this.emit(EventType.APPEND, { annotation: this });
     }
-    draw() {
+    draw(options) {
+        options = options !== null && options !== void 0 ? options : {};
         let entity = null;
         if (!this.liveUpdate) {
             this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: this.points.toCartesian3Array(), width: 2 }, this.polylineProperties) }, this.entityProperties));
         }
-        else if (!this.entity) {
+        else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
                         return this.points.toCartesian3Array();
                     }, false), width: 2 }, this.polylineProperties) }, this.entityProperties));
@@ -79,15 +81,22 @@ export class PolylineAnnotation extends Annotation {
     }
     hideHandles() {
         super.hideHandles();
-        for (let handle of Object.values(this.mpHandles)) {
+        for (let handle of this.mpHandles) {
             handle.show = false;
         }
     }
     showHandles() {
         super.showHandles();
-        for (let handle of Object.values(this.mpHandles)) {
+        for (let handle of this.mpHandles) {
             handle.show = true;
         }
+    }
+    removeHandles() {
+        super.removeHandles();
+        for (let mpHandle of this.mpHandles) {
+            this.viewerInterface.viewer.entities.remove(mpHandle);
+        }
+        this.mpHandles = [];
     }
     // OVERRIDES
     toGeoJson() {

@@ -1,4 +1,4 @@
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, GeoJsonFeatureCollection, GroupRecord } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, GeoJsonFeatureCollection, GroupRecord, DrawOptions } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -21,13 +21,13 @@ export declare class Annotation {
     isActive: boolean;
     attributes: {
         [key: string]: any;
-    } | null;
+    };
     protected undoHistory: CoordinateCollection[];
     protected redoHistory: CoordinateCollection[];
     protected handleFound: HandleFoundRecord | null;
     protected bypassPointerUp: boolean;
     protected pointerDownDetected: boolean;
-    protected lasterPointerUpTime: number;
+    protected lastPointerUpTime: number;
     protected movedDetected: boolean;
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: CoordinateCollection | null;
@@ -38,6 +38,8 @@ export declare class Annotation {
     on(eventName: string, callback: (payload: AnnotationEventPayload) => void): void;
     protected emit(eventName: string, payload: AnnotationEventPayload): void;
     executeCallback(func: (annotation: Annotation) => {}): void;
+    setAttribute(attrName: string, value: any): void;
+    deleteAttribute(attrName: string): void;
     activate(): void;
     deactivate(): void;
     delete(): void;
@@ -49,6 +51,7 @@ export declare class Annotation {
     isMemberOf(group: AnnotationGroup): boolean;
     protected groupsToRecords(): GroupRecord[];
     removeEntity(): void;
+    removeHandles(): void;
     removeHandleByCoordinateID(id: string): void;
     show(): void;
     hide(): void;
@@ -71,5 +74,5 @@ export declare class Annotation {
     toGeoJson(): GeoJsonFeatureCollection | null;
     toWkt(): string | null;
     appendCoordinate(coordinate: Coordinate): void;
-    draw(): void;
+    draw(options?: DrawOptions): void;
 }

@@ -22,13 +22,13 @@ export class Annotation {
         this.handles = {};
         this.handleType = (_d = options.handleType) !== null && _d !== void 0 ? _d : HandleType.POINT;
         this.handleProperties = (_e = options.handleProperties) !== null && _e !== void 0 ? _e : {};
-        this.attributes = (_f = options.attributes) !== null && _f !== void 0 ? _f : null;
+        this.attributes = (_f = options.attributes) !== null && _f !== void 0 ? _f : {};
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false;
-        this.lasterPointerUpTime = 0;
+        this.lastPointerUpTime = 0;
         this.movedDetected = false;
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
@@ -52,6 +52,12 @@ export class Annotation {
     }
     executeCallback(func) {
         func(this);
+    }
+    setAttribute(attrName, value) {
+        this.attributes[attrName] = value;
+    }
+    deleteAttribute(attrName) {
+        delete this.attributes[attrName];
     }
     activate() {
         if (!this.userInteractive)
@@ -111,8 +117,15 @@ export class Annotation {
         if (!!this.entity) {
             this.viewerInterface.viewer.entities.remove(this.entity);
             this.entity = null;
+            this.removeHandles();
         }
         this.emit(EventType.REMOVE_ENTITY, { annotation: this });
+    }
+    removeHandles() {
+        for (let handle of Object.values(this.handles)) {
+            this.viewerInterface.viewer.entities.remove(handle);
+        }
+        this.handles = {};
     }
     removeHandleByCoordinateID(id) {
         const handleEntity = this.handles[id];
@@ -189,13 +202,13 @@ export class Annotation {
         }
         // double click logic
         const now = Date.now();
-        if (now - this.lasterPointerUpTime < 200 && this.movedDetected === false) {
+        if (now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
             this.registry.deactivateByID(this.id);
-            this.lasterPointerUpTime = now;
+            this.lastPointerUpTime = now;
             this.movedDetected = false;
             return;
         }
-        this.lasterPointerUpTime = now;
+        this.lastPointerUpTime = now;
         this.movedDetected = false;
         if (this.handleFound !== null) {
             const coordinate = this.viewerInterface.getCoordinateAtPixel();
@@ -341,6 +354,6 @@ export class Annotation {
     }
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate) { }
-    draw() { }
+    draw(options) { }
 }
 //# sourceMappingURL=core.js.map

@@ -30,6 +30,9 @@ export type GroupInitOptions = {
     id?: string;
     name?: string;
 };
+export type DrawOptions = {
+    forceLiveRedraw?: boolean;
+};
 export declare enum DistanceUnit {
     METERS = "meters",
     KILOMETERS = "kilometers",

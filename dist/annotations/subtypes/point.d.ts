@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, GeoJsonFeatureCollection } from "../../utils/types";
+import { AnnotationBaseInit, DrawOptions, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Registry } from "../registry";
 import { Coordinate } from '../coordinate';
@@ -24,7 +24,7 @@ export declare class PointAnnotation extends Annotation {
     billboardProperties: Cesium.BillboardGraphics.ConstructorOptions;
     constructor(registry: Registry, options: PointInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
-    draw(): void;
+    draw(options?: DrawOptions): void;
     toGeoJson(): GeoJsonFeatureCollection | null;
     syncHandles(): void;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;

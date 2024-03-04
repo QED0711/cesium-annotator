@@ -39,8 +39,9 @@ export class RingAnnotation extends Annotation {
             this.radius = this.points.at(0).distanceTo(this.points.at(1));
         }
     }
-    draw() {
+    draw(options) {
         var _a;
+        options = options || {};
         if (this.points.length < 2 || this.radius === null)
             return;
         let entity = null;
@@ -59,7 +60,8 @@ export class RingAnnotation extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3, ellipse: Object.assign({ semiMajorAxis: this.radius, semiMinorAxis: this.radius }, this.polygonProperties) }, this.entityProperties));
             }
         }
-        else if (!this.entity) {
+        else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             if (this.drawAsLine) {
                 entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
                             const headingFactor = 360 / this.nPoints;

@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType, DrawOptions } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
@@ -17,7 +17,7 @@ export type PolygonInitOptions = AnnotationBaseInit & {
 export class PolygonAnnotation extends Annotation {
 
     drawAsLine: boolean;
-    polygonProperties: Cesium.PolylineGraphics.ConstructorOptions;
+    polygonProperties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions;
     entityProperties: Cesium.Entity.ConstructorOptions;
     midpointHandles: boolean;
     midpointHandleType: HandleType;
@@ -44,7 +44,8 @@ export class PolygonAnnotation extends Annotation {
         this.emit(EventType.APPEND, { annotation: this });
     }
 
-    draw(): void {
+    draw(options?: DrawOptions): void {
+        options = options || {};
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
             this.removeEntity();
@@ -69,7 +70,8 @@ export class PolygonAnnotation extends Annotation {
                     ...this.entityProperties
                 }) as AnnotationEntity;
             }
-        } else if (!this.entity) {
+        } else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             if (this.drawAsLine) { // POLYLINE
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,
@@ -165,6 +167,14 @@ export class PolygonAnnotation extends Annotation {
         for (let handle of Object.values(this.mpHandles)) {
             handle.show = true;
         }
+    }
+
+    removeHandles(): void {
+        super.removeHandles();
+        for (let mpHandle of this.mpHandles) {
+            this.viewerInterface.viewer.entities.remove(mpHandle);
+        }
+        this.mpHandles = [];
     }
 
     toGeoJson(): GeoJsonFeatureCollection | null {

@@ -18,7 +18,8 @@ export class PolygonAnnotation extends Annotation {
         this.points.push(coordinate);
         this.emit(EventType.APPEND, { annotation: this });
     }
-    draw() {
+    draw(options) {
+        options = options || {};
         let entity = null;
         if (!this.liveUpdate) {
             this.removeEntity();
@@ -31,7 +32,8 @@ export class PolygonAnnotation extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polygon: Object.assign({ hierarchy: this.points.toCartesian3Array() }, this.polygonProperties) }, this.entityProperties));
             }
         }
-        else if (!this.entity) {
+        else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             if (this.drawAsLine) { // POLYLINE
                 entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
                             return [...this.points.coordinates.map(c => c.cartesian3), this.points.at(0).cartesian3];
@@ -108,6 +110,13 @@ export class PolygonAnnotation extends Annotation {
         for (let handle of Object.values(this.mpHandles)) {
             handle.show = true;
         }
+    }
+    removeHandles() {
+        super.removeHandles();
+        for (let mpHandle of this.mpHandles) {
+            this.viewerInterface.viewer.entities.remove(mpHandle);
+        }
+        this.mpHandles = [];
     }
     toGeoJson() {
         const geoJson = super.toGeoJson();

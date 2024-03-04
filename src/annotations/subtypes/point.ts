@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, EventType, GeoJsonFeature, GeoJsonFeatureCollection, HandleEntity, HandleType } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DrawOptions, EventType, GeoJsonFeature, GeoJsonFeatureCollection, HandleEntity, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { Registry } from "../registry";
 import { CoordinateCollection, Coordinate } from '../coordinate';
@@ -40,7 +40,8 @@ export class PointAnnotation extends Annotation {
         this.emit(EventType.APPEND, { annotation: this });
     }
 
-    draw() {
+    draw(options?: DrawOptions) {
+        options = options ?? {};
         let entity: HandleEntity | null = null;
 
         let point, billboard;
@@ -67,8 +68,9 @@ export class PointAnnotation extends Annotation {
                 billboard,
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
             }) as HandleEntity
-        } else if (!this.entity) {
+        } else if (!this.entity || options.forceLiveRedraw) {
             if (this.points.length === 0) return;
+            this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position: new Cesium.CallbackProperty(() => {

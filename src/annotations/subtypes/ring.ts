@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, EventType, FlyToOptions, GeoJsonFeatureCollection } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, DrawOptions, EventType, FlyToOptions, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
@@ -55,7 +55,8 @@ export class RingAnnotation extends Annotation {
         }
     }
 
-    draw(): void {
+    draw(options?: DrawOptions): void {
+        options = options || {};
         if (this.points.length < 2 || this.radius === null) return
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
@@ -88,7 +89,8 @@ export class RingAnnotation extends Annotation {
                     ...this.entityProperties
                 }) as AnnotationEntity;
             }
-        } else if (!this.entity) {
+        } else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             if (this.drawAsLine) {
                 entity = this.viewerInterface.viewer.entities.add({
                     id: this.id,

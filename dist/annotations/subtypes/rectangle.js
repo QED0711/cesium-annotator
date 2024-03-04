@@ -19,7 +19,8 @@ export class RectangleAnnotation extends Annotation {
             this.points.set(1, coordinate);
         }
     }
-    draw() {
+    draw(options) {
+        options = options || {};
         let entity = null;
         if (!this.liveUpdate) {
             this.removeEntity();
@@ -38,7 +39,8 @@ export class RectangleAnnotation extends Annotation {
                 entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polygon: Object.assign({ hierarchy: positions }, this.polygonProperties) }, this.entityProperties));
             }
         }
-        else if (!this.entity) {
+        else if (!this.entity || options.forceLiveRedraw) {
+            this.removeEntity();
             if (this.drawAsLine) {
                 entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, polyline: Object.assign({ positions: new Cesium.CallbackProperty(() => {
                             const bbox = this.points.getMinMaxBbox();

@@ -25,8 +25,9 @@ export class PointAnnotation extends Annotation {
         this.points = new CoordinateCollection([coordinate]);
         this.emit(EventType.APPEND, { annotation: this });
     }
-    draw() {
+    draw(options) {
         var _a, _b;
+        options = options !== null && options !== void 0 ? options : {};
         let entity = null;
         let point, billboard;
         if (this.handleType === HandleType.BILLBOARD) {
@@ -42,9 +43,10 @@ export class PointAnnotation extends Annotation {
             entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3, point,
                 billboard }, this.entityProperties));
         }
-        else if (!this.entity) {
+        else if (!this.entity || options.forceLiveRedraw) {
             if (this.points.length === 0)
                 return;
+            this.removeEntity();
             entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: new Cesium.CallbackProperty(() => {
                     var _a;
                     return (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3;

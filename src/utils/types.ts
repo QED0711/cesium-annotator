@@ -35,6 +35,9 @@ export type GroupInitOptions = {
     name?: string
 }
 
+export type DrawOptions = {
+    forceLiveRedraw?: boolean,
+}
 // ENUMS
 
 export enum DistanceUnit {

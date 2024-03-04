@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection, GroupRecord } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection, GroupRecord, DrawOptions } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -25,7 +25,7 @@ export class Annotation {
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     isActive: boolean;
 
-    attributes: { [key: string]: any } | null;
+    attributes: { [key: string]: any };
 
     protected undoHistory: CoordinateCollection[];
     protected redoHistory: CoordinateCollection[];
@@ -33,7 +33,7 @@ export class Annotation {
     protected bypassPointerUp: boolean
 
     protected pointerDownDetected: boolean;
-    protected lasterPointerUpTime: number;
+    protected lastPointerUpTime: number;
     protected movedDetected: boolean;
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: CoordinateCollection | null;
@@ -58,14 +58,14 @@ export class Annotation {
         this.handleType = options.handleType ?? HandleType.POINT;
         this.handleProperties = options.handleProperties ?? {};
 
-        this.attributes = options.attributes ?? null;
+        this.attributes = options.attributes ?? {};
 
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false
-        this.lasterPointerUpTime = 0;
+        this.lastPointerUpTime = 0;
         this.movedDetected = false;
         this.dragDetected = false;
         this.preDragHistoricalRecord = null
@@ -92,6 +92,14 @@ export class Annotation {
 
     executeCallback(func: (annotation: Annotation) => {}) {
         func(this);
+    }
+
+    setAttribute(attrName: string, value: any): void {
+        this.attributes[attrName] = value;
+    }
+
+    deleteAttribute(attrName: string): void {
+        delete this.attributes[attrName];
     }
 
     activate() {
@@ -165,8 +173,16 @@ export class Annotation {
         if (!!this.entity) {
             this.viewerInterface.viewer.entities.remove(this.entity)
             this.entity = null;
+            this.removeHandles();
         }
         this.emit(EventType.REMOVE_ENTITY, { annotation: this });
+    }
+
+    removeHandles() {
+        for(let handle of Object.values(this.handles)) {
+            this.viewerInterface.viewer.entities.remove(handle);
+        }
+        this.handles = {};
     }
 
     removeHandleByCoordinateID(id: string) {
@@ -256,13 +272,13 @@ export class Annotation {
 
         // double click logic
         const now = Date.now()
-        if(now - this.lasterPointerUpTime < 200 && this.movedDetected === false) {
+        if(now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
             this.registry.deactivateByID(this.id);
-            this.lasterPointerUpTime = now;
+            this.lastPointerUpTime = now;
             this.movedDetected = false;
             return;
         }
-        this.lasterPointerUpTime = now;
+        this.lastPointerUpTime = now;
         this.movedDetected = false;
 
 
@@ -446,6 +462,6 @@ export class Annotation {
 
     // SUBCLASS IMPLEMENTATIONS
     appendCoordinate(coordinate: Coordinate) { }
-    draw() { }
+    draw(options?: DrawOptions): void { }
 }
 
