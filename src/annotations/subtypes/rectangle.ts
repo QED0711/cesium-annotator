@@ -119,6 +119,8 @@ export class RectangleAnnotation extends Annotation {
     }
 
     getPerimeter(unit: DistanceUnit = DistanceUnit.METERS): number | null {
+        if(this.points.length < 2) return null;
+
         const bbox = this.points.getMinMaxBbox();
         const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
         const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
@@ -130,7 +132,9 @@ export class RectangleAnnotation extends Annotation {
         return (width * 2) + (height * 2);
     }
 
-    getArea(unit: DistanceUnit = DistanceUnit.METERS): number {
+    getArea(unit: DistanceUnit = DistanceUnit.METERS): number | null {
+        if(this.points.length < 2) return null;
+
         const bbox = this.points.getMinMaxBbox();
         const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
         const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });

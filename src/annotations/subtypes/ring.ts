@@ -150,6 +150,13 @@ export class RingAnnotation extends Annotation {
         return null;
     }
 
+    getCircumference(): number | null {
+        if (this.radius !== null) {
+            return Math.PI * this.radius * 2
+        }
+        return null;
+    }
+
 
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
