@@ -21,6 +21,7 @@ export declare class RingAnnotation extends Annotation {
     draw(options?: DrawOptions): void;
     syncHandles(): void;
     getArea(): number | null;
+    getCircumference(): number | null;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
     toGeoJson(): GeoJsonFeatureCollection | null;
     toWkt(): string | null;

@@ -17,7 +17,7 @@ export declare class RectangleAnnotation extends Annotation {
     draw(options?: DrawOptions): void;
     syncHandles(): void;
     getPerimeter(unit?: DistanceUnit): number | null;
-    getArea(unit?: DistanceUnit): number;
+    getArea(unit?: DistanceUnit): number | null;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
     toGeoJson(): GeoJsonFeatureCollection | null;
 }

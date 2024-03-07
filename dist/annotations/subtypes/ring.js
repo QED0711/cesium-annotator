@@ -101,6 +101,12 @@ export class RingAnnotation extends Annotation {
         }
         return null;
     }
+    getCircumference() {
+        if (this.radius !== null) {
+            return Math.PI * this.radius * 2;
+        }
+        return null;
+    }
     // OVERRIDES
     insertCoordinateAtIndex(coordinate, idx) { }
     toGeoJson() {
