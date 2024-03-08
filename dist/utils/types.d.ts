@@ -10,6 +10,7 @@ export type AnnotationBaseInit = {
     id?: string;
     liveUpdate?: boolean;
     userInteractive?: boolean;
+    entityProperties?: Cesium.Entity.ConstructorOptions;
     handleType?: HandleType;
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     groupRecords?: GroupRecord[];
@@ -83,7 +84,10 @@ export declare enum EventType {
     REMOVE_ENTITY = "removeEntity",
     UNDO = "undo",
     REDO = "redo",
-    DELETE = "delete"
+    DELETE = "delete",
+    ATTRIBUTE = "attribute_update",
+    HANDLE = "handle_update",
+    PROPERTY = "property_update"
 }
 export type AnnotationEventPayload = {
     annotation: Annotation;

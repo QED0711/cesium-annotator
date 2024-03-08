@@ -6,7 +6,6 @@ import { Registry } from '../registry';
 
 export type RingInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions,
-    entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean,
     nPoints?: number,
 }
@@ -14,7 +13,6 @@ export type RingInitOptions = AnnotationBaseInit & {
 export class RingAnnotation extends Annotation {
 
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.EllipseGraphics.ConstructorOptions;
-    entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine: boolean
     nPoints: number
     private radius: number | null;
@@ -23,7 +21,6 @@ export class RingAnnotation extends Annotation {
         super(registry, options);
         this.annotationType = AnnotationType.RING;
         this.polygonProperties = options.polygonProperties ?? {};
-        this.entityProperties = options.entityProperties ?? {};
         this.drawAsLine = options.drawAsLine ?? false;
         this.nPoints = options.nPoints ?? 360
         this.radius = null;
@@ -160,6 +157,21 @@ export class RingAnnotation extends Annotation {
 
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
+
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void {
+        this.polygonProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    setPolygonProperty(propName: string, value: any) {
+        this.polygonProperties[propName as keyof typeof this.polygonProperties] = value;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    deletePolygonProperty(propName: string) {
+        delete this.polygonProperties[propName as keyof typeof this.polygonProperties]
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
 
     toGeoJson(): GeoJsonFeatureCollection | null {
 

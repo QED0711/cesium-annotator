@@ -98,12 +98,24 @@ export class PolylineAnnotation extends Annotation {
         }
         this.mpHandles = [];
     }
+    setPolylineProperties(properties) {
+        this.polylineProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    setPolylineProperty(propName, value) {
+        this.polylineProperties[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    deletePolylineProperty(propName) {
+        delete this.polylineProperties[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
     // OVERRIDES
     toGeoJson() {
         const geoJson = super.toGeoJson();
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ polylineProperties: this.polylineProperties, entityProperties: this.entityProperties, midpointHandles: this.midpointHandles, midpointHandleType: this.midpointHandleType, midpointHandleProperties: this.midpointHandleProperties }, properties.initOptions);
+            properties.initOptions = Object.assign({ polylineProperties: this.polylineProperties, midpointHandles: this.midpointHandles, midpointHandleType: this.midpointHandleType, midpointHandleProperties: this.midpointHandleProperties }, properties.initOptions);
             return geoJson;
         }
         return null;

@@ -7,7 +7,7 @@ import * as Cesium from 'cesium';
 */
 export class Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         this.registry = registry;
         this.viewerInterface = registry.viewerInterface;
         this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
@@ -19,10 +19,11 @@ export class Annotation {
         this.liveUpdate = (_b = options.liveUpdate) !== null && _b !== void 0 ? _b : false;
         this.userInteractive = (_c = options.userInteractive) !== null && _c !== void 0 ? _c : true;
         this.entity = null;
+        this.entityProperties = (_d = options.entityProperties) !== null && _d !== void 0 ? _d : {};
         this.handles = {};
-        this.handleType = (_d = options.handleType) !== null && _d !== void 0 ? _d : HandleType.POINT;
-        this.handleProperties = (_e = options.handleProperties) !== null && _e !== void 0 ? _e : {};
-        this.attributes = (_f = options.attributes) !== null && _f !== void 0 ? _f : {};
+        this.handleType = (_e = options.handleType) !== null && _e !== void 0 ? _e : HandleType.POINT;
+        this.handleProperties = (_f = options.handleProperties) !== null && _f !== void 0 ? _f : {};
+        this.attributes = (_g = options.attributes) !== null && _g !== void 0 ? _g : {};
         this.isActive = false;
         // this.handleIdxFound = null;
         this.handleFound = null;
@@ -33,14 +34,17 @@ export class Annotation {
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
         this.events = {};
-        this.initGroupRecords((_g = options.groupRecords) !== null && _g !== void 0 ? _g : []);
+        this.initGroupRecords((_h = options.groupRecords) !== null && _h !== void 0 ? _h : []);
     }
-    on(eventName, callback) {
-        if (eventName in this.events) {
-            this.events[eventName].push(callback);
-        }
-        else {
-            this.events[eventName] = [callback];
+    on(eventNames, callback) {
+        eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
+        for (let eventName of eventNames) {
+            if (eventName in this.events) {
+                this.events[eventName].push(callback);
+            }
+            else {
+                this.events[eventName] = [callback];
+            }
         }
     }
     emit(eventName, payload) {
@@ -53,11 +57,17 @@ export class Annotation {
     executeCallback(func) {
         func(this);
     }
+    setAttributes(attributes) {
+        this.attributes = attributes;
+        this.emit(EventType.ATTRIBUTE, { annotation: this });
+    }
     setAttribute(attrName, value) {
         this.attributes[attrName] = value;
+        this.emit(EventType.ATTRIBUTE, { annotation: this });
     }
     deleteAttribute(attrName) {
         delete this.attributes[attrName];
+        this.emit(EventType.ATTRIBUTE, { annotation: this });
     }
     activate() {
         if (!this.userInteractive)
@@ -121,6 +131,18 @@ export class Annotation {
         }
         this.emit(EventType.REMOVE_ENTITY, { annotation: this });
     }
+    setEntityProperties(properties) {
+        this.entityProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    setEntityProperty(propName, value) {
+        this.entityProperties[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    deleteEntityProperty(propName) {
+        delete this.entityProperties[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
     removeHandles() {
         for (let handle of Object.values(this.handles)) {
             this.viewerInterface.viewer.entities.remove(handle);
@@ -133,6 +155,18 @@ export class Annotation {
             this.viewerInterface.viewer.entities.remove(handleEntity);
             delete this.handles[id];
         }
+    }
+    setHandleProperties(properties) {
+        this.handleProperties = properties;
+        this.emit(EventType.HANDLE, { annotation: this });
+    }
+    setHandleProperty(propName, value) {
+        this.handleProperties[propName] = value;
+        this.emit(EventType.HANDLE, { annotation: this });
+    }
+    deleteHandleProperty(propName) {
+        delete this.handleProperties[propName];
+        this.emit(EventType.HANDLE, { annotation: this });
     }
     show() {
         if (this.entity) {
@@ -345,7 +379,7 @@ export class Annotation {
         const geoJson = this.points.toGeoJson(this.annotationType);
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, handleType: this.handleType, handleProperties: this.handleProperties, groupRecords: this.groupsToRecords(), attributes: this.attributes }, properties.initOptions);
+            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, entityProperties: this.entityProperties, handleType: this.handleType, handleProperties: this.handleProperties, groupRecords: this.groupsToRecords(), attributes: this.attributes }, properties.initOptions);
         }
         return geoJson;
     }

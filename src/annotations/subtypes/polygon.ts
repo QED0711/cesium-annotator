@@ -7,7 +7,6 @@ import { Registry } from '../registry';
 
 export type PolygonInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions,
-    entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean
     midpointHandles?: boolean,
     midpointHandleType?: HandleType,
@@ -18,7 +17,6 @@ export class PolygonAnnotation extends Annotation {
 
     drawAsLine: boolean;
     polygonProperties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions;
-    entityProperties: Cesium.Entity.ConstructorOptions;
     midpointHandles: boolean;
     midpointHandleType: HandleType;
     midpointHandleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
@@ -29,7 +27,6 @@ export class PolygonAnnotation extends Annotation {
 
         this.annotationType = AnnotationType.POLYGON;
         this.polygonProperties = options.polygonProperties ?? {};
-        this.entityProperties = options.entityProperties ?? {};
 
         this.drawAsLine = options.drawAsLine ?? false;
 
@@ -177,13 +174,27 @@ export class PolygonAnnotation extends Annotation {
         this.mpHandles = [];
     }
 
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void {
+        this.polygonProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    setPolygonProperty(propName: string, value: any) {
+        this.polygonProperties[propName as keyof typeof this.polygonProperties] = value;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    deletePolygonProperty(propName: string) {
+        delete this.polygonProperties[propName as keyof typeof this.polygonProperties]
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
     toGeoJson(): GeoJsonFeatureCollection | null {
         const geoJson = super.toGeoJson();
         if(geoJson) {
             const properties = geoJson.features[0].properties;
             properties.initOptions = {
                 polygonProperties: this.polygonProperties,
-                entityProperties: this.entityProperties,
                 drawAsLine: this.drawAsLine,
                 midPointMarkers: this.midpointHandles,
                 ...properties.initOptions,

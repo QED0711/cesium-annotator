@@ -3,15 +3,14 @@ import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 export class PolygonAnnotation extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e;
         super(registry, options);
         this.annotationType = AnnotationType.POLYGON;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
-        this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
-        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
-        this.midpointHandles = (_d = options.midpointHandles) !== null && _d !== void 0 ? _d : true;
-        this.midpointHandleType = (_e = options.midpointHandleType) !== null && _e !== void 0 ? _e : HandleType.POINT,
-            this.midpointHandleProperties = (_f = options.midpointHandleProperties) !== null && _f !== void 0 ? _f : {};
+        this.drawAsLine = (_b = options.drawAsLine) !== null && _b !== void 0 ? _b : false;
+        this.midpointHandles = (_c = options.midpointHandles) !== null && _c !== void 0 ? _c : true;
+        this.midpointHandleType = (_d = options.midpointHandleType) !== null && _d !== void 0 ? _d : HandleType.POINT,
+            this.midpointHandleProperties = (_e = options.midpointHandleProperties) !== null && _e !== void 0 ? _e : {};
         this.mpHandles = [];
     }
     appendCoordinate(coordinate) {
@@ -118,11 +117,23 @@ export class PolygonAnnotation extends Annotation {
         }
         this.mpHandles = [];
     }
+    setPolygonProperties(properties) {
+        this.polygonProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    setPolygonProperty(propName, value) {
+        this.polygonProperties[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    deletePolygonProperty(propName) {
+        delete this.polygonProperties[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
     toGeoJson() {
         const geoJson = super.toGeoJson();
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, entityProperties: this.entityProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointHandles }, properties.initOptions);
+            properties.initOptions = Object.assign({ polygonProperties: this.polygonProperties, drawAsLine: this.drawAsLine, midPointMarkers: this.midpointHandles }, properties.initOptions);
             return geoJson;
         }
         return null;

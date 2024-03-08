@@ -13,6 +13,7 @@ export declare class Annotation {
     liveUpdate: boolean;
     userInteractive: boolean;
     entity: AnnotationEntity | HandleEntity | null;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     handles: {
         [coordinateID: string]: HandleEntity;
     };
@@ -35,9 +36,12 @@ export declare class Annotation {
         [eventName: string]: ((payload: AnnotationEventPayload) => void)[];
     };
     constructor(registry: Registry, options: AnnotationBaseInit);
-    on(eventName: string, callback: (payload: AnnotationEventPayload) => void): void;
+    on(eventNames: string | string[], callback: (payload: AnnotationEventPayload) => void): void;
     protected emit(eventName: string, payload: AnnotationEventPayload): void;
     executeCallback(func: (annotation: Annotation) => {}): void;
+    setAttributes(attributes: {
+        [key: string]: any;
+    }): void;
     setAttribute(attrName: string, value: any): void;
     deleteAttribute(attrName: string): void;
     activate(): void;
@@ -51,8 +55,14 @@ export declare class Annotation {
     isMemberOf(group: AnnotationGroup): boolean;
     protected groupsToRecords(): GroupRecord[];
     removeEntity(): void;
+    setEntityProperties(properties: Cesium.Entity.ConstructorOptions): void;
+    setEntityProperty(propName: string, value: any): void;
+    deleteEntityProperty(propName: string): void;
     removeHandles(): void;
     removeHandleByCoordinateID(id: string): void;
+    setHandleProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void;
+    setHandleProperty(propName: string, value: any): void;
+    deleteHandleProperty(propName: string): void;
     show(): void;
     hide(): void;
     showHandles(): void;

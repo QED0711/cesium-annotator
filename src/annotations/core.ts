@@ -20,6 +20,7 @@ export class Annotation {
     liveUpdate: boolean;
     userInteractive: boolean;
     entity: AnnotationEntity | HandleEntity | null;
+    entityProperties: Cesium.Entity.ConstructorOptions;
     handles: { [coordinateID: string]: HandleEntity }
     handleType: HandleType;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
@@ -54,6 +55,7 @@ export class Annotation {
         this.userInteractive = options.userInteractive ?? true;
 
         this.entity = null;
+        this.entityProperties = options.entityProperties ?? {};
         this.handles = {};
         this.handleType = options.handleType ?? HandleType.POINT;
         this.handleProperties = options.handleProperties ?? {};
@@ -75,11 +77,14 @@ export class Annotation {
         this.initGroupRecords(options.groupRecords ?? []);
     }
 
-    on(eventName: string, callback: (payload: AnnotationEventPayload) => void) {
-        if (eventName in this.events) {
-            this.events[eventName].push(callback);
-        } else {
-            this.events[eventName] = [callback];
+    on(eventNames: string | string[], callback: (payload: AnnotationEventPayload) => void) {
+        eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
+        for (let eventName of eventNames) {
+            if (eventName in this.events) {
+                this.events[eventName].push(callback);
+            } else {
+                this.events[eventName] = [callback];
+            }
         }
     }
 
@@ -94,12 +99,19 @@ export class Annotation {
         func(this);
     }
 
+    setAttributes(attributes: {[key: string]: any}): void {
+        this.attributes = attributes;
+        this.emit(EventType.ATTRIBUTE, { annotation: this });
+    }
+
     setAttribute(attrName: string, value: any): void {
         this.attributes[attrName] = value;
+        this.emit(EventType.ATTRIBUTE, { annotation: this });
     }
 
     deleteAttribute(attrName: string): void {
         delete this.attributes[attrName];
+        this.emit(EventType.ATTRIBUTE, { annotation: this });
     }
 
     activate() {
@@ -119,11 +131,11 @@ export class Annotation {
     }
 
     deactivate() {
-        if(this.isActive) {
+        if (this.isActive) {
             this.isActive = false;
             this.hideHandles();
             this.viewerInterface.unregisterListenersByAnnotationID(this.id);
-    
+
             this.emit(EventType.DEACTIVATE, { annotation: this });
         }
     }
@@ -136,7 +148,7 @@ export class Annotation {
     }
 
     private initGroupRecords(records: GroupRecord[]) {
-        for(let record of records) {
+        for (let record of records) {
             this.joinGroupByRecord(record);
         }
     }
@@ -178,8 +190,23 @@ export class Annotation {
         this.emit(EventType.REMOVE_ENTITY, { annotation: this });
     }
 
+    setEntityProperties(properties: Cesium.Entity.ConstructorOptions) {
+        this.entityProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+
+    setEntityProperty(propName: string, value: any): void {
+        (this.entityProperties as any)[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+
+    deleteEntityProperty(propName: string): void {
+        delete (this.entityProperties as any)[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+
     removeHandles() {
-        for(let handle of Object.values(this.handles)) {
+        for (let handle of Object.values(this.handles)) {
             this.viewerInterface.viewer.entities.remove(handle);
         }
         this.handles = {};
@@ -191,6 +218,21 @@ export class Annotation {
             this.viewerInterface.viewer.entities.remove(handleEntity);
             delete this.handles[id];
         }
+    }
+
+    setHandleProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void {
+        this.handleProperties = properties;
+        this.emit(EventType.HANDLE, { annotation: this });
+    }
+
+    setHandleProperty(propName: string, value: any) {
+        this.handleProperties[propName as keyof typeof this.handleProperties] = value;
+        this.emit(EventType.HANDLE, { annotation: this });
+    }
+
+    deleteHandleProperty(propName: string) {
+        delete this.handleProperties[propName as keyof typeof this.handleProperties];
+        this.emit(EventType.HANDLE, { annotation: this });
     }
 
     show() {
@@ -253,7 +295,7 @@ export class Annotation {
     }
 
     protected handlePointerUp(e: PointerEvent) {
-        
+
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
 
@@ -262,7 +304,7 @@ export class Annotation {
             this.movedDetected = false;
             return;
         }
-        
+
         // longpress logic
         if (this.viewerInterface.longPressComplete) {
             this.handleFound = null;
@@ -272,7 +314,7 @@ export class Annotation {
 
         // double click logic
         const now = Date.now()
-        if(now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
+        if (now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
             this.registry.deactivateByID(this.id);
             this.lastPointerUpTime = now;
             this.movedDetected = false;
@@ -446,6 +488,7 @@ export class Annotation {
                 id: this.id,
                 liveUpdate: this.liveUpdate,
                 userInteractive: this.userInteractive,
+                entityProperties: this.entityProperties,
                 handleType: this.handleType,
                 handleProperties: this.handleProperties,
                 groupRecords: this.groupsToRecords(),

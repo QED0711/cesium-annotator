@@ -4,13 +4,12 @@ import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
 export class RingAnnotation extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         super(registry, options);
         this.annotationType = AnnotationType.RING;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
-        this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
-        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
-        this.nPoints = (_d = options.nPoints) !== null && _d !== void 0 ? _d : 360;
+        this.drawAsLine = (_b = options.drawAsLine) !== null && _b !== void 0 ? _b : false;
+        this.nPoints = (_c = options.nPoints) !== null && _c !== void 0 ? _c : 360;
         this.radius = null;
     }
     // Note: This implementation is needed to set the radius property any time a handle is dragged
@@ -109,6 +108,18 @@ export class RingAnnotation extends Annotation {
     }
     // OVERRIDES
     insertCoordinateAtIndex(coordinate, idx) { }
+    setPolygonProperties(properties) {
+        this.polygonProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    setPolygonProperty(propName, value) {
+        this.polygonProperties[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    deletePolygonProperty(propName) {
+        delete this.polygonProperties[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
     toGeoJson() {
         if (this.points.length < 2)
             return null;

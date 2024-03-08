@@ -7,7 +7,6 @@ import { CoordinateCollection, Coordinate } from '../coordinate';
 export type PointInitOptions = AnnotationBaseInit & {
     pointProperties?: Cesium.PointGraphics.ConstructorOptions,
     billboardProperties?: Cesium.BillboardGraphics.ConstructorOptions,
-    entityProperties?: Cesium.Entity.ConstructorOptions,
 }
 
 /**
@@ -23,16 +22,12 @@ export type PointInitOptions = AnnotationBaseInit & {
 
 export class PointAnnotation extends Annotation {
 
-    entityProperties: Cesium.PointGraphics.ConstructorOptions;
-    pointProperties: Cesium.PointGraphics.ConstructorOptions;
-    billboardProperties: Cesium.BillboardGraphics.ConstructorOptions;
+    pointProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
 
     constructor(registry: Registry, options: PointInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.POINT;
-        this.entityProperties = options.entityProperties ?? {};
         this.pointProperties = options.pointProperties ?? {};
-        this.billboardProperties = options.billboardProperties ?? {};
     }
 
     appendCoordinate(coordinate: Coordinate) {
@@ -48,7 +43,7 @@ export class PointAnnotation extends Annotation {
         if (this.handleType === HandleType.BILLBOARD) {
             billboard = {
                 scale: 1.0,
-                ...this.billboardProperties
+                ...this.pointProperties
             } as Cesium.BillboardGraphics.ConstructorOptions
         } else {
             point = {
@@ -64,8 +59,8 @@ export class PointAnnotation extends Annotation {
             entity = this.viewerInterface.viewer.entities.add({
                 id: this.id,
                 position: this.points.at(0)?.cartesian3,
-                point,
-                billboard,
+                point: this.handleType === HandleType.POINT ? point : undefined,
+                billboard: this.handleType === HandleType.BILLBOARD ? billboard : undefined,
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
             }) as HandleEntity
         } else if (!this.entity || options.forceLiveRedraw) {
@@ -76,8 +71,8 @@ export class PointAnnotation extends Annotation {
                 position: new Cesium.CallbackProperty(() => {
                     return this.points.at(0)?.cartesian3;
                 }, false) as unknown as Cesium.PositionProperty,
-                point,
-                billboard,
+                point: this.handleType === HandleType.POINT ? point : undefined,
+                billboard: this.handleType === HandleType.BILLBOARD ? billboard : undefined,
                 ...this.entityProperties as Cesium.Entity.ConstructorOptions
             }) as HandleEntity
         }
@@ -94,6 +89,21 @@ export class PointAnnotation extends Annotation {
         this.emit(EventType.UPDATE, { annotation: this });
     }
 
+    setPointProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void {
+        this.pointProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    setPointProperty(propName: string, value: any) {
+        this.pointProperties[propName as keyof typeof this.pointProperties] = value;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    deletePointProperty(propName: string) {
+        delete this.pointProperties[propName as keyof typeof this.pointProperties]
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
     // OVERRIDES
 
     toGeoJson(): GeoJsonFeatureCollection | null {
@@ -101,11 +111,9 @@ export class PointAnnotation extends Annotation {
 
         if (geoJson) {
             const properties = geoJson.features?.[0]?.properties;
-            if(properties) {
+            if (properties) {
                 properties.initOptions = {
                     pointProperties: this.pointProperties,
-                    billboardProperties: this.billboardProperties,
-                    entityProperties: this.entityProperties,
                     ...properties.initOptions
                 }
             }

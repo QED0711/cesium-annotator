@@ -6,21 +6,18 @@ import { Registry } from '../registry';
 
 export type RectangleInitOptions = AnnotationBaseInit & {
     polygonProperties?: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions,
-    entityProperties?: Cesium.Entity.ConstructorOptions,
     drawAsLine?: boolean,
 }
 
 export class RectangleAnnotation extends Annotation {
 
     polygonProperties: Cesium.PolylineGraphics.ConstructorOptions | Cesium.PolygonGraphics.ConstructorOptions
-    entityProperties: Cesium.Entity.ConstructorOptions;
     drawAsLine?: boolean
 
     constructor(registry: Registry, options: RectangleInitOptions) {
         super(registry, options);
         this.annotationType = AnnotationType.RECTANGLE;
         this.polygonProperties = options.polygonProperties ?? {};
-        this.entityProperties = options.entityProperties ?? {};
         this.drawAsLine = options.drawAsLine ?? false
     }
 
@@ -148,6 +145,21 @@ export class RectangleAnnotation extends Annotation {
 
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
+
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void {
+        this.polygonProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    setPolygonProperty(propName: string, value: any) {
+        this.polygonProperties[propName as keyof typeof this.polygonProperties] = value;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    deletePolygonProperty(propName: string) {
+        delete this.polygonProperties[propName as keyof typeof this.polygonProperties]
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
 
     toGeoJson(): GeoJsonFeatureCollection | null {
         const geoJson = super.toGeoJson();

@@ -6,7 +6,6 @@ import { Registry } from '../registry';
 
 export type PolylineInitOptions = AnnotationBaseInit & {
     polylineProperties?: Cesium.PolylineGraphics.ConstructorOptions,
-    entityProperties?: Cesium.Entity.ConstructorOptions,
     midpointHandles?: boolean,
     midpointHandleType?: HandleType,
     midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
@@ -15,7 +14,6 @@ export type PolylineInitOptions = AnnotationBaseInit & {
 export class PolylineAnnotation extends Annotation {
 
     polylineProperties: Cesium.PolylineGraphics.ConstructorOptions;
-    entityProperties?: Cesium.Entity.ConstructorOptions;
     midpointHandles: boolean;
     midpointHandleType: HandleType;
     midpointHandleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions
@@ -143,6 +141,21 @@ export class PolylineAnnotation extends Annotation {
         this.mpHandles = [];
     }
 
+    setPolylineProperties(properties: Cesium.PolylineGraphics.ConstructorOptions): void {
+        this.polylineProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    setPolylineProperty(propName: string, value: any) {
+        this.polylineProperties[propName as keyof typeof this.polylineProperties] = value;
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
+    deletePolylineProperty(propName: string) {
+        delete this.polylineProperties[propName as keyof typeof this.polylineProperties]
+        this.emit(EventType.PROPERTY, { annotation: this })
+    }
+
     // OVERRIDES
     toGeoJson(): GeoJsonFeatureCollection | null {
         const geoJson = super.toGeoJson();
@@ -150,7 +163,6 @@ export class PolylineAnnotation extends Annotation {
             const properties = geoJson.features[0].properties;
             properties.initOptions = {
                 polylineProperties: this.polylineProperties,
-                entityProperties: this.entityProperties,
                 midpointHandles: this.midpointHandles,
                 midpointHandleType: this.midpointHandleType,
                 midpointHandleProperties: this.midpointHandleProperties,

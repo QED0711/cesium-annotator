@@ -14,12 +14,10 @@ import { CoordinateCollection } from '../coordinate';
  */
 export class PointAnnotation extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c;
+        var _a;
         super(registry, options);
         this.annotationType = AnnotationType.POINT;
-        this.entityProperties = (_a = options.entityProperties) !== null && _a !== void 0 ? _a : {};
-        this.pointProperties = (_b = options.pointProperties) !== null && _b !== void 0 ? _b : {};
-        this.billboardProperties = (_c = options.billboardProperties) !== null && _c !== void 0 ? _c : {};
+        this.pointProperties = (_a = options.pointProperties) !== null && _a !== void 0 ? _a : {};
     }
     appendCoordinate(coordinate) {
         this.points = new CoordinateCollection([coordinate]);
@@ -31,7 +29,7 @@ export class PointAnnotation extends Annotation {
         let entity = null;
         let point, billboard;
         if (this.handleType === HandleType.BILLBOARD) {
-            billboard = Object.assign({ scale: 1.0 }, this.billboardProperties);
+            billboard = Object.assign({ scale: 1.0 }, this.pointProperties);
         }
         else {
             point = Object.assign({ pixelSize: 10 }, this.pointProperties);
@@ -40,8 +38,7 @@ export class PointAnnotation extends Annotation {
             this.removeEntity();
             if (this.points.length === 0)
                 return;
-            entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3, point,
-                billboard }, this.entityProperties));
+            entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3, point: this.handleType === HandleType.POINT ? point : undefined, billboard: this.handleType === HandleType.BILLBOARD ? billboard : undefined }, this.entityProperties));
         }
         else if (!this.entity || options.forceLiveRedraw) {
             if (this.points.length === 0)
@@ -50,8 +47,7 @@ export class PointAnnotation extends Annotation {
             entity = this.viewerInterface.viewer.entities.add(Object.assign({ id: this.id, position: new Cesium.CallbackProperty(() => {
                     var _a;
                     return (_a = this.points.at(0)) === null || _a === void 0 ? void 0 : _a.cartesian3;
-                }, false), point,
-                billboard }, this.entityProperties));
+                }, false), point: this.handleType === HandleType.POINT ? point : undefined, billboard: this.handleType === HandleType.BILLBOARD ? billboard : undefined }, this.entityProperties));
         }
         if (entity) {
             entity._canActivate = true;
@@ -63,6 +59,18 @@ export class PointAnnotation extends Annotation {
         }
         this.emit(EventType.UPDATE, { annotation: this });
     }
+    setPointProperties(properties) {
+        this.pointProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    setPointProperty(propName, value) {
+        this.pointProperties[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    deletePointProperty(propName) {
+        delete this.pointProperties[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
     // OVERRIDES
     toGeoJson() {
         var _a, _b;
@@ -70,7 +78,7 @@ export class PointAnnotation extends Annotation {
         if (geoJson) {
             const properties = (_b = (_a = geoJson.features) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.properties;
             if (properties) {
-                properties.initOptions = Object.assign({ pointProperties: this.pointProperties, billboardProperties: this.billboardProperties, entityProperties: this.entityProperties }, properties.initOptions);
+                properties.initOptions = Object.assign({ pointProperties: this.pointProperties }, properties.initOptions);
             }
             return geoJson;
         }

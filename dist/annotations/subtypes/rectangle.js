@@ -4,12 +4,11 @@ import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 export class RectangleAnnotation extends Annotation {
     constructor(registry, options) {
-        var _a, _b, _c;
+        var _a, _b;
         super(registry, options);
         this.annotationType = AnnotationType.RECTANGLE;
         this.polygonProperties = (_a = options.polygonProperties) !== null && _a !== void 0 ? _a : {};
-        this.entityProperties = (_b = options.entityProperties) !== null && _b !== void 0 ? _b : {};
-        this.drawAsLine = (_c = options.drawAsLine) !== null && _c !== void 0 ? _c : false;
+        this.drawAsLine = (_b = options.drawAsLine) !== null && _b !== void 0 ? _b : false;
     }
     appendCoordinate(coordinate) {
         if (this.points.length < 2) {
@@ -99,6 +98,18 @@ export class RectangleAnnotation extends Annotation {
     }
     // OVERRIDES
     insertCoordinateAtIndex(coordinate, idx) { }
+    setPolygonProperties(properties) {
+        this.polygonProperties = properties;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    setPolygonProperty(propName, value) {
+        this.polygonProperties[propName] = value;
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
+    deletePolygonProperty(propName) {
+        delete this.polygonProperties[propName];
+        this.emit(EventType.PROPERTY, { annotation: this });
+    }
     toGeoJson() {
         const geoJson = super.toGeoJson();
         if (geoJson) {

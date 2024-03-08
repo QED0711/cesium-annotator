@@ -5,14 +5,12 @@ import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
 export type PolylineInitOptions = AnnotationBaseInit & {
     polylineProperties?: Cesium.PolylineGraphics.ConstructorOptions;
-    entityProperties?: Cesium.Entity.ConstructorOptions;
     midpointHandles?: boolean;
     midpointHandleType?: HandleType;
     midpointHandleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
 };
 export declare class PolylineAnnotation extends Annotation {
     polylineProperties: Cesium.PolylineGraphics.ConstructorOptions;
-    entityProperties?: Cesium.Entity.ConstructorOptions;
     midpointHandles: boolean;
     midpointHandleType: HandleType;
     midpointHandleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
@@ -25,6 +23,9 @@ export declare class PolylineAnnotation extends Annotation {
     hideHandles(): void;
     showHandles(): void;
     removeHandles(): void;
+    setPolylineProperties(properties: Cesium.PolylineGraphics.ConstructorOptions): void;
+    setPolylineProperty(propName: string, value: any): void;
+    deletePolylineProperty(propName: string): void;
     toGeoJson(): GeoJsonFeatureCollection | null;
     getTotalDistance(unit?: DistanceUnit): number;
     getDistanceSegments(unit?: DistanceUnit): number[];
