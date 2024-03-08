@@ -32,7 +32,7 @@ export class PolygonAnnotation extends Annotation {
 
         this.midpointHandles = options.midpointHandles ?? true;
         this.midpointHandleType = options.midpointHandleType ?? HandleType.POINT,
-        this.midpointHandleProperties = options.midpointHandleProperties ?? {};
+            this.midpointHandleProperties = options.midpointHandleProperties ?? {};
         this.mpHandles = [];
     }
 
@@ -106,9 +106,9 @@ export class PolygonAnnotation extends Annotation {
     }
 
     handlePointerDown(e: PointerEvent): void {
-        super.handlePointerDown(e); 
+        super.handlePointerDown(e);
         const existingEntity = this.viewerInterface.queryEntityAtPixel() as MidPointHandleEntity | null;
-        if(existingEntity?._isMidpointHandle) {
+        if (existingEntity?._isMidpointHandle) {
             this.insertCoordinateAtIndex(existingEntity._coordinate, existingEntity._idxBookends[1])
             this.bypassPointerUp = true;
         }
@@ -117,24 +117,24 @@ export class PolygonAnnotation extends Annotation {
     syncHandles(): void {
         super.syncHandles();
 
-        if(!this.midpointHandles) return;
+        if (!this.midpointHandles) return;
 
-        for(let mph of this.mpHandles) {
+        for (let mph of this.mpHandles) {
             this.viewerInterface.viewer.entities.remove(mph);
         }
         this.mpHandles = [];
         if (this.points.length >= 3) {
             let point: Cesium.PointGraphics.ConstructorOptions | undefined;
             let billboard: Cesium.BillboardGraphics.ConstructorOptions | undefined;
-            if(this.midpointHandleType === HandleType.POINT) {
-                point = {pixelSize: 5, ...this.midpointHandleProperties} as Cesium.PointGraphics.ConstructorOptions;
+            if (this.midpointHandleType === HandleType.POINT) {
+                point = { pixelSize: 5, ...this.midpointHandleProperties } as Cesium.PointGraphics.ConstructorOptions;
             } else if (this.midpointHandleType === HandleType.BILLBOARD) {
                 billboard = this.midpointHandleProperties as Cesium.BillboardGraphics.ConstructorOptions;
             }
             for (let i = 0; i < this.points.length; i++) {
                 const pnt = this.points.at(i);
-                if(!pnt) continue;
-                const nextPoint = i === this.points.length - 1 ? this.points.at(0) : this.points.at(i+1);
+                if (!pnt) continue;
+                const nextPoint = i === this.points.length - 1 ? this.points.at(0) : this.points.at(i + 1);
                 const midPoint = pnt.segmentDistance(nextPoint as Coordinate, 2)[0] as Coordinate;
 
                 const mpHandle = this.viewerInterface.viewer.entities.add({
@@ -174,7 +174,8 @@ export class PolygonAnnotation extends Annotation {
         this.mpHandles = [];
     }
 
-    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void {
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions, destructive: boolean = false): void {
+        if (!destructive) properties = { ...this.polygonProperties, ...properties };
         this.polygonProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this })
     }
@@ -191,7 +192,7 @@ export class PolygonAnnotation extends Annotation {
 
     toGeoJson(): GeoJsonFeatureCollection | null {
         const geoJson = super.toGeoJson();
-        if(geoJson) {
+        if (geoJson) {
             const properties = geoJson.features[0].properties;
             properties.initOptions = {
                 polygonProperties: this.polygonProperties,

@@ -106,7 +106,6 @@ export enum EventType {
     REDO = "redo",
     DELETE = "delete",
     ATTRIBUTE = "attribute_update",
-    HANDLE = "handle_update",
     PROPERTY = "property_update"
 }
 

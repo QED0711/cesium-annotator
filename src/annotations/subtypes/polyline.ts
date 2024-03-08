@@ -26,8 +26,8 @@ export class PolylineAnnotation extends Annotation {
         this.entityProperties = options.entityProperties ?? {};
 
         this.midpointHandles = options.midpointHandles ?? true,
-        this.midpointHandleType = options.midpointHandleType ?? HandleType.POINT,
-        this.midpointHandleProperties = options.midpointHandleProperties ?? {};
+            this.midpointHandleType = options.midpointHandleType ?? HandleType.POINT,
+            this.midpointHandleProperties = options.midpointHandleProperties ?? {};
 
         this.mpHandles = [];
     }
@@ -67,7 +67,7 @@ export class PolylineAnnotation extends Annotation {
         }
 
         if (entity) {
-            entity._canActivate = true 
+            entity._canActivate = true
             entity._annotation = this;
             this.entity = entity
         }
@@ -75,9 +75,9 @@ export class PolylineAnnotation extends Annotation {
     }
 
     handlePointerDown(e: PointerEvent): void {
-        super.handlePointerDown(e); 
+        super.handlePointerDown(e);
         const existingEntity = this.viewerInterface.queryEntityAtPixel() as MidPointHandleEntity | null;
-        if(existingEntity?._isMidpointHandle) {
+        if (existingEntity?._isMidpointHandle) {
             this.insertCoordinateAtIndex(existingEntity._coordinate, existingEntity._idxBookends[1])
             this.bypassPointerUp = true;
         }
@@ -86,27 +86,27 @@ export class PolylineAnnotation extends Annotation {
     syncHandles(): void {
         super.syncHandles();
 
-        if(!this.midpointHandles) return;
+        if (!this.midpointHandles) return;
 
-        for(let mph of this.mpHandles) {
+        for (let mph of this.mpHandles) {
             this.viewerInterface.viewer.entities.remove(mph);
         }
         this.mpHandles = [];
         if (this.points.length >= 2) {
             let point: Cesium.PointGraphics.ConstructorOptions | undefined;
             let billboard: Cesium.BillboardGraphics.ConstructorOptions | undefined;
-            if(this.midpointHandleType === HandleType.POINT) {
-                point = {pixelSize: 5, ...this.midpointHandleProperties} as Cesium.PointGraphics.ConstructorOptions;
+            if (this.midpointHandleType === HandleType.POINT) {
+                point = { pixelSize: 5, ...this.midpointHandleProperties } as Cesium.PointGraphics.ConstructorOptions;
             } else if (this.midpointHandleType === HandleType.BILLBOARD) {
                 billboard = this.midpointHandleProperties as Cesium.BillboardGraphics.ConstructorOptions;
             }
             for (let i = 0; i < this.points.length - 1; i++) {
                 const pnt = this.points.at(i) as Coordinate;
-                const midPoint = pnt.segmentDistance(this.points.at(i+1) as Coordinate, 2)[0] as Coordinate;
+                const midPoint = pnt.segmentDistance(this.points.at(i + 1) as Coordinate, 2)[0] as Coordinate;
 
                 const mpHandle = this.viewerInterface.viewer.entities.add({
                     position: midPoint.cartesian3,
-                    point, 
+                    point,
                     billboard
                 }) as MidPointHandleEntity;
 
@@ -141,7 +141,8 @@ export class PolylineAnnotation extends Annotation {
         this.mpHandles = [];
     }
 
-    setPolylineProperties(properties: Cesium.PolylineGraphics.ConstructorOptions): void {
+    setPolylineProperties(properties: Cesium.PolylineGraphics.ConstructorOptions, destructive: boolean = false): void {
+        if (!destructive) properties = { ...this.polylineProperties, ...properties };
         this.polylineProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this })
     }
@@ -159,7 +160,7 @@ export class PolylineAnnotation extends Annotation {
     // OVERRIDES
     toGeoJson(): GeoJsonFeatureCollection | null {
         const geoJson = super.toGeoJson();
-        if(geoJson) {
+        if (geoJson) {
             const properties = geoJson.features[0].properties;
             properties.initOptions = {
                 polylineProperties: this.polylineProperties,
@@ -199,16 +200,16 @@ export class PolylineAnnotation extends Annotation {
     }
 
     getPointsOnPath(distance: number, unit: DistanceUnit): CoordinateCollection | null {
-        if(this.points.length < 2) return null;
+        if (this.points.length < 2) return null;
 
         const collection = new CoordinateCollection([this.points.at(0) as Coordinate]);
-        for(let i = 1; i < this.points.length; i++) {
-            const p1 = this.points.at(i -1) as Coordinate;
+        for (let i = 1; i < this.points.length; i++) {
+            const p1 = this.points.at(i - 1) as Coordinate;
             const p2 = this.points.at(i) as Coordinate;
             const segDist = p1.distanceTo(p2, unit);
             const segHeading = p1.headingTo(p2);
             const pointsInSeg = Math.floor(segDist / distance);
-            for(let n = 0; n < pointsInSeg; n++) {
+            for (let n = 0; n < pointsInSeg; n++) {
                 const coord = p1.atHeadingDistance(segHeading, distance * n, unit);
                 collection.push(coord);
             }

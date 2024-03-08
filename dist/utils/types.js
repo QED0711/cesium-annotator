@@ -32,7 +32,6 @@ export var EventType;
     EventType["REDO"] = "redo";
     EventType["DELETE"] = "delete";
     EventType["ATTRIBUTE"] = "attribute_update";
-    EventType["HANDLE"] = "handle_update";
     EventType["PROPERTY"] = "property_update";
 })(EventType || (EventType = {}));
 export var GeoJsonType;

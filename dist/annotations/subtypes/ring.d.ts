@@ -21,7 +21,7 @@ export declare class RingAnnotation extends Annotation {
     getArea(): number | null;
     getCircumference(): number | null;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
-    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void;
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions, destructive?: boolean): void;
     setPolygonProperty(propName: string, value: any): void;
     deletePolygonProperty(propName: string): void;
     toGeoJson(): GeoJsonFeatureCollection | null;

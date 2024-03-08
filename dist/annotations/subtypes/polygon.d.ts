@@ -25,7 +25,7 @@ export declare class PolygonAnnotation extends Annotation {
     hideHandles(): void;
     showHandles(): void;
     removeHandles(): void;
-    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void;
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions, destructive?: boolean): void;
     setPolygonProperty(propName: string, value: any): void;
     deletePolygonProperty(propName: string): void;
     toGeoJson(): GeoJsonFeatureCollection | null;

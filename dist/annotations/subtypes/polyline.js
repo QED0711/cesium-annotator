@@ -98,7 +98,9 @@ export class PolylineAnnotation extends Annotation {
         }
         this.mpHandles = [];
     }
-    setPolylineProperties(properties) {
+    setPolylineProperties(properties, destructive = false) {
+        if (!destructive)
+            properties = Object.assign(Object.assign({}, this.polylineProperties), properties);
         this.polylineProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this });
     }

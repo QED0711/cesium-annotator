@@ -23,7 +23,7 @@ export declare class PolylineAnnotation extends Annotation {
     hideHandles(): void;
     showHandles(): void;
     removeHandles(): void;
-    setPolylineProperties(properties: Cesium.PolylineGraphics.ConstructorOptions): void;
+    setPolylineProperties(properties: Cesium.PolylineGraphics.ConstructorOptions, destructive?: boolean): void;
     setPolylineProperty(propName: string, value: any): void;
     deletePolylineProperty(propName: string): void;
     toGeoJson(): GeoJsonFeatureCollection | null;

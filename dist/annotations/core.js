@@ -57,7 +57,9 @@ export class Annotation {
     executeCallback(func) {
         func(this);
     }
-    setAttributes(attributes) {
+    setAttributes(attributes, destructive = false) {
+        if (!destructive)
+            attributes = Object.assign(Object.assign({}, this.attributes), attributes);
         this.attributes = attributes;
         this.emit(EventType.ATTRIBUTE, { annotation: this });
     }
@@ -131,7 +133,9 @@ export class Annotation {
         }
         this.emit(EventType.REMOVE_ENTITY, { annotation: this });
     }
-    setEntityProperties(properties) {
+    setEntityProperties(properties, destructive = false) {
+        if (!destructive)
+            properties = Object.assign(Object.assign({}, this.entityProperties), properties);
         this.entityProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this });
     }
@@ -156,17 +160,19 @@ export class Annotation {
             delete this.handles[id];
         }
     }
-    setHandleProperties(properties) {
+    setHandleProperties(properties, destructive = false) {
+        if (!destructive)
+            properties = Object.assign(Object.assign({}, this.handleProperties), properties);
         this.handleProperties = properties;
-        this.emit(EventType.HANDLE, { annotation: this });
+        this.emit(EventType.PROPERTY, { annotation: this });
     }
     setHandleProperty(propName, value) {
         this.handleProperties[propName] = value;
-        this.emit(EventType.HANDLE, { annotation: this });
+        this.emit(EventType.PROPERTY, { annotation: this });
     }
     deleteHandleProperty(propName) {
         delete this.handleProperties[propName];
-        this.emit(EventType.HANDLE, { annotation: this });
+        this.emit(EventType.PROPERTY, { annotation: this });
     }
     show() {
         if (this.entity) {

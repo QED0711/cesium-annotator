@@ -89,7 +89,8 @@ export class PointAnnotation extends Annotation {
         this.emit(EventType.UPDATE, { annotation: this });
     }
 
-    setPointProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void {
+    setPointProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions, destructive: boolean = false): void {
+        if (!destructive) properties = { ...this.pointProperties, ...properties };
         this.pointProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this })
     }

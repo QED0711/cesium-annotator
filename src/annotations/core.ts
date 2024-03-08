@@ -99,7 +99,8 @@ export class Annotation {
         func(this);
     }
 
-    setAttributes(attributes: {[key: string]: any}): void {
+    setAttributes(attributes: { [key: string]: any }, destructive: boolean = false): void {
+        if (!destructive) attributes = { ...this.attributes, ...attributes }
         this.attributes = attributes;
         this.emit(EventType.ATTRIBUTE, { annotation: this });
     }
@@ -190,7 +191,8 @@ export class Annotation {
         this.emit(EventType.REMOVE_ENTITY, { annotation: this });
     }
 
-    setEntityProperties(properties: Cesium.Entity.ConstructorOptions) {
+    setEntityProperties(properties: Cesium.Entity.ConstructorOptions, destructive: boolean = false) {
+        if (!destructive) properties = { ...this.entityProperties, ...properties };
         this.entityProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this });
     }
@@ -220,19 +222,20 @@ export class Annotation {
         }
     }
 
-    setHandleProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void {
+    setHandleProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions, destructive: boolean = false): void {
+        if (!destructive) properties = { ...this.handleProperties, ...properties };
         this.handleProperties = properties;
-        this.emit(EventType.HANDLE, { annotation: this });
+        this.emit(EventType.PROPERTY, { annotation: this });
     }
 
     setHandleProperty(propName: string, value: any) {
         this.handleProperties[propName as keyof typeof this.handleProperties] = value;
-        this.emit(EventType.HANDLE, { annotation: this });
+        this.emit(EventType.PROPERTY, { annotation: this });
     }
 
     deleteHandleProperty(propName: string) {
         delete this.handleProperties[propName as keyof typeof this.handleProperties];
-        this.emit(EventType.HANDLE, { annotation: this });
+        this.emit(EventType.PROPERTY, { annotation: this });
     }
 
     show() {

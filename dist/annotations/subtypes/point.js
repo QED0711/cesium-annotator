@@ -59,7 +59,9 @@ export class PointAnnotation extends Annotation {
         }
         this.emit(EventType.UPDATE, { annotation: this });
     }
-    setPointProperties(properties) {
+    setPointProperties(properties, destructive = false) {
+        if (!destructive)
+            properties = Object.assign(Object.assign({}, this.pointProperties), properties);
         this.pointProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this });
     }

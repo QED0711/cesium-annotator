@@ -22,7 +22,7 @@ export declare class PointAnnotation extends Annotation {
     constructor(registry: Registry, options: PointInitOptions);
     appendCoordinate(coordinate: Coordinate): void;
     draw(options?: DrawOptions): void;
-    setPointProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void;
+    setPointProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions, destructive?: boolean): void;
     setPointProperty(propName: string, value: any): void;
     deletePointProperty(propName: string): void;
     toGeoJson(): GeoJsonFeatureCollection | null;

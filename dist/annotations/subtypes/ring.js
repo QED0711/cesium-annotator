@@ -108,7 +108,9 @@ export class RingAnnotation extends Annotation {
     }
     // OVERRIDES
     insertCoordinateAtIndex(coordinate, idx) { }
-    setPolygonProperties(properties) {
+    setPolygonProperties(properties, destructive = false) {
+        if (!destructive)
+            properties = Object.assign(Object.assign({}, this.polygonProperties), properties);
         this.polygonProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this });
     }

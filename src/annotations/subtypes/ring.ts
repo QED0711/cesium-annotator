@@ -158,7 +158,8 @@ export class RingAnnotation extends Annotation {
     // OVERRIDES
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void { }
 
-    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions): void {
+    setPolygonProperties(properties: Cesium.PolygonGraphics.ConstructorOptions | Cesium.PolylineGraphics.ConstructorOptions, destructive: boolean = false): void {
+        if (!destructive) properties = { ...this.polygonProperties, ...properties };
         this.polygonProperties = properties;
         this.emit(EventType.PROPERTY, { annotation: this })
     }

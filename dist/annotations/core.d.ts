@@ -41,7 +41,7 @@ export declare class Annotation {
     executeCallback(func: (annotation: Annotation) => {}): void;
     setAttributes(attributes: {
         [key: string]: any;
-    }): void;
+    }, destructive?: boolean): void;
     setAttribute(attrName: string, value: any): void;
     deleteAttribute(attrName: string): void;
     activate(): void;
@@ -55,12 +55,12 @@ export declare class Annotation {
     isMemberOf(group: AnnotationGroup): boolean;
     protected groupsToRecords(): GroupRecord[];
     removeEntity(): void;
-    setEntityProperties(properties: Cesium.Entity.ConstructorOptions): void;
+    setEntityProperties(properties: Cesium.Entity.ConstructorOptions, destructive?: boolean): void;
     setEntityProperty(propName: string, value: any): void;
     deleteEntityProperty(propName: string): void;
     removeHandles(): void;
     removeHandleByCoordinateID(id: string): void;
-    setHandleProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions): void;
+    setHandleProperties(properties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions, destructive?: boolean): void;
     setHandleProperty(propName: string, value: any): void;
     deleteHandleProperty(propName: string): void;
     show(): void;
