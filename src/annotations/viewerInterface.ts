@@ -172,6 +172,7 @@ export class ViewerInterface {
     }
 
     registerListener(eventName: string, callback: Function, annotation: Annotation) {
+        if(eventName in (this.events[annotation.id] ?? {})) return;
         const func = callback.bind(annotation);
         this.canvas.addEventListener(eventName, func)
         this.events[annotation.id] = { ...(this.events[annotation.id] ?? {}), [eventName]: func }

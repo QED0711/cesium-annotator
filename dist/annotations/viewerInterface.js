@@ -120,10 +120,12 @@ export class ViewerInterface {
         this.viewer.scene.screenSpaceCameraController.enableTranslate = true;
     }
     registerListener(eventName, callback, annotation) {
-        var _a;
+        var _a, _b;
+        if (eventName in ((_a = this.events[annotation.id]) !== null && _a !== void 0 ? _a : {}))
+            return;
         const func = callback.bind(annotation);
         this.canvas.addEventListener(eventName, func);
-        this.events[annotation.id] = Object.assign(Object.assign({}, ((_a = this.events[annotation.id]) !== null && _a !== void 0 ? _a : {})), { [eventName]: func });
+        this.events[annotation.id] = Object.assign(Object.assign({}, ((_b = this.events[annotation.id]) !== null && _b !== void 0 ? _b : {})), { [eventName]: func });
     }
     unregisterListenersByAnnotationID(id) {
         const listeners = this.events[id];

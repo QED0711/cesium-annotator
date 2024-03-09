@@ -126,7 +126,7 @@ export class Registry {
     }
     activateByID(id) {
         const annotation = this.annotations.find(a => a.id === id);
-        if (annotation) {
+        if (annotation && !annotation.isActive) {
             annotation.activate();
             return annotation;
         }
