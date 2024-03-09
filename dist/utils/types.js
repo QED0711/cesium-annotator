@@ -20,6 +20,12 @@ export var HandleType;
     HandleType[HandleType["POINT"] = 0] = "POINT";
     HandleType[HandleType["BILLBOARD"] = 1] = "BILLBOARD";
 })(HandleType || (HandleType = {}));
+export var AltQueryType;
+(function (AltQueryType) {
+    AltQueryType["NONE"] = "none";
+    AltQueryType["DEFAULT"] = "default";
+    AltQueryType["TERRAIN"] = "terrain";
+})(AltQueryType || (AltQueryType = {}));
 // EVENTS 
 export var EventType;
 (function (EventType) {

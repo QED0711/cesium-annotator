@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import * as Cesium from 'cesium';
 import { AnnotationType, EventType } from "../../utils/types";
 import { Annotation } from "../core";
@@ -14,18 +23,19 @@ export class RingAnnotation extends Annotation {
     }
     // Note: This implementation is needed to set the radius property any time a handle is dragged
     handlePointerMove(e) {
-        if (this.pointerDownDetected) {
-            // update the specified point as it is dragged
-            if (this.handleFound !== null) {
-                this.removeHandleByCoordinateID(this.handleFound.handleID);
-                const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                // if (coordinate) this.points[this.handleFound.index] = coordinate;
-                if (coordinate)
-                    this.points.set(this.handleFound.index, coordinate);
-                this.radius = this.points.at(0).distanceTo(this.points.at(1));
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.pointerDownDetected) {
+                // update the specified point as it is dragged
+                if (this.handleFound !== null) {
+                    this.removeHandleByCoordinateID(this.handleFound.handleID);
+                    const coordinate = yield this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
+                    if (coordinate)
+                        this.points.set(this.handleFound.index, coordinate);
+                    this.radius = this.points.at(0).distanceTo(this.points.at(1));
+                }
+                this.dragDetected = true;
             }
-            this.dragDetected = true;
-        }
+        });
     }
     appendCoordinate(coordinate) {
         if (this.points.length < 2) {

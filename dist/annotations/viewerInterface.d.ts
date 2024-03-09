@@ -20,13 +20,17 @@ export declare class ViewerInterface {
     private lastPointerUpTime;
     longPressComplete: boolean;
     overrideDefaultClickEvents: boolean;
-    useAltitude: boolean;
+    private useAltitude;
+    private terrainSampleLevel;
+    private altQueryFallback;
     static interfaces: ViewerInterface[];
     private constructor();
     static registerViewer(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions): ViewerInterface;
     init(): void;
     removeHandlers(): void;
-    getCoordinateAtPixel(x?: number, y?: number): Coordinate | null;
+    getCoordinateAtPixel(x?: number, y?: number, options?: {
+        bypassAlt: boolean;
+    }): Promise<Coordinate | null>;
     queryEntityAtPixel(x?: number, y?: number): AnnotationEntity | HandleEntity | null;
     lock(): void;
     unlock(): void;

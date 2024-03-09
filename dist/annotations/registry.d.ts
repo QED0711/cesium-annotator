@@ -59,7 +59,9 @@ export declare class Registry {
     loaders: {
         [key: string]: (geom: any) => Annotation | null;
     };
-    useAltitude: boolean;
+    private useAltitude;
+    private terrainSampleLevel;
+    private altQueryFallback;
     constructor(init: RegistryInit);
     getActiveAnnotation(): Annotation | null;
     getAnnotationByID(id: string): Annotation | null | undefined;

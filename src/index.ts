@@ -20,6 +20,7 @@ export {
     DistanceUnit,
     AnnotationType,
     HandleType,
+    AltQueryType,
 
     EventType,
     AnnotationEventPayload,

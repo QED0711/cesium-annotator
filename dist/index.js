@@ -9,5 +9,5 @@ export * from "./annotations/subtypes/polyline";
 export * from "./annotations/subtypes/polygon";
 export * from "./annotations/subtypes/rectangle";
 export * from "./annotations/subtypes/ring";
-export { DistanceUnit, AnnotationType, HandleType, EventType, GeoJsonType, } from './utils/types';
+export { DistanceUnit, AnnotationType, HandleType, AltQueryType, EventType, GeoJsonType, } from './utils/types';
 //# sourceMappingURL=index.js.map

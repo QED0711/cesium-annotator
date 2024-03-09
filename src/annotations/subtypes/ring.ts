@@ -27,13 +27,12 @@ export class RingAnnotation extends Annotation {
     }
 
     // Note: This implementation is needed to set the radius property any time a handle is dragged
-    handlePointerMove(e: PointerEvent) {
+    async handlePointerMove(e: PointerEvent) {
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
-                const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                // if (coordinate) this.points[this.handleFound.index] = coordinate;
+                const coordinate = await this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
                 if (coordinate) this.points.set(this.handleFound.index, coordinate);
                 this.radius = (this.points.at(0) as Coordinate).distanceTo(this.points.at(1) as Coordinate);
             }

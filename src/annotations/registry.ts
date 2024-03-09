@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationEventPayload, AnnotationType, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryInit } from '../utils/types';
+import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -135,19 +135,31 @@ export class Registry {
     events: { [eventName: string]: ((payload: AnnotationEventPayload) => void)[] }
     loaders: { [key: string]: (geom: any) => Annotation | null }
 
-    useAltitude: boolean
+    private useAltitude: AltQueryType;
+    private terrainSampleLevel: number;
+    private altQueryFallback: AltQueryType;
 
     constructor(init: RegistryInit) {
         this.id = init.id;
         this.viewer = init.viewer;
         this.annotations = [];
         this.groups = [];
-        this.useAltitude = init.useAltitude ?? true;
+
+        this.useAltitude = init.useAltitude ?? AltQueryType.NONE;
+        this.terrainSampleLevel = init.terrainSampleLevel ?? 12
+        this.altQueryFallback = init.altQueryFallback ?? AltQueryType.DEFAULT
 
         this.events = {};
         this.loaders = {};
 
-        this.viewerInterface = ViewerInterface.registerViewer(this.viewer, { useAltitude: this.useAltitude });
+        this.viewerInterface = ViewerInterface.registerViewer(
+            this.viewer, 
+            { 
+                useAltitude: this.useAltitude, 
+                terrainSampleLevel: this.terrainSampleLevel,
+                altQueryFallback: this.altQueryFallback,
+            }
+        );
     }
 
     getActiveAnnotation(): Annotation | null {

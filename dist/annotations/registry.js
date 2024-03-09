@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationType, GeoJsonType } from '../utils/types';
+import { AltQueryType, AnnotationType, GeoJsonType } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { PointAnnotation } from './subtypes/point';
 import { PolylineAnnotation } from './subtypes/polyline';
@@ -99,15 +99,21 @@ export class AnnotationGroup {
  */
 export class Registry {
     constructor(init) {
-        var _a;
+        var _a, _b, _c;
         this.id = init.id;
         this.viewer = init.viewer;
         this.annotations = [];
         this.groups = [];
-        this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : true;
+        this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : AltQueryType.NONE;
+        this.terrainSampleLevel = (_b = init.terrainSampleLevel) !== null && _b !== void 0 ? _b : 12;
+        this.altQueryFallback = (_c = init.altQueryFallback) !== null && _c !== void 0 ? _c : AltQueryType.DEFAULT;
         this.events = {};
         this.loaders = {};
-        this.viewerInterface = ViewerInterface.registerViewer(this.viewer, { useAltitude: this.useAltitude });
+        this.viewerInterface = ViewerInterface.registerViewer(this.viewer, {
+            useAltitude: this.useAltitude,
+            terrainSampleLevel: this.terrainSampleLevel,
+            altQueryFallback: this.altQueryFallback,
+        });
     }
     getActiveAnnotation() {
         var _a;

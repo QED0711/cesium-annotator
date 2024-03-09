@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { nanoid } from 'nanoid';
 import { AnnotationType, HandleType, EventType } from '../utils/types';
 import { CoordinateCollection } from './coordinate';
@@ -7,7 +16,7 @@ import * as Cesium from 'cesium';
 */
 export class Annotation {
     constructor(registry, options) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         this.registry = registry;
         this.viewerInterface = registry.viewerInterface;
         this.id = (_a = options.id) !== null && _a !== void 0 ? _a : nanoid();
@@ -25,7 +34,7 @@ export class Annotation {
         this.handleProperties = (_f = options.handleProperties) !== null && _f !== void 0 ? _f : {};
         this.attributes = (_g = options.attributes) !== null && _g !== void 0 ? _g : {};
         this.isActive = false;
-        // this.handleIdxFound = null;
+        this.bypassTerrainSampleOnDrags = (_h = options.bypassTerrainSampleOnDrag) !== null && _h !== void 0 ? _h : false;
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false;
@@ -34,7 +43,7 @@ export class Annotation {
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
         this.events = {};
-        this.initGroupRecords((_h = options.groupRecords) !== null && _h !== void 0 ? _h : []);
+        this.initGroupRecords((_j = options.groupRecords) !== null && _j !== void 0 ? _j : []);
     }
     on(eventNames, callback) {
         eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
@@ -214,67 +223,71 @@ export class Annotation {
         }
     }
     handlePointerMove(e) {
-        this.movedDetected = true;
-        if (this.pointerDownDetected) {
-            // update the specified point as it is dragged
-            if (this.handleFound !== null) {
-                this.removeHandleByCoordinateID(this.handleFound.handleID);
-                const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
-                if (coordinate)
-                    this.points.set(this.handleFound.index, coordinate);
+        return __awaiter(this, void 0, void 0, function* () {
+            this.movedDetected = true;
+            if (this.pointerDownDetected) {
+                // update the specified point as it is dragged
+                if (this.handleFound !== null) {
+                    this.removeHandleByCoordinateID(this.handleFound.handleID);
+                    const coordinate = yield this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY, { bypassAlt: this.bypassTerrainSampleOnDrags }); // if don't want to make a sampleTerrain call on each mouse move, so we bypass the altitude calculation for this call of getCoordinateAtPixel
+                    if (coordinate)
+                        this.points.set(this.handleFound.index, coordinate);
+                }
+                this.dragDetected = true;
             }
-            this.dragDetected = true;
-        }
+        });
     }
     handlePointerUp(e) {
-        this.viewerInterface.unlock();
-        this.pointerDownDetected = false;
-        if (this.bypassPointerUp) {
-            this.bypassPointerUp = false;
-            this.movedDetected = false;
-            return;
-        }
-        // longpress logic
-        if (this.viewerInterface.longPressComplete) {
-            this.handleFound = null;
-            this.movedDetected = false;
-            return;
-        }
-        // double click logic
-        const now = Date.now();
-        if (now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
-            this.registry.deactivateByID(this.id);
+        return __awaiter(this, void 0, void 0, function* () {
+            this.viewerInterface.unlock();
+            this.pointerDownDetected = false;
+            if (this.bypassPointerUp) {
+                this.bypassPointerUp = false;
+                this.movedDetected = false;
+                return;
+            }
+            // longpress logic
+            if (this.viewerInterface.longPressComplete) {
+                this.handleFound = null;
+                this.movedDetected = false;
+                return;
+            }
+            // double click logic
+            const now = Date.now();
+            if (now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
+                this.registry.deactivateByID(this.id);
+                this.lastPointerUpTime = now;
+                this.movedDetected = false;
+                return;
+            }
             this.lastPointerUpTime = now;
             this.movedDetected = false;
-            return;
-        }
-        this.lastPointerUpTime = now;
-        this.movedDetected = false;
-        if (this.handleFound !== null) {
-            const coordinate = this.viewerInterface.getCoordinateAtPixel();
-            if (coordinate)
-                this.points.set(this.handleFound.index, coordinate); // update an existing point
-            if (this.preDragHistoricalRecord)
-                this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
-            this.draw();
-            this.handleFound = null;
-            this.preDragHistoricalRecord = null;
-            this.syncHandles();
-            return;
-        }
-        if (this.dragDetected) {
-            this.dragDetected = false;
-            return;
-        }
-        // ADD NEW POINT
-        const coordinate = this.viewerInterface.getCoordinateAtPixel();
-        if (coordinate) {
-            this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
-            this.appendCoordinate(coordinate);
-            this.clearRedoHistory();
-            this.draw();
-            this.syncHandles();
-        }
+            if (this.handleFound !== null) {
+                const coordinate = yield this.viewerInterface.getCoordinateAtPixel();
+                if (coordinate)
+                    this.points.set(this.handleFound.index, coordinate); // update an existing point
+                if (this.preDragHistoricalRecord)
+                    this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
+                this.draw();
+                this.handleFound = null;
+                this.preDragHistoricalRecord = null;
+                this.syncHandles();
+                return;
+            }
+            if (this.dragDetected) {
+                this.dragDetected = false;
+                return;
+            }
+            // ADD NEW POINT
+            const coordinate = yield this.viewerInterface.getCoordinateAtPixel();
+            if (coordinate) {
+                this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
+                this.appendCoordinate(coordinate);
+                this.clearRedoHistory();
+                this.draw();
+                this.syncHandles();
+            }
+        });
     }
     undo() {
         if (this.points.length > 0) {
@@ -377,9 +390,15 @@ export class Annotation {
         this.syncHandles();
     }
     flyTo(options) {
-        if (!this.entity)
-            return;
-        this.viewerInterface.viewer.flyTo(this.entity, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.entity)
+                return;
+            const success = yield this.viewerInterface.viewer.flyTo(this.entity, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
+            if (!success) {
+                const bbox = this.points.getMinMaxBbox();
+                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: new Cesium.Rectangle(Cesium.Math.toRadians(bbox.lngMin), Cesium.Math.toRadians(bbox.latMin), Cesium.Math.toRadians(bbox.lngMax), Cesium.Math.toRadians(bbox.latMax)) }, (options !== null && options !== void 0 ? options : {})));
+            }
+        });
     }
     toGeoJson() {
         const geoJson = this.points.toGeoJson(this.annotationType);

@@ -14,7 +14,7 @@ export declare class RingAnnotation extends Annotation {
     nPoints: number;
     private radius;
     constructor(registry: Registry, options: RingInitOptions);
-    handlePointerMove(e: PointerEvent): void;
+    handlePointerMove(e: PointerEvent): Promise<void>;
     appendCoordinate(coordinate: Coordinate): void;
     draw(options?: DrawOptions): void;
     syncHandles(): void;

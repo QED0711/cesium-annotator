@@ -25,6 +25,7 @@ export class Annotation {
     handleType: HandleType;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     isActive: boolean;
+    bypassTerrainSampleOnDrags: boolean;
 
     attributes: { [key: string]: any };
 
@@ -63,7 +64,7 @@ export class Annotation {
         this.attributes = options.attributes ?? {};
 
         this.isActive = false;
-        // this.handleIdxFound = null;
+        this.bypassTerrainSampleOnDrags = options.bypassTerrainSampleOnDrag ?? false;
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false
@@ -284,20 +285,20 @@ export class Annotation {
         }
     }
 
-    protected handlePointerMove(e: PointerEvent) {
+    protected async handlePointerMove(e: PointerEvent) {
         this.movedDetected = true;
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
-                const coordinate = this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
+                const coordinate = await this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY, {bypassAlt: this.bypassTerrainSampleOnDrags}); // if don't want to make a sampleTerrain call on each mouse move, so we bypass the altitude calculation for this call of getCoordinateAtPixel
                 if (coordinate) this.points.set(this.handleFound.index, coordinate);
             }
             this.dragDetected = true;
         }
     }
 
-    protected handlePointerUp(e: PointerEvent) {
+    protected async handlePointerUp(e: PointerEvent) {
 
         this.viewerInterface.unlock();
         this.pointerDownDetected = false;
@@ -328,7 +329,7 @@ export class Annotation {
 
 
         if (this.handleFound !== null) {
-            const coordinate = this.viewerInterface.getCoordinateAtPixel();
+            const coordinate = await this.viewerInterface.getCoordinateAtPixel();
             if (coordinate) this.points.set(this.handleFound.index, coordinate); // update an existing point
             if (this.preDragHistoricalRecord) this.manualAppendToUndoHistory(this.preDragHistoricalRecord); // record state prior to handle drag into undo history
             this.draw();
@@ -344,7 +345,7 @@ export class Annotation {
         }
 
         // ADD NEW POINT
-        const coordinate = this.viewerInterface.getCoordinateAtPixel();
+        const coordinate = await this.viewerInterface.getCoordinateAtPixel();
         if (coordinate) {
 
             this.recordPointsToUndoHistory(); // important that this comes before the appendCoordinate call
@@ -471,9 +472,9 @@ export class Annotation {
 
     }
 
-    flyTo(options?: FlyToOptions) {
+    async flyTo(options?: FlyToOptions) {
         if (!this.entity) return;
-        this.viewerInterface.viewer.flyTo(
+        const success = await this.viewerInterface.viewer.flyTo(
             this.entity,
             {
                 duration: 0,
@@ -481,6 +482,20 @@ export class Annotation {
                 ...(options ?? {})
             }
         )
+        if(!success) {
+            const bbox = this.points.getMinMaxBbox();
+            this.viewerInterface.viewer.camera.flyTo(
+                {
+                    destination: new Cesium.Rectangle(
+                        Cesium.Math.toRadians(bbox.lngMin), 
+                        Cesium.Math.toRadians(bbox.latMin), 
+                        Cesium.Math.toRadians(bbox.lngMax), 
+                        Cesium.Math.toRadians(bbox.latMax)
+                    ),
+                    ...(options ?? {})
+                }
+            )
+        }
     }
 
     toGeoJson(): GeoJsonFeatureCollection | null {

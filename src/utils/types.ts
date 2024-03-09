@@ -13,6 +13,7 @@ export type AnnotationBaseInit = {
     id?: string,
     liveUpdate?: boolean,
     userInteractive?: boolean,
+    bypassTerrainSampleOnDrag?: boolean,
     entityProperties?: Cesium.Entity.ConstructorOptions,
     handleType?: HandleType
     handleProperties?: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions,
@@ -23,12 +24,16 @@ export type AnnotationBaseInit = {
 export type RegistryInit = {
     id: string,
     viewer: Cesium.Viewer,
-    useAltitude?: boolean,
+    useAltitude?: AltQueryType,
+    terrainSampleLevel?: number,
+    altQueryFallback?: AltQueryType,
 }
 
 export type ViewerInterfaceInitOptions = {
     overrideDefaultClickEvents?: boolean,
-    useAltitude?: boolean,
+    useAltitude?: AltQueryType,
+    terrainSampleLevel?: number,
+    altQueryFallback?: AltQueryType,
 }
 
 export type GroupInitOptions = {
@@ -39,8 +44,8 @@ export type GroupInitOptions = {
 export type DrawOptions = {
     forceLiveRedraw?: boolean,
 }
-// ENUMS
 
+// ENUMS
 export enum DistanceUnit {
     METERS = "meters",
     KILOMETERS = "kilometers",
@@ -60,6 +65,12 @@ export enum AnnotationType {
 export enum HandleType {
     POINT,
     BILLBOARD,
+}
+
+export enum AltQueryType {
+    NONE = "none",
+    DEFAULT = "default",
+    TERRAIN = "terrain",
 }
 
 export type AnnotationEntity = Cesium.Entity & {

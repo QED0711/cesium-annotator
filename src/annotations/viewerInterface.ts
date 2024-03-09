@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import { Annotation } from './core';
 import { Coordinate } from './coordinate';
-import { AnnotationEntity, HandleEntity, ViewerInterfaceInitOptions } from '../utils/types';
+import { AltQueryType, AnnotationEntity, HandleEntity, ViewerInterfaceInitOptions } from '../utils/types';
 
 /******************************************************************************
  * ***************************** VIEWER INTERFACE ***************************** 
@@ -28,7 +28,10 @@ export class ViewerInterface {
     private lastPointerUpTime: number;
     longPressComplete: boolean;
     overrideDefaultClickEvents: boolean;
-    useAltitude: boolean;
+
+    private useAltitude: AltQueryType;
+    private terrainSampleLevel: number;
+    private altQueryFallback: AltQueryType;
 
     static interfaces: ViewerInterface[];
 
@@ -38,7 +41,10 @@ export class ViewerInterface {
         this.events = {};
 
         this.overrideDefaultClickEvents = options.overrideDefaultClickEvents ?? true;
-        this.useAltitude = options.useAltitude ?? true;
+
+        this.useAltitude = options.useAltitude ?? AltQueryType.NONE;
+        this.terrainSampleLevel = options.terrainSampleLevel ?? 12;
+        this.altQueryFallback = options.altQueryFallback ?? AltQueryType.DEFAULT
 
         this.longPressComplete = false;
         this.detectedPointerMove = false;
@@ -123,7 +129,7 @@ export class ViewerInterface {
         !!this.pointerUpHandler && this.canvas.removeEventListener("pointermove", this.pointerUpHandler);
     }
 
-    getCoordinateAtPixel(x?: number, y?: number): Coordinate | null {
+    async getCoordinateAtPixel(x?: number, y?: number, options: {bypassAlt: boolean} = {bypassAlt: false}): Promise<Coordinate | null> {
         x ??= this.cursorX;
         y ??= this.cursorY;
         const scene = this.viewer.scene;
@@ -140,8 +146,32 @@ export class ViewerInterface {
 
         const lng = Cesium.Math.toDegrees(cartographicPosition.longitude);
         const lat = Cesium.Math.toDegrees(cartographicPosition.latitude);
-        const alt = this.useAltitude ? Cesium.Math.toDegrees(cartographicPosition.height) : 0;
 
+        let alt: number = 0;
+        if(!options.bypassAlt) {
+            if(this.useAltitude === AltQueryType.DEFAULT) alt = cartographicPosition.height;
+            if(this.useAltitude === AltQueryType.TERRAIN) {
+                let cartWithHeight: Cesium.Cartographic[] = [];
+                if(this.terrainSampleLevel === Infinity) {
+                    cartWithHeight = await Cesium.sampleTerrainMostDetailed(
+                        this.viewer.terrainProvider,
+                        [cartographicPosition]
+                    )
+                } else {
+                    cartWithHeight = await Cesium.sampleTerrain(
+                        this.viewer.terrainProvider,
+                        this.terrainSampleLevel,
+                        [cartographicPosition]
+                    )
+                }
+                alt = cartWithHeight[0]?.height ?? 0;
+                // if the terrain sampling failed and the fallback is to use the default cartographic height, set the alt accordingly
+                if(alt === 0 && this.altQueryFallback === AltQueryType.DEFAULT) {
+                    alt = cartographicPosition.height
+                };
+            } 
+        }
+        
         return new Coordinate({ lat, lng, alt });
     }
 

@@ -1,19 +1,31 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import * as Cesium from 'cesium';
 import { Coordinate } from './coordinate';
+import { AltQueryType } from '../utils/types';
 export class ViewerInterface {
     constructor(viewer, options) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
         this.overrideDefaultClickEvents = (_a = options.overrideDefaultClickEvents) !== null && _a !== void 0 ? _a : true;
-        this.useAltitude = (_b = options.useAltitude) !== null && _b !== void 0 ? _b : true;
+        this.useAltitude = (_b = options.useAltitude) !== null && _b !== void 0 ? _b : AltQueryType.NONE;
+        this.terrainSampleLevel = (_c = options.terrainSampleLevel) !== null && _c !== void 0 ? _c : 12;
+        this.altQueryFallback = (_d = options.altQueryFallback) !== null && _d !== void 0 ? _d : AltQueryType.DEFAULT;
         this.longPressComplete = false;
         this.detectedPointerMove = false;
         this.lastPointerUpTime = 0;
         this.init();
         const constructor = this.constructor;
-        constructor.interfaces = (_c = constructor.interfaces) !== null && _c !== void 0 ? _c : [];
+        constructor.interfaces = (_e = constructor.interfaces) !== null && _e !== void 0 ? _e : [];
         constructor.interfaces.push(this);
     }
     static registerViewer(viewer, options) {
@@ -81,22 +93,44 @@ export class ViewerInterface {
         !!this.pointerMoveHandler && this.canvas.removeEventListener("pointermove", this.pointerMoveHandler);
         !!this.pointerUpHandler && this.canvas.removeEventListener("pointermove", this.pointerUpHandler);
     }
-    getCoordinateAtPixel(x, y) {
-        x !== null && x !== void 0 ? x : (x = this.cursorX);
-        y !== null && y !== void 0 ? y : (y = this.cursorY);
-        const scene = this.viewer.scene;
-        const pixelPosition = new Cesium.Cartesian2(x, y);
-        const ray = this.viewer.camera.getPickRay(pixelPosition);
-        if (!ray)
-            return null;
-        const cartesianPosition = scene.globe.pick(ray, scene);
-        if (!cartesianPosition)
-            return null;
-        const cartographicPosition = Cesium.Cartographic.fromCartesian(cartesianPosition);
-        const lng = Cesium.Math.toDegrees(cartographicPosition.longitude);
-        const lat = Cesium.Math.toDegrees(cartographicPosition.latitude);
-        const alt = this.useAltitude ? Cesium.Math.toDegrees(cartographicPosition.height) : 0;
-        return new Coordinate({ lat, lng, alt });
+    getCoordinateAtPixel(x, y, options = { bypassAlt: false }) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            x !== null && x !== void 0 ? x : (x = this.cursorX);
+            y !== null && y !== void 0 ? y : (y = this.cursorY);
+            const scene = this.viewer.scene;
+            const pixelPosition = new Cesium.Cartesian2(x, y);
+            const ray = this.viewer.camera.getPickRay(pixelPosition);
+            if (!ray)
+                return null;
+            const cartesianPosition = scene.globe.pick(ray, scene);
+            if (!cartesianPosition)
+                return null;
+            const cartographicPosition = Cesium.Cartographic.fromCartesian(cartesianPosition);
+            const lng = Cesium.Math.toDegrees(cartographicPosition.longitude);
+            const lat = Cesium.Math.toDegrees(cartographicPosition.latitude);
+            let alt = 0;
+            if (!options.bypassAlt) {
+                if (this.useAltitude === AltQueryType.DEFAULT)
+                    alt = cartographicPosition.height;
+                if (this.useAltitude === AltQueryType.TERRAIN) {
+                    let cartWithHeight = [];
+                    if (this.terrainSampleLevel === Infinity) {
+                        cartWithHeight = yield Cesium.sampleTerrainMostDetailed(this.viewer.terrainProvider, [cartographicPosition]);
+                    }
+                    else {
+                        cartWithHeight = yield Cesium.sampleTerrain(this.viewer.terrainProvider, this.terrainSampleLevel, [cartographicPosition]);
+                    }
+                    alt = (_b = (_a = cartWithHeight[0]) === null || _a === void 0 ? void 0 : _a.height) !== null && _b !== void 0 ? _b : 0;
+                    // if the terrain sampling failed and the fallback is to use the default cartographic height, set the alt accordingly
+                    if (alt === 0 && this.altQueryFallback === AltQueryType.DEFAULT) {
+                        alt = cartographicPosition.height;
+                    }
+                    ;
+                }
+            }
+            return new Coordinate({ lat, lng, alt });
+        });
     }
     queryEntityAtPixel(x, y) {
         x !== null && x !== void 0 ? x : (x = this.cursorX);
