@@ -512,6 +512,7 @@ export class Annotation {
                 handleProperties: this.handleProperties,
                 groupRecords: this.groupsToRecords(),
                 attributes: this.attributes,
+                bypassTerrainSampleOnDrag: this.bypassTerrainSampleOnDrags,
                 ...properties.initOptions
             }
         }

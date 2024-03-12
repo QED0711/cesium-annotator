@@ -184,6 +184,7 @@ export class RectangleAnnotation extends Annotation {
                     handleProperties: this.handleProperties,
                     entityProperties: this.entityProperties,
                     drawAsLine: this.drawAsLine,
+                    bypassTerrainSampleOnDrag: this.bypassTerrainSampleOnDrags,
                 },
             }
         }

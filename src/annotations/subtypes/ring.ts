@@ -204,6 +204,7 @@ export class RingAnnotation extends Annotation {
                     handleProperties: this.handleProperties,
                     entityProperties: this.entityProperties,
                     drawAsLine: this.drawAsLine,
+                    bypassTerrainSampleOnDrag: this.bypassTerrainSampleOnDrags,
                     nPoints: this.nPoints,
                 }
             }
