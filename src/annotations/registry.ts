@@ -298,6 +298,7 @@ export class Registry {
     private loadFeatureFromGeoJson(geoJson: GeoJsonFeature, options?: GeoJsonLoaderOptions): Annotation | null {
         options = options ?? {};
         options.propertiesInitKey = options.propertiesInitKey ?? "initOptions";
+        options.shouldDraw = options.shouldDraw ?? true;
         // callback is executed to change the geoJson prior to initializing annotation(s) from it.
         geoJson = options.preInitCallback?.({ geoJson }) ?? geoJson;
         let annotation: Annotation | null = null;
@@ -343,6 +344,8 @@ export class Registry {
                 }
             }
         }
+
+        if(annotation && !options.shouldDraw) return annotation;
 
         if (annotation) {
             annotation = options.preDrawCallback?.({ annotation, geoJson }) ?? annotation;

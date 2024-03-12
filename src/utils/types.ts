@@ -139,6 +139,7 @@ export type FlyToOptions = {
 // GEOJSON FORMATTING
 export type GeoJsonLoaderOptions = {
     propertiesInitKey?: string,
+    shouldDraw?: boolean,
     preInitCallback?: (payload: { geoJson: GeoJsonFeature }) => GeoJsonFeature | null | undefined | void,
     preDrawCallback?: (payload: { annotation: Annotation, geoJson: GeoJsonFeature | GeoJsonFeatureCollection }) => Annotation | null | undefined | void
 }
