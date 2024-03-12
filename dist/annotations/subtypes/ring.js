@@ -152,6 +152,7 @@ export class RingAnnotation extends Annotation {
                 perimeterPoint: { lng: p2.lng, lat: p2.lat, alt: p2.alt },
                 initOptions: {
                     id: this.id,
+                    annotationType: this.annotationType,
                     liveUpdate: this.liveUpdate,
                     userInteractive: this.userInteractive,
                     handleType: this.handleType,

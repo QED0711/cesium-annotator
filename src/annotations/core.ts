@@ -504,6 +504,7 @@ export class Annotation {
             const properties = geoJson.features[0].properties
             properties.initOptions = {
                 id: this.id,
+                annotationType: this.annotationType,
                 liveUpdate: this.liveUpdate,
                 userInteractive: this.userInteractive,
                 entityProperties: this.entityProperties,

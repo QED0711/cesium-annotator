@@ -174,6 +174,7 @@ export class RectangleAnnotation extends Annotation {
                 vert2: { lng: lng2, lat: lat2, alt: alt2 },
                 initOptions: {
                     id: this.id,
+                    annotationType: this.annotationType,
                     liveUpdate: this.liveUpdate,
                     userInteractive: this.userInteractive,
                     handleType: this.handleType,

@@ -404,7 +404,7 @@ export class Annotation {
         const geoJson = this.points.toGeoJson(this.annotationType);
         if (geoJson) {
             const properties = geoJson.features[0].properties;
-            properties.initOptions = Object.assign({ id: this.id, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, entityProperties: this.entityProperties, handleType: this.handleType, handleProperties: this.handleProperties, groupRecords: this.groupsToRecords(), attributes: this.attributes }, properties.initOptions);
+            properties.initOptions = Object.assign({ id: this.id, annotationType: this.annotationType, liveUpdate: this.liveUpdate, userInteractive: this.userInteractive, entityProperties: this.entityProperties, handleType: this.handleType, handleProperties: this.handleProperties, groupRecords: this.groupsToRecords(), attributes: this.attributes }, properties.initOptions);
         }
         return geoJson;
     }
