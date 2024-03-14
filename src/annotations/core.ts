@@ -41,6 +41,7 @@ export class Annotation {
     protected preDragHistoricalRecord: CoordinateCollection | null;
 
     protected events: { [eventName: string]: ((payload: AnnotationEventPayload) => void)[] };
+    protected mutedEvents: Set<EventType>;
 
     constructor(registry: Registry, options: AnnotationBaseInit) {
 
@@ -74,6 +75,7 @@ export class Annotation {
         this.preDragHistoricalRecord = null
 
         this.events = {};
+        this.mutedEvents = new Set();
 
         this.initGroupRecords(options.groupRecords ?? []);
     }
@@ -94,6 +96,24 @@ export class Annotation {
         for (let handler of this.events[eventName]) {
             handler(payload);
         }
+    }
+
+    muteEvents(eventNames: EventType | EventType[]): void {
+        if(!Array.isArray(eventNames)) eventNames = [eventNames];
+        for(let eventName of eventNames) {
+            this.mutedEvents.add(eventName);
+        }
+    }
+
+    unmuteEvents(eventNames: EventType | EventType[]): void {
+        if(!Array.isArray(eventNames)) eventNames = [eventNames];
+        for(let eventName of eventNames) {
+            this.mutedEvents.delete(eventName);
+        }
+    }
+
+    eventIsMuted(eventName: EventType): boolean {
+        return this.mutedEvents.has(eventName)
     }
 
     executeCallback(func: (annotation: Annotation) => {}) {
