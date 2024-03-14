@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryInit } from '../utils/types';
+import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -56,6 +56,7 @@ export declare class Registry {
     events: {
         [eventName: string]: ((payload: AnnotationEventPayload) => void)[];
     };
+    private registryEvents;
     loaders: {
         [key: string]: (geom: any) => Annotation | null;
     };
@@ -63,6 +64,8 @@ export declare class Registry {
     private terrainSampleLevel;
     private altQueryFallback;
     constructor(init: RegistryInit);
+    on(eventNames: RegistryEventType | RegistryEventType[], callback: (payload: RegistryEventPayload) => void): void;
+    private emit;
     getActiveAnnotation(): Annotation | null;
     getAnnotationByID(id: string): Annotation | null | undefined;
     deleteByID(id: string): void;

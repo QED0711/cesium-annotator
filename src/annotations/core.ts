@@ -78,7 +78,7 @@ export class Annotation {
         this.initGroupRecords(options.groupRecords ?? []);
     }
 
-    on(eventNames: string | string[], callback: (payload: AnnotationEventPayload) => void) {
+    on(eventNames: EventType | EventType[], callback: (payload: AnnotationEventPayload) => void) {
         eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
         for (let eventName of eventNames) {
             if (eventName in this.events) {

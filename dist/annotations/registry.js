@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AltQueryType, AnnotationType, GeoJsonType } from '../utils/types';
+import { AltQueryType, AnnotationType, GeoJsonType, RegistryEventType } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { PointAnnotation } from './subtypes/point';
 import { PolylineAnnotation } from './subtypes/polyline';
@@ -108,12 +108,31 @@ export class Registry {
         this.terrainSampleLevel = (_b = init.terrainSampleLevel) !== null && _b !== void 0 ? _b : 12;
         this.altQueryFallback = (_c = init.altQueryFallback) !== null && _c !== void 0 ? _c : AltQueryType.DEFAULT;
         this.events = {};
+        this.registryEvents = {};
         this.loaders = {};
         this.viewerInterface = ViewerInterface.registerViewer(this.viewer, {
             useAltitude: this.useAltitude,
             terrainSampleLevel: this.terrainSampleLevel,
             altQueryFallback: this.altQueryFallback,
         });
+    }
+    on(eventNames, callback) {
+        eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
+        for (let eventName of eventNames) {
+            if (eventName in this.registryEvents) {
+                this.registryEvents[eventName].push(callback);
+            }
+            else {
+                this.registryEvents[eventName] = [callback];
+            }
+        }
+    }
+    emit(eventName, payload) {
+        if (!(eventName in this.registryEvents))
+            return;
+        for (let handler of this.registryEvents[eventName]) {
+            handler(payload);
+        }
     }
     getActiveAnnotation() {
         var _a;
@@ -129,6 +148,8 @@ export class Registry {
             annotation.delete();
             this.annotations = this.annotations.filter(a => a !== annotation);
         }
+        this.emit(RegistryEventType.DELETE, { annotations: this.annotations, registry: this });
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
     }
     activateByID(id) {
         const annotation = this.annotations.find(a => a.id === id);
@@ -198,30 +219,40 @@ export class Registry {
         const annotation = new PointAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this });
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
     addPolyline(options) {
         const annotation = new PolylineAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this });
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
     addPolygon(options) {
         const annotation = new PolygonAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this });
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
     addRectangle(options) {
         const annotation = new RectangleAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this });
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
     addRing(options) {
         const annotation = new RingAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this });
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
     // LOADERS

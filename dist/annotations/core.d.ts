@@ -1,4 +1,4 @@
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, GeoJsonFeatureCollection, GroupRecord, DrawOptions } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventType, GeoJsonFeatureCollection, GroupRecord, DrawOptions } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -37,7 +37,7 @@ export declare class Annotation {
         [eventName: string]: ((payload: AnnotationEventPayload) => void)[];
     };
     constructor(registry: Registry, options: AnnotationBaseInit);
-    on(eventNames: string | string[], callback: (payload: AnnotationEventPayload) => void): void;
+    on(eventNames: EventType | EventType[], callback: (payload: AnnotationEventPayload) => void): void;
     protected emit(eventName: string, payload: AnnotationEventPayload): void;
     executeCallback(func: (annotation: Annotation) => {}): void;
     setAttributes(attributes: {

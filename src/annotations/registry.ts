@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryInit } from '../utils/types';
+import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, EventType, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -133,11 +133,13 @@ export class Registry {
     viewerInterface: ViewerInterface
 
     events: { [eventName: string]: ((payload: AnnotationEventPayload) => void)[] }
+    private registryEvents: { [eventName: string]: ((payload: RegistryEventPayload) => void)[] }
     loaders: { [key: string]: (geom: any) => Annotation | null }
 
     private useAltitude: AltQueryType;
     private terrainSampleLevel: number;
     private altQueryFallback: AltQueryType;
+
 
     constructor(init: RegistryInit) {
         this.id = init.id;
@@ -150,16 +152,36 @@ export class Registry {
         this.altQueryFallback = init.altQueryFallback ?? AltQueryType.DEFAULT
 
         this.events = {};
+        this.registryEvents = {};
+
         this.loaders = {};
 
         this.viewerInterface = ViewerInterface.registerViewer(
-            this.viewer, 
-            { 
-                useAltitude: this.useAltitude, 
+            this.viewer,
+            {
+                useAltitude: this.useAltitude,
                 terrainSampleLevel: this.terrainSampleLevel,
                 altQueryFallback: this.altQueryFallback,
             }
         );
+    }
+
+    on(eventNames: RegistryEventType | RegistryEventType[], callback: (payload: RegistryEventPayload) => void): void {
+        eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
+        for (let eventName of eventNames) {
+            if (eventName in this.registryEvents) {
+                this.registryEvents[eventName].push(callback);
+            } else {
+                this.registryEvents[eventName] = [callback];
+            }
+        }
+    }
+
+    private emit(eventName: RegistryEventType, payload: RegistryEventPayload) {
+        if (!(eventName in this.registryEvents)) return;
+        for (let handler of this.registryEvents[eventName]) {
+            handler(payload);
+        }
     }
 
     getActiveAnnotation(): Annotation | null {
@@ -177,11 +199,13 @@ export class Registry {
             annotation.delete();
             this.annotations = this.annotations.filter(a => a !== annotation);
         }
+        this.emit(RegistryEventType.DELETE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
     }
 
     activateByID(id: string): Annotation | null {
         const annotation = this.annotations.find(a => a.id === id);
-        if(annotation && !annotation.isActive) {
+        if (annotation && !annotation.isActive) {
             annotation.activate();
             return annotation;
         }
@@ -192,9 +216,9 @@ export class Registry {
         this.annotations.find(annotation => annotation.id === id)?.deactivate?.();
     }
 
-    deactivateAllExcept(id: string){
-        for(let annotation of this.annotations) {
-            if(annotation.id === id) continue;
+    deactivateAllExcept(id: string) {
+        for (let annotation of this.annotations) {
+            if (annotation.id === id) continue;
             annotation.deactivate();
         }
     }
@@ -216,7 +240,7 @@ export class Registry {
     applyEvents(annotation: Annotation): void {
         for (let eventName of Object.keys(this.events)) {
             for (let callback of this.events[eventName]) {
-                annotation.on(eventName, callback);
+                annotation.on(eventName as EventType, callback);
             }
         }
     }
@@ -252,6 +276,8 @@ export class Registry {
         const annotation = new PointAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
         return annotation
     }
 
@@ -259,6 +285,8 @@ export class Registry {
         const annotation = new PolylineAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
         return annotation
     }
 
@@ -266,6 +294,8 @@ export class Registry {
         const annotation = new PolygonAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
         return annotation;
     }
 
@@ -273,6 +303,8 @@ export class Registry {
         const annotation = new RectangleAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
         return annotation;
     }
 
@@ -280,6 +312,8 @@ export class Registry {
         const annotation = new RingAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
+        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
         return annotation;
     }
 
@@ -345,7 +379,7 @@ export class Registry {
             }
         }
 
-        if(annotation && !options.shouldDraw) return annotation;
+        if (annotation && !options.shouldDraw) return annotation;
 
         if (annotation) {
             annotation = options.preDrawCallback?.({ annotation, geoJson }) ?? annotation;

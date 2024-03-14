@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { Annotation } from '../annotations/core';
 import { Coordinate } from '../annotations/coordinate';
+import { Registry } from '../annotations/registry';
 
 /* INITIALIZATION OPTIONS */
 export type CoordinateInit = {
@@ -120,8 +121,19 @@ export enum EventType {
     PROPERTY = "property_update"
 }
 
+export enum RegistryEventType {
+    ADD = "add",
+    DELETE = "delete",
+    UPDATE = "update",
+}
+
 export type AnnotationEventPayload = {
     annotation: Annotation
+}
+
+export type RegistryEventPayload = {
+    registry: Registry,
+    annotations: Annotation[]
 }
 
 export type EventListItem = {

@@ -40,6 +40,12 @@ export var EventType;
     EventType["ATTRIBUTE"] = "attribute_update";
     EventType["PROPERTY"] = "property_update";
 })(EventType || (EventType = {}));
+export var RegistryEventType;
+(function (RegistryEventType) {
+    RegistryEventType["ADD"] = "add";
+    RegistryEventType["DELETE"] = "delete";
+    RegistryEventType["UPDATE"] = "update";
+})(RegistryEventType || (RegistryEventType = {}));
 export var GeoJsonType;
 (function (GeoJsonType) {
     GeoJsonType["POINT"] = "Point";

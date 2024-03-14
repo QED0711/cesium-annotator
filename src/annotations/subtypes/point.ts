@@ -51,7 +51,7 @@ export class PointAnnotation extends Annotation {
                 ...this.pointProperties
             } as Cesium.PointGraphics.ConstructorOptions
         }
-
+        
         if (!this.liveUpdate) {
             this.removeEntity();
             if (this.points.length === 0) return;
