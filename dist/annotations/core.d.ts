@@ -36,9 +36,13 @@ export declare class Annotation {
     protected events: {
         [eventName: string]: ((payload: AnnotationEventPayload) => void)[];
     };
+    protected mutedEvents: Set<EventType>;
     constructor(registry: Registry, options: AnnotationBaseInit);
     on(eventNames: EventType | EventType[], callback: (payload: AnnotationEventPayload) => void): void;
     protected emit(eventName: string, payload: AnnotationEventPayload): void;
+    muteEvents(eventNames: EventType | EventType[]): void;
+    unmuteEvents(eventNames: EventType | EventType[]): void;
+    eventIsMuted(eventName: EventType): boolean;
     executeCallback(func: (annotation: Annotation) => {}): void;
     setAttributes(attributes: {
         [key: string]: any;

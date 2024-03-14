@@ -43,6 +43,7 @@ export class Annotation {
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
         this.events = {};
+        this.mutedEvents = new Set();
         this.initGroupRecords((_j = options.groupRecords) !== null && _j !== void 0 ? _j : []);
     }
     on(eventNames, callback) {
@@ -62,6 +63,23 @@ export class Annotation {
         for (let handler of this.events[eventName]) {
             handler(payload);
         }
+    }
+    muteEvents(eventNames) {
+        if (!Array.isArray(eventNames))
+            eventNames = [eventNames];
+        for (let eventName of eventNames) {
+            this.mutedEvents.add(eventName);
+        }
+    }
+    unmuteEvents(eventNames) {
+        if (!Array.isArray(eventNames))
+            eventNames = [eventNames];
+        for (let eventName of eventNames) {
+            this.mutedEvents.delete(eventName);
+        }
+    }
+    eventIsMuted(eventName) {
+        return this.mutedEvents.has(eventName);
     }
     executeCallback(func) {
         func(this);

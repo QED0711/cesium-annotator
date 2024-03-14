@@ -135,6 +135,17 @@ export class CoordinateCollection {
         return new CoordinateCollection(this.coordinates.filter(callback));
     }
 
+    mean(): Coordinate {
+        let lngSum = 0, latSum = 0, altSum = 0;
+        for(let coord of this.coordinates) {
+            lngSum += coord.lng;
+            latSum += coord.lat;
+            altSum += coord.alt ?? 0;
+        }
+
+        return new Coordinate({lng: lngSum / this.coordinates.length, lat: latSum / this.coordinates.length, alt: altSum / this.coordinates.length});
+    }
+
     set(idx: number, coord: Coordinate): CoordinateCollection {
         this.coordinates[idx] = coord;
         return this

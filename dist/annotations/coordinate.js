@@ -104,6 +104,16 @@ export class CoordinateCollection {
     filter(callback) {
         return new CoordinateCollection(this.coordinates.filter(callback));
     }
+    mean() {
+        var _a;
+        let lngSum = 0, latSum = 0, altSum = 0;
+        for (let coord of this.coordinates) {
+            lngSum += coord.lng;
+            latSum += coord.lat;
+            altSum += (_a = coord.alt) !== null && _a !== void 0 ? _a : 0;
+        }
+        return new Coordinate({ lng: lngSum / this.coordinates.length, lat: latSum / this.coordinates.length, alt: altSum / this.coordinates.length });
+    }
     set(idx, coord) {
         this.coordinates[idx] = coord;
         return this;
