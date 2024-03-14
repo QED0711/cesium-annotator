@@ -1,7 +1,7 @@
 /**
  * Installation: npm install cesium-annotator
  */
-// export * from './annotations/core';
+export * from './annotations/core';
 export * from './annotations/coordinate';
 export * from './annotations/registry';
 
@@ -25,6 +25,8 @@ export {
     EventType,
     AnnotationEventPayload,
     EventListItem,
+    RegistryEventType,
+    RegistryEventPayload,
 
     FlyToOptions,
     GeoJsonLoaderOptions,
