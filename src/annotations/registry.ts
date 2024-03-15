@@ -317,9 +317,9 @@ export class Registry {
     }
 
     // LOADERS
-    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Annotation[] | null {
+    async loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null> {
         if (geoJson.type === "Feature") {
-            const annotation = this.loadFeatureFromGeoJson(geoJson as GeoJsonFeature, options);
+            const annotation = await this.loadFeatureFromGeoJson(geoJson as GeoJsonFeature, options);
             return annotation ? [annotation] : null;
         }
         if (geoJson.type === "FeatureCollection") {
@@ -328,11 +328,12 @@ export class Registry {
         return null;
     }
 
-    private loadFeatureFromGeoJson(geoJson: GeoJsonFeature, options?: GeoJsonLoaderOptions): Annotation | null {
+    private async loadFeatureFromGeoJson(geoJson: GeoJsonFeature, options?: GeoJsonLoaderOptions): Promise<Annotation | null> {
         options = options ?? {};
         options.propertiesInitKey = options.propertiesInitKey ?? "initOptions";
         options.shouldDraw = options.shouldDraw ?? true;
         // callback is executed to change the geoJson prior to initializing annotation(s) from it.
+        geoJson = (await options.asyncPreInitCallback?.({geoJson})) ?? geoJson;
         geoJson = options.preInitCallback?.({ geoJson }) ?? geoJson;
         let annotation: Annotation | null = null;
 
@@ -381,6 +382,9 @@ export class Registry {
         if (annotation && !options.shouldDraw) return annotation;
 
         if (annotation) {
+            if("asyncPreDrawCallback" in options) {
+                annotation = (await options.asyncPreDrawCallback?.({annotation, geoJson})) ?? annotation;
+            }
             annotation = options.preDrawCallback?.({ annotation, geoJson }) ?? annotation;
             this.applyEvents(annotation);
             annotation.draw();
@@ -390,10 +394,10 @@ export class Registry {
         return null;
     }
 
-    private loadFeatureCollectionFromGeoJson(geoJson: GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Annotation[] {
+    private async loadFeatureCollectionFromGeoJson(geoJson: GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[]> {
         const results: Annotation[] = [];
         for (let feature of geoJson.features) {
-            const annotation = this.loadFeatureFromGeoJson(feature, options);
+            const annotation = await this.loadFeatureFromGeoJson(feature, options);
             annotation && results.push(annotation);
         }
         return results;

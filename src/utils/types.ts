@@ -154,6 +154,8 @@ export type GeoJsonLoaderOptions = {
     shouldDraw?: boolean,
     preInitCallback?: (payload: { geoJson: GeoJsonFeature }) => GeoJsonFeature | null | undefined | void,
     preDrawCallback?: (payload: { annotation: Annotation, geoJson: GeoJsonFeature | GeoJsonFeatureCollection }) => Annotation | null | undefined | void
+    asyncPreInitCallback?: (payload: { geoJson: GeoJsonFeature }) => Promise<GeoJsonFeature | null | undefined | void>,
+    asyncPreDrawCallback?: (payload: { annotation: Annotation, geoJson: GeoJsonFeature | GeoJsonFeatureCollection }) => Promise<Annotation | null | undefined | void>
 }
 
 export enum GeoJsonType {

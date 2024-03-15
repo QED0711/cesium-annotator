@@ -130,6 +130,13 @@ export type GeoJsonLoaderOptions = {
         annotation: Annotation;
         geoJson: GeoJsonFeature | GeoJsonFeatureCollection;
     }) => Annotation | null | undefined | void;
+    asyncPreInitCallback?: (payload: {
+        geoJson: GeoJsonFeature;
+    }) => Promise<GeoJsonFeature | null | undefined | void>;
+    asyncPreDrawCallback?: (payload: {
+        annotation: Annotation;
+        geoJson: GeoJsonFeature | GeoJsonFeatureCollection;
+    }) => Promise<Annotation | null | undefined | void>;
 };
 export declare enum GeoJsonType {
     POINT = "Point",

@@ -87,7 +87,7 @@ export declare class Registry {
     addPolygon(options: PolygonInitOptions): PolygonAnnotation;
     addRectangle(options: RectangleInitOptions): RectangleAnnotation;
     addRing(options: RingInitOptions): RingAnnotation;
-    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Annotation[] | null;
+    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null>;
     private loadFeatureFromGeoJson;
     private loadFeatureCollectionFromGeoJson;
     defineCustomLoader(loaderName: string, func: (geom: any) => Annotation | null): void;
