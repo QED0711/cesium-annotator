@@ -43,9 +43,13 @@ export class Coordinate {
         this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
     }
 
+    toCartographicPosition(): Cesium.Cartographic {
+        return Cesium.Cartographic.fromCartesian(this.cartesian3);
+    }
+
     async queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel: number = 12): Promise<number | null> {
         let cartWithHeight: Cesium.Cartographic[] = [];
-        const cartographicPosition = Cesium.Cartographic.fromCartesian(this.cartesian3);
+        const cartographicPosition = this.toCartographicPosition();
         if (terrainSampleLevel === Infinity) {
             cartWithHeight = await Cesium.sampleTerrainMostDetailed(
                 terrainProvider,
@@ -163,6 +167,24 @@ export class CoordinateCollection {
             altSum += coord.alt ?? 0;
         }
         return new Coordinate({ lng: lngSum / length, lat: latSum / length, alt: altSum / length });
+    }
+
+    async queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel: number = 12): Promise<number[]> {
+        const cartographicPositions = this.coordinates.map(coordinate => coordinate.toCartographicPosition());
+        let cartsWithHeight: Cesium.Cartographic[];
+        if (terrainSampleLevel === Infinity) {
+            cartsWithHeight = await Cesium.sampleTerrainMostDetailed(
+                terrainProvider,
+                cartographicPositions
+            )
+        } else {
+            cartsWithHeight = await Cesium.sampleTerrain(
+                terrainProvider,
+                terrainSampleLevel,
+                cartographicPositions
+            )
+        }
+        return cartsWithHeight.map(cart => cart.height);
     }
 
     set(idx: number, coord: Coordinate): CoordinateCollection {
