@@ -46,6 +46,15 @@ export var RegistryEventType;
     RegistryEventType["DELETE"] = "delete";
     RegistryEventType["UPDATE"] = "update";
 })(RegistryEventType || (RegistryEventType = {}));
+// CESIUM OPTIONS
+export var FlyToType;
+(function (FlyToType) {
+    FlyToType["ENTITY"] = "entity";
+    FlyToType["GEOSPATIAL_MEAN"] = "mean";
+    FlyToType["BBOX"] = "bbox";
+    FlyToType["FIRST"] = "first";
+    FlyToType["LAST"] = "last";
+})(FlyToType || (FlyToType = {}));
 export var GeoJsonType;
 (function (GeoJsonType) {
     GeoJsonType["POINT"] = "Point";

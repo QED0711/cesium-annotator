@@ -146,7 +146,16 @@ export type EventListItem = {
 }
 
 // CESIUM OPTIONS
+export enum FlyToType {
+    ENTITY = "entity",
+    GEOSPATIAL_MEAN = "mean",
+    BBOX = "bbox",
+    FIRST = "first",
+    LAST = "last",
+}
+
 export type FlyToOptions = {
+    locationType?: FlyToType,
     duration?: number,
     maximumHeight?: number,
     offset?: Cesium.HeadingPitchRange

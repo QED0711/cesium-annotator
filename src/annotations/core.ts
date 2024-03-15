@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection, GroupRecord, DrawOptions } from '../utils/types';
+import { AnnotationBaseInit, AnnotationType, AnnotationEntity, HandleFoundRecord, HandleType, HandleEntity, FlyToOptions, AnnotationEventPayload, EventListItem, EventType, GeoJsonFeature, GeoJsonFeatureCollection, GroupRecord, DrawOptions, FlyToType } from '../utils/types';
 import { AnnotationGroup, Registry } from './registry';
 import { Coordinate, CoordinateCollection } from './coordinate';
 import { ViewerInterface } from './viewerInterface';
@@ -99,15 +99,15 @@ export class Annotation {
     }
 
     muteEvents(eventNames: EventType | EventType[]): void {
-        if(!Array.isArray(eventNames)) eventNames = [eventNames];
-        for(let eventName of eventNames) {
+        if (!Array.isArray(eventNames)) eventNames = [eventNames];
+        for (let eventName of eventNames) {
             this.mutedEvents.add(eventName);
         }
     }
 
     unmuteEvents(eventNames: EventType | EventType[]): void {
-        if(!Array.isArray(eventNames)) eventNames = [eventNames];
-        for(let eventName of eventNames) {
+        if (!Array.isArray(eventNames)) eventNames = [eventNames];
+        for (let eventName of eventNames) {
             this.mutedEvents.delete(eventName);
         }
     }
@@ -311,7 +311,7 @@ export class Annotation {
             // update the specified point as it is dragged
             if (this.handleFound !== null) {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
-                const coordinate = await this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY, {bypassAlt: this.bypassTerrainSampleOnDrags}); // if don't want to make a sampleTerrain call on each mouse move, so we bypass the altitude calculation for this call of getCoordinateAtPixel
+                const coordinate = await this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY, { bypassAlt: this.bypassTerrainSampleOnDrags }); // if don't want to make a sampleTerrain call on each mouse move, so we bypass the altitude calculation for this call of getCoordinateAtPixel
                 if (coordinate) this.points.set(this.handleFound.index, coordinate);
             }
             this.dragDetected = true;
@@ -492,30 +492,49 @@ export class Annotation {
 
     }
 
-    async flyTo(options?: FlyToOptions) {
-        if (!this.entity) return;
-        const success = await this.viewerInterface.viewer.flyTo(
-            this.entity,
-            {
-                duration: 0,
-                offset: new Cesium.HeadingPitchRange(0, -90),
-                ...(options ?? {})
-            }
-        )
-        if(!success) {
+    async flyTo(options?: FlyToOptions): Promise<void> {
+        const locationType = options?.locationType ?? FlyToType.ENTITY
+        
+        if (locationType === FlyToType.ENTITY) {
+            if (!this.entity) return;
+            await this.viewerInterface.viewer.flyTo(
+                this.entity,
+                {
+                    duration: 0,
+                    offset: new Cesium.HeadingPitchRange(0, -90),
+                    ...(options ?? {})
+                }
+            )
+        }
+
+        if (locationType === FlyToType.GEOSPATIAL_MEAN) {
+            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.mean()?.cartesian3 as Cesium.Cartesian3, ...options as any })
+        }
+
+        if(locationType === FlyToType.FIRST) {
+            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.first?.cartesian3 as Cesium.Cartesian3, ...options as any })
+        }
+
+        if(locationType === FlyToType.LAST) {
+            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.last?.cartesian3 as Cesium.Cartesian3, ...options as any })
+        }
+
+        if (locationType === FlyToType.BBOX) {
             const bbox = this.points.getMinMaxBbox();
             this.viewerInterface.viewer.camera.flyTo(
                 {
                     destination: new Cesium.Rectangle(
-                        Cesium.Math.toRadians(bbox.lngMin), 
-                        Cesium.Math.toRadians(bbox.latMin), 
-                        Cesium.Math.toRadians(bbox.lngMax), 
+                        Cesium.Math.toRadians(bbox.lngMin),
+                        Cesium.Math.toRadians(bbox.latMin),
+                        Cesium.Math.toRadians(bbox.lngMax),
                         Cesium.Math.toRadians(bbox.latMax)
                     ),
                     ...(options ?? {})
                 }
             )
         }
+
+
     }
 
     toGeoJson(): GeoJsonFeatureCollection | null {

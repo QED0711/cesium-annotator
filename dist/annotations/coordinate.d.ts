@@ -29,6 +29,8 @@ export declare class CoordinateCollection {
     constructor(coordsArray?: Coordinate[]);
     get length(): number;
     at(idx: number): Coordinate | null;
+    get first(): Coordinate | null;
+    get last(): Coordinate | null;
     clone(): CoordinateCollection;
     push(coord: Coordinate): void;
     pop(): Coordinate | null;

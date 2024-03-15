@@ -113,6 +113,12 @@ export class CoordinateCollection {
         var _a;
         return (_a = this.coordinates[idx]) !== null && _a !== void 0 ? _a : null;
     }
+    get first() {
+        return this.at(0);
+    }
+    get last() {
+        return this.at(this.length - 1);
+    }
     clone() {
         const cloned = this.coordinates.map(c => c.clone());
         return new CoordinateCollection(cloned);

@@ -135,6 +135,14 @@ export class CoordinateCollection {
         return this.coordinates[idx] ?? null;
     }
 
+    get first(): Coordinate | null {
+        return this.at(0);
+    }
+
+    get last(): Coordinate | null {
+        return this.at(this.length - 1);
+    }
+
     clone(): CoordinateCollection {
         const cloned = this.coordinates.map(c => c.clone());
         return new CoordinateCollection(cloned);
