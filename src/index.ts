@@ -29,6 +29,7 @@ export {
     RegistryEventType,
     RegistryEventPayload,
 
+    FlyToType,
     FlyToOptions,
     GeoJsonLoaderOptions,
     GeoJsonType,
