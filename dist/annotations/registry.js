@@ -223,7 +223,16 @@ export class Registry {
         this.groups = this.groups.filter(g => g.id !== id);
     }
     // FACTORIES
-    addPoint(options) {
+    addPoint(options, initConfig = { replaceExisting: false }) {
+        var _a;
+        if (this.getAnnotationByID((_a = options === null || options === void 0 ? void 0 : options.id) !== null && _a !== void 0 ? _a : "")) {
+            if (initConfig.replaceExisting) {
+                this.deleteByID(options.id);
+            }
+            else {
+                return this.getAnnotationByID(options.id);
+            }
+        }
         const annotation = new PointAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -231,7 +240,16 @@ export class Registry {
         this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
-    addPolyline(options) {
+    addPolyline(options, initConfig = { replaceExisting: false }) {
+        var _a;
+        if (this.getAnnotationByID((_a = options === null || options === void 0 ? void 0 : options.id) !== null && _a !== void 0 ? _a : "")) {
+            if (initConfig.replaceExisting) {
+                this.deleteByID(options.id);
+            }
+            else {
+                return this.getAnnotationByID(options.id);
+            }
+        }
         const annotation = new PolylineAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -239,7 +257,16 @@ export class Registry {
         this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
-    addPolygon(options) {
+    addPolygon(options, initConfig = { replaceExisting: false }) {
+        var _a;
+        if (this.getAnnotationByID((_a = options === null || options === void 0 ? void 0 : options.id) !== null && _a !== void 0 ? _a : "")) {
+            if (initConfig.replaceExisting) {
+                this.deleteByID(options.id);
+            }
+            else {
+                return this.getAnnotationByID(options.id);
+            }
+        }
         const annotation = new PolygonAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -247,7 +274,16 @@ export class Registry {
         this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
-    addRectangle(options) {
+    addRectangle(options, initConfig = { replaceExisting: false }) {
+        var _a;
+        if (this.getAnnotationByID((_a = options === null || options === void 0 ? void 0 : options.id) !== null && _a !== void 0 ? _a : "")) {
+            if (initConfig.replaceExisting) {
+                this.deleteByID(options.id);
+            }
+            else {
+                return this.getAnnotationByID(options.id);
+            }
+        }
         const annotation = new RectangleAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -255,7 +291,16 @@ export class Registry {
         this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
         return annotation;
     }
-    addRing(options) {
+    addRing(options, initConfig = { replaceExisting: false }) {
+        var _a;
+        if (this.getAnnotationByID((_a = options === null || options === void 0 ? void 0 : options.id) !== null && _a !== void 0 ? _a : "")) {
+            if (initConfig.replaceExisting) {
+                this.deleteByID(options.id);
+            }
+            else {
+                return this.getAnnotationByID(options.id);
+            }
+        }
         const annotation = new RingAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);

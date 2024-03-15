@@ -9,4 +9,4 @@ export * from "./annotations/subtypes/polyline";
 export * from "./annotations/subtypes/polygon";
 export * from "./annotations/subtypes/rectangle";
 export * from "./annotations/subtypes/ring";
-export { CoordinateInit, AnnotationBaseInit, RegistryInit, GroupInitOptions, DistanceUnit, AnnotationType, HandleType, AltQueryType, EventType, AnnotationEventPayload, EventListItem, RegistryEventType, RegistryEventPayload, FlyToOptions, GeoJsonLoaderOptions, GeoJsonType, GeoJsonFeature, GeoJsonFeatureCollection, } from './utils/types';
+export { CoordinateInit, AnnotationBaseInit, RegistryInit, RegistryAddInitOptions, GroupInitOptions, DistanceUnit, AnnotationType, HandleType, AltQueryType, EventType, AnnotationEventPayload, EventListItem, RegistryEventType, RegistryEventPayload, FlyToOptions, GeoJsonLoaderOptions, GeoJsonType, GeoJsonFeature, GeoJsonFeatureCollection, } from './utils/types';

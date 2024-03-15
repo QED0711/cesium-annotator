@@ -15,6 +15,7 @@ export {
     CoordinateInit,
     AnnotationBaseInit,
     RegistryInit,
+    RegistryAddInitOptions,
     GroupInitOptions,
 
     DistanceUnit,

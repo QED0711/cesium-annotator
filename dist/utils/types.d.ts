@@ -33,6 +33,9 @@ export type ViewerInterfaceInitOptions = {
     terrainSampleLevel?: number;
     altQueryFallback?: AltQueryType;
 };
+export type RegistryAddInitOptions = {
+    replaceExisting?: boolean;
+};
 export type GroupInitOptions = {
     id?: string;
     name?: string;

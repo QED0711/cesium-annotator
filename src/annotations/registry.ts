@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, EventType, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
+import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, EventType, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryAddInitOptions, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -271,7 +271,14 @@ export class Registry {
     }
 
     // FACTORIES
-    addPoint(options: PointInitOptions): PointAnnotation {
+    addPoint(options: PointInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): PointAnnotation {
+        if(this.getAnnotationByID(options?.id ?? "")) {
+            if(initConfig.replaceExisting) {
+                this.deleteByID(options.id as string);
+            } else {
+                return this.getAnnotationByID(options.id as string) as PointAnnotation;
+            }
+        }
         const annotation = new PointAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -280,7 +287,14 @@ export class Registry {
         return annotation
     }
 
-    addPolyline(options: PolylineInitOptions): PolylineAnnotation {
+    addPolyline(options: PolylineInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): PolylineAnnotation {
+        if(this.getAnnotationByID(options?.id ?? "")) {
+            if(initConfig.replaceExisting) {
+                this.deleteByID(options.id as string);
+            } else {
+                return this.getAnnotationByID(options.id as string) as PolylineAnnotation;
+            }
+        }
         const annotation = new PolylineAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -289,7 +303,14 @@ export class Registry {
         return annotation
     }
 
-    addPolygon(options: PolygonInitOptions): PolygonAnnotation {
+    addPolygon(options: PolygonInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): PolygonAnnotation {
+        if(this.getAnnotationByID(options?.id ?? "")) {
+            if(initConfig.replaceExisting) {
+                this.deleteByID(options.id as string);
+            } else {
+                return this.getAnnotationByID(options.id as string) as PolygonAnnotation;
+            }
+        }
         const annotation = new PolygonAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -298,7 +319,14 @@ export class Registry {
         return annotation;
     }
 
-    addRectangle(options: RectangleInitOptions): RectangleAnnotation {
+    addRectangle(options: RectangleInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): RectangleAnnotation {
+        if(this.getAnnotationByID(options?.id ?? "")) {
+            if(initConfig.replaceExisting) {
+                this.deleteByID(options.id as string);
+            } else {
+                return this.getAnnotationByID(options.id as string) as RectangleAnnotation;
+            }
+        }
         const annotation = new RectangleAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
@@ -307,7 +335,14 @@ export class Registry {
         return annotation;
     }
 
-    addRing(options: RingInitOptions): RingAnnotation {
+    addRing(options: RingInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): RingAnnotation {
+        if(this.getAnnotationByID(options?.id ?? "")) {
+            if(initConfig.replaceExisting) {
+                this.deleteByID(options.id as string);
+            } else {
+                return this.getAnnotationByID(options.id as string) as RingAnnotation;
+            }
+        }
         const annotation = new RingAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);

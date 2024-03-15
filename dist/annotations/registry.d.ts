@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
+import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryAddInitOptions, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -82,11 +82,11 @@ export declare class Registry {
         deleteAnnotations?: boolean;
         releaseAnnotations?: boolean;
     } | undefined): void;
-    addPoint(options: PointInitOptions): PointAnnotation;
-    addPolyline(options: PolylineInitOptions): PolylineAnnotation;
-    addPolygon(options: PolygonInitOptions): PolygonAnnotation;
-    addRectangle(options: RectangleInitOptions): RectangleAnnotation;
-    addRing(options: RingInitOptions): RingAnnotation;
+    addPoint(options: PointInitOptions, initConfig?: RegistryAddInitOptions): PointAnnotation;
+    addPolyline(options: PolylineInitOptions, initConfig?: RegistryAddInitOptions): PolylineAnnotation;
+    addPolygon(options: PolygonInitOptions, initConfig?: RegistryAddInitOptions): PolygonAnnotation;
+    addRectangle(options: RectangleInitOptions, initConfig?: RegistryAddInitOptions): RectangleAnnotation;
+    addRing(options: RingInitOptions, initConfig?: RegistryAddInitOptions): RingAnnotation;
     loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null>;
     private loadFeatureFromGeoJson;
     private loadFeatureCollectionFromGeoJson;

@@ -37,6 +37,10 @@ export type ViewerInterfaceInitOptions = {
     altQueryFallback?: AltQueryType,
 }
 
+export type RegistryAddInitOptions = {
+    replaceExisting?: boolean
+}
+
 export type GroupInitOptions = {
     id?: string,
     name?: string
