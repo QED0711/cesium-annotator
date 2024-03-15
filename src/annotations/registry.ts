@@ -193,9 +193,8 @@ export class Registry {
     }
 
     deleteByID(id: string) {
-        const annotation = this.annotations
-            .find(annotation => annotation.id === id)
-        if (!!annotation) {
+        const annotation = this.annotations.find(annotation => annotation.id === id)
+        if (annotation) {
             annotation.delete();
             this.annotations = this.annotations.filter(a => a !== annotation);
         }

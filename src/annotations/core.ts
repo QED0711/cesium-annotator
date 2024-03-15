@@ -91,8 +91,8 @@ export class Annotation {
         }
     }
 
-    protected emit(eventName: string, payload: AnnotationEventPayload) {
-        if (!(eventName in this.events)) return;
+    protected emit(eventName: EventType, payload: AnnotationEventPayload) {
+        if (!(eventName in this.events) || this.mutedEvents.has(eventName)) return;
         for (let handler of this.events[eventName]) {
             handler(payload);
         }

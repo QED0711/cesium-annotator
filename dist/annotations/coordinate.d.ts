@@ -17,6 +17,7 @@ export declare class Coordinate {
         lng?: number;
         alt?: number;
     }): void;
+    queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel?: number): Promise<number | null>;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
     headingTo(point2: Coordinate): number;
     atHeadingDistance(heading: number, distance: number, distanceUnit?: DistanceUnit): Coordinate;
@@ -32,7 +33,7 @@ export declare class CoordinateCollection {
     pop(): Coordinate | null;
     map(callback: (val: any, i: number) => any): CoordinateCollection | any[];
     filter(callback: (val: any, i: number) => boolean): CoordinateCollection;
-    mean(): Coordinate;
+    mean(): Coordinate | null;
     set(idx: number, coord: Coordinate): CoordinateCollection;
     insertAtIndex(index: number, coordinate: Coordinate): CoordinateCollection;
     getMinMaxBbox(): {

@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
@@ -30,6 +39,20 @@ export class Coordinate {
         this.lng = (_a = values.lng) !== null && _a !== void 0 ? _a : this.lng;
         this.alt = (_b = values.alt) !== null && _b !== void 0 ? _b : this.alt;
         this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
+    }
+    queryAlt(terrainProvider, terrainSampleLevel = 12) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            let cartWithHeight = [];
+            const cartographicPosition = Cesium.Cartographic.fromCartesian(this.cartesian3);
+            if (terrainSampleLevel === Infinity) {
+                cartWithHeight = yield Cesium.sampleTerrainMostDetailed(terrainProvider, [cartographicPosition]);
+            }
+            else {
+                cartWithHeight = yield Cesium.sampleTerrain(terrainProvider, terrainSampleLevel, [cartographicPosition]);
+            }
+            return (_a = cartWithHeight[0]) === null || _a === void 0 ? void 0 : _a.height;
+        });
     }
     distanceTo(point2, unit = DistanceUnit.METERS) {
         const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
@@ -106,13 +129,16 @@ export class CoordinateCollection {
     }
     mean() {
         var _a;
+        const length = this.coordinates.length;
+        if (length === 0)
+            return null;
         let lngSum = 0, latSum = 0, altSum = 0;
         for (let coord of this.coordinates) {
             lngSum += coord.lng;
             latSum += coord.lat;
             altSum += (_a = coord.alt) !== null && _a !== void 0 ? _a : 0;
         }
-        return new Coordinate({ lng: lngSum / this.coordinates.length, lat: latSum / this.coordinates.length, alt: altSum / this.coordinates.length });
+        return new Coordinate({ lng: lngSum / length, lat: latSum / length, alt: altSum / length });
     }
     set(idx, coord) {
         this.coordinates[idx] = coord;

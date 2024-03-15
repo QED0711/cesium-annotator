@@ -43,6 +43,24 @@ export class Coordinate {
         this.cartesian3 = Cesium.Cartesian3.fromDegrees(this.lng, this.lat, this.alt);
     }
 
+    async queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel: number = 12): Promise<number | null> {
+        let cartWithHeight: Cesium.Cartographic[] = [];
+        const cartographicPosition = Cesium.Cartographic.fromCartesian(this.cartesian3);
+        if (terrainSampleLevel === Infinity) {
+            cartWithHeight = await Cesium.sampleTerrainMostDetailed(
+                terrainProvider,
+                [cartographicPosition]
+            )
+        } else {
+            cartWithHeight = await Cesium.sampleTerrain(
+                terrainProvider,
+                terrainSampleLevel,
+                [cartographicPosition]
+            )
+        }
+        return cartWithHeight[0]?.height
+    }
+
     distanceTo(point2: Coordinate, unit: DistanceUnit = DistanceUnit.METERS): number {
         const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
 
@@ -135,15 +153,16 @@ export class CoordinateCollection {
         return new CoordinateCollection(this.coordinates.filter(callback));
     }
 
-    mean(): Coordinate {
+    mean(): Coordinate | null {
+        const length = this.coordinates.length;
+        if (length === 0) return null;
         let lngSum = 0, latSum = 0, altSum = 0;
-        for(let coord of this.coordinates) {
+        for (let coord of this.coordinates) {
             lngSum += coord.lng;
             latSum += coord.lat;
             altSum += coord.alt ?? 0;
         }
-
-        return new Coordinate({lng: lngSum / this.coordinates.length, lat: latSum / this.coordinates.length, alt: altSum / this.coordinates.length});
+        return new Coordinate({ lng: lngSum / length, lat: latSum / length, alt: altSum / length });
     }
 
     set(idx: number, coord: Coordinate): CoordinateCollection {
@@ -190,7 +209,7 @@ export class CoordinateCollection {
     toGeoJson(annotationType: AnnotationType): GeoJsonFeatureCollection | null {
         let coords: number[] | number[][] | number[][][] | null = null,
             geomType: string = "",
-            properties: { [key: string]: any } = {initOptions: {}}
+            properties: { [key: string]: any } = { initOptions: {} }
 
         if (annotationType === AnnotationType.POINT) {
             if (this.coordinates.length === 0) return null
