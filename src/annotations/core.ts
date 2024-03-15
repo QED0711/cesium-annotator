@@ -493,6 +493,7 @@ export class Annotation {
     }
 
     async flyTo(options?: FlyToOptions): Promise<void> {
+        options ??= {};
         const locationType = options?.locationType ?? FlyToType.ENTITY
         
         if (locationType === FlyToType.ENTITY) {
@@ -508,15 +509,15 @@ export class Annotation {
         }
 
         if (locationType === FlyToType.GEOSPATIAL_MEAN) {
-            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.mean()?.cartesian3 as Cesium.Cartesian3, ...options as any })
+            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.mean()?.withAlt(options.alt)?.cartesian3 as Cesium.Cartesian3, ...options as any })
         }
 
         if(locationType === FlyToType.FIRST) {
-            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.first?.cartesian3 as Cesium.Cartesian3, ...options as any })
+            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.first?.withAlt(options.alt)?.cartesian3 as Cesium.Cartesian3, ...options as any })
         }
 
         if(locationType === FlyToType.LAST) {
-            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.last?.cartesian3 as Cesium.Cartesian3, ...options as any })
+            this.viewerInterface.viewer.camera.flyTo({ destination: this.points.last?.withAlt(options.alt)?.cartesian3 as Cesium.Cartesian3, ...options as any })
         }
 
         if (locationType === FlyToType.BBOX) {

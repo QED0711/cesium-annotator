@@ -43,6 +43,11 @@ export class Coordinate {
     toCartographicPosition() {
         return Cesium.Cartographic.fromCartesian(this.cartesian3);
     }
+    withAlt(alt) {
+        const coord = this.clone();
+        coord.update({ alt: alt !== null && alt !== void 0 ? alt : this.alt });
+        return coord;
+    }
     queryAlt(terrainProvider, terrainSampleLevel = 12) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {

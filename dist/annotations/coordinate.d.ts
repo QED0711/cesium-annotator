@@ -18,6 +18,7 @@ export declare class Coordinate {
         alt?: number;
     }): void;
     toCartographicPosition(): Cesium.Cartographic;
+    withAlt(alt?: number): Coordinate;
     queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel?: number): Promise<number | null>;
     distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
     headingTo(point2: Coordinate): number;

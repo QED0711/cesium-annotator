@@ -154,7 +154,7 @@ export enum FlyToType {
     LAST = "last",
 }
 
-export type FlyToOptions = {
+export type FlyToOptions = {[key: string]: any} & {
     locationType?: FlyToType,
     duration?: number,
     maximumHeight?: number,

@@ -47,6 +47,12 @@ export class Coordinate {
         return Cesium.Cartographic.fromCartesian(this.cartesian3);
     }
 
+    withAlt(alt?: number): Coordinate {
+        const coord = this.clone();
+        coord.update({alt: alt ?? this.alt});
+        return coord;
+    }
+
     async queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel: number = 12): Promise<number | null> {
         let cartWithHeight: Cesium.Cartographic[] = [];
         const cartographicPosition = this.toCartographicPosition();

@@ -408,8 +408,9 @@ export class Annotation {
         this.syncHandles();
     }
     flyTo(options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
+            options !== null && options !== void 0 ? options : (options = {});
             const locationType = (_a = options === null || options === void 0 ? void 0 : options.locationType) !== null && _a !== void 0 ? _a : FlyToType.ENTITY;
             if (locationType === FlyToType.ENTITY) {
                 if (!this.entity)
@@ -417,13 +418,13 @@ export class Annotation {
                 yield this.viewerInterface.viewer.flyTo(this.entity, Object.assign({ duration: 0, offset: new Cesium.HeadingPitchRange(0, -90) }, (options !== null && options !== void 0 ? options : {})));
             }
             if (locationType === FlyToType.GEOSPATIAL_MEAN) {
-                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: (_b = this.points.mean()) === null || _b === void 0 ? void 0 : _b.cartesian3 }, options));
+                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: (_c = (_b = this.points.mean()) === null || _b === void 0 ? void 0 : _b.withAlt(options.alt)) === null || _c === void 0 ? void 0 : _c.cartesian3 }, options));
             }
             if (locationType === FlyToType.FIRST) {
-                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: (_c = this.points.first) === null || _c === void 0 ? void 0 : _c.cartesian3 }, options));
+                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: (_e = (_d = this.points.first) === null || _d === void 0 ? void 0 : _d.withAlt(options.alt)) === null || _e === void 0 ? void 0 : _e.cartesian3 }, options));
             }
             if (locationType === FlyToType.LAST) {
-                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: (_d = this.points.last) === null || _d === void 0 ? void 0 : _d.cartesian3 }, options));
+                this.viewerInterface.viewer.camera.flyTo(Object.assign({ destination: (_g = (_f = this.points.last) === null || _f === void 0 ? void 0 : _f.withAlt(options.alt)) === null || _g === void 0 ? void 0 : _g.cartesian3 }, options));
             }
             if (locationType === FlyToType.BBOX) {
                 const bbox = this.points.getMinMaxBbox();
