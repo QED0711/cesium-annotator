@@ -24,6 +24,11 @@ export declare class Coordinate {
     headingTo(point2: Coordinate): number;
     atHeadingDistance(heading: number, distance: number, distanceUnit?: DistanceUnit): Coordinate;
     segmentDistance(point2: Coordinate, segments: number): Coordinate[];
+    private static toDMS;
+    toLatLngString(includeAlt?: boolean): string;
+    toLngLatString(includeAlt?: boolean): string;
+    toLatLngDMS(includeAlt?: boolean): string;
+    toLngLatDMS(includeAlt?: boolean): string;
 }
 export declare class CoordinateCollection {
     coordinates: Coordinate[];

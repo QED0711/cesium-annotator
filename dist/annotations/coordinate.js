@@ -106,6 +106,34 @@ export class Coordinate {
         }
         return coords;
     }
+    static toDMS(degree, isLatitude) {
+        const direction = isLatitude
+            ? degree >= 0 ? "N" : "S"
+            : degree >= 0 ? "E" : "W";
+        const absDegree = Math.abs(degree);
+        const d = Math.floor(absDegree);
+        const minFloat = (absDegree - d) * 60;
+        const m = Math.floor(minFloat);
+        const secFloat = (minFloat - m) * 60;
+        const s = Math.round(secFloat);
+        return `${d}°${m}'${s}"${direction}`;
+    }
+    toLatLngString(includeAlt = false) {
+        return `${this.lat}, ${this.lng}${includeAlt && `, ${this.alt}`}`;
+    }
+    toLngLatString(includeAlt = false) {
+        return `${this.lng}, ${this.lat}${includeAlt && `, ${this.alt}`}`;
+    }
+    toLatLngDMS(includeAlt = false) {
+        const latDMS = Coordinate.toDMS(this.lat, true);
+        const lngDMS = Coordinate.toDMS(this.lng, false);
+        return `${latDMS}, ${lngDMS}${includeAlt ? `, ${this.alt}m` : ''}`;
+    }
+    toLngLatDMS(includeAlt = false) {
+        const lngDMS = Coordinate.toDMS(this.lng, false);
+        const latDMS = Coordinate.toDMS(this.lat, true);
+        return `${lngDMS}, ${latDMS}${includeAlt ? `, ${this.alt}m` : ''}`;
+    }
 }
 export class CoordinateCollection {
     constructor(coordsArray) {

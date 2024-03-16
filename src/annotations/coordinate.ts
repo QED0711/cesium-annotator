@@ -49,7 +49,7 @@ export class Coordinate {
 
     withAlt(alt?: number): Coordinate {
         const coord = this.clone();
-        coord.update({alt: alt ?? this.alt});
+        coord.update({ alt: alt ?? this.alt });
         return coord;
     }
 
@@ -122,6 +122,39 @@ export class Coordinate {
         }
 
         return coords;
+    }
+
+    private static toDMS(degree: number, isLatitude: boolean): string {
+        const direction = isLatitude
+            ? degree >= 0 ? "N" : "S"
+            : degree >= 0 ? "E" : "W";
+        const absDegree = Math.abs(degree);
+        const d = Math.floor(absDegree);
+        const minFloat = (absDegree - d) * 60;
+        const m = Math.floor(minFloat);
+        const secFloat = (minFloat - m) * 60;
+        const s = Math.round(secFloat);
+        return `${d}°${m}'${s}"${direction}`;
+    }
+
+    toLatLngString(includeAlt: boolean = false) {
+        return `${this.lat}, ${this.lng}${includeAlt && `, ${this.alt}`}`
+    }
+
+    toLngLatString(includeAlt: boolean = false) {
+        return `${this.lng}, ${this.lat}${includeAlt && `, ${this.alt}`}`
+    }
+
+    toLatLngDMS(includeAlt: boolean = false) {
+        const latDMS = Coordinate.toDMS(this.lat, true);
+        const lngDMS = Coordinate.toDMS(this.lng, false);
+        return `${latDMS}, ${lngDMS}${includeAlt ? `, ${this.alt}m` : ''}`;
+    }
+
+    toLngLatDMS(includeAlt: boolean = false) {
+        const lngDMS = Coordinate.toDMS(this.lng, false);
+        const latDMS = Coordinate.toDMS(this.lat, true);
+        return `${lngDMS}, ${latDMS}${includeAlt ? `, ${this.alt}m` : ''}`;
     }
 
 }
