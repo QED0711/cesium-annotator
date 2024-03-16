@@ -119,10 +119,10 @@ export class Coordinate {
         return `${d}°${m}'${s}"${direction}`;
     }
     toLatLngString(includeAlt = false) {
-        return `${this.lat}, ${this.lng}${includeAlt && `, ${this.alt}`}`;
+        return `${this.lat}, ${this.lng}${includeAlt ? `, ${this.alt}` : ""}`;
     }
     toLngLatString(includeAlt = false) {
-        return `${this.lng}, ${this.lat}${includeAlt && `, ${this.alt}`}`;
+        return `${this.lng}, ${this.lat}${includeAlt ? `, ${this.alt}` : ""}`;
     }
     toLatLngDMS(includeAlt = false) {
         const latDMS = Coordinate.toDMS(this.lat, true);

@@ -138,11 +138,11 @@ export class Coordinate {
     }
 
     toLatLngString(includeAlt: boolean = false) {
-        return `${this.lat}, ${this.lng}${includeAlt && `, ${this.alt}`}`
+        return `${this.lat}, ${this.lng}${includeAlt ? `, ${this.alt}` : ""}`
     }
 
     toLngLatString(includeAlt: boolean = false) {
-        return `${this.lng}, ${this.lat}${includeAlt && `, ${this.alt}`}`
+        return `${this.lng}, ${this.lat}${includeAlt ? `, ${this.alt}` : ""}`
     }
 
     toLatLngDMS(includeAlt: boolean = false) {
