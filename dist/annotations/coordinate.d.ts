@@ -24,11 +24,15 @@ export declare class Coordinate {
     headingTo(point2: Coordinate): number;
     atHeadingDistance(heading: number, distance: number, distanceUnit?: DistanceUnit): Coordinate;
     segmentDistance(point2: Coordinate, segments: number): Coordinate[];
-    private static toDMS;
+    static toDMS(degree: number, isLatitude: boolean): string;
     toLatLngString(includeAlt?: boolean): string;
     toLngLatString(includeAlt?: boolean): string;
     toLatLngDMS(includeAlt?: boolean): string;
     toLngLatDMS(includeAlt?: boolean): string;
+    static fromLatLngString(s: string, alt?: number): Coordinate | null;
+    static fromLngLatString(s: string, alt?: number): Coordinate | null;
+    static dmsToDecimal(degrees: number, minutes: number, seconds: number, direction: string): number;
+    static fromDMSString(s: string, alt?: number): Coordinate | null;
 }
 export declare class CoordinateCollection {
     coordinates: Coordinate[];

@@ -124,7 +124,7 @@ export class Coordinate {
         return coords;
     }
 
-    private static toDMS(degree: number, isLatitude: boolean): string {
+    static toDMS(degree: number, isLatitude: boolean): string {
         const direction = isLatitude
             ? degree >= 0 ? "N" : "S"
             : degree >= 0 ? "E" : "W";
@@ -155,6 +155,66 @@ export class Coordinate {
         const lngDMS = Coordinate.toDMS(this.lng, false);
         const latDMS = Coordinate.toDMS(this.lat, true);
         return `${lngDMS}, ${latDMS}${includeAlt ? `, ${this.alt}m` : ''}`;
+    }
+
+    static fromLatLngString(s: string, alt: number = 0): Coordinate | null {
+        const strNums = s.match(/-?\d+(\.\d+)?/g)
+        if (strNums && strNums.length === 2) {
+            const [lat, lng] = strNums.map(n => parseFloat(n))
+            if (isNaN(lat) || isNaN(lng)) return null;
+            return new Coordinate({ lat, lng, alt });
+        }
+        return null;
+    }
+
+    static fromLngLatString(s: string, alt: number = 0): Coordinate | null {
+        const strNums = s.match(/-?\d+(\.\d+)?/g)
+        if (strNums && strNums.length === 2) {
+            const [lng, lat] = strNums.map(n => parseFloat(n))
+            if (isNaN(lat) || isNaN(lng)) return null;
+            return new Coordinate({ lat, lng, alt });
+        }
+        return null;
+    }
+
+    static dmsToDecimal(degrees: number, minutes: number, seconds: number, direction: string): number {
+        let decimal = degrees + minutes / 60 + seconds / 3600;
+        if (direction === 'S' || direction === 'W') {
+            decimal = -decimal;
+        }
+        return decimal;
+    }
+
+    static fromDMSString(s: string, alt: number = 0): Coordinate | null {
+        const regex = /(\d+)°(\d+)'(\d+)"([NSEW])/g;
+        const matches = [...s.matchAll(regex)];
+
+        if (matches.length === 2) {
+            const parts = matches.map(match => ({
+                degrees: parseInt(match[1], 10),
+                minutes: parseInt(match[2], 10),
+                seconds: parseInt(match[3], 10),
+                direction: match[4]
+            }));
+
+            // Convert DMS to decimal for each part
+            const [firstPart, secondPart] = parts;
+            let lat, lng;
+
+            // Determine which part is latitude and which is longitude
+            if (firstPart.direction === 'N' || firstPart.direction === 'S') {
+                lat = this.dmsToDecimal(firstPart.degrees, firstPart.minutes, firstPart.seconds, firstPart.direction);
+                lng = this.dmsToDecimal(secondPart.degrees, secondPart.minutes, secondPart.seconds, secondPart.direction);
+            } else {
+                lng = this.dmsToDecimal(firstPart.degrees, firstPart.minutes, firstPart.seconds, firstPart.direction);
+                lat = this.dmsToDecimal(secondPart.degrees, secondPart.minutes, secondPart.seconds, secondPart.direction);
+            }
+
+            // Create and return the new Coordinate instance
+            return new Coordinate({ lat, lng, alt });
+        }
+
+        return null;
     }
 
 }
