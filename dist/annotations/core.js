@@ -164,15 +164,15 @@ export class Annotation {
         if (!destructive)
             properties = Object.assign(Object.assign({}, this.entityProperties), properties);
         this.entityProperties = properties;
-        this.emit(EventType.PROPERTY, { annotation: this });
+        this.emit(EventType.ENTITY_PROPERTY, { annotation: this });
     }
     setEntityProperty(propName, value) {
         this.entityProperties[propName] = value;
-        this.emit(EventType.PROPERTY, { annotation: this });
+        this.emit(EventType.ENTITY_PROPERTY, { annotation: this });
     }
     deleteEntityProperty(propName) {
         delete this.entityProperties[propName];
-        this.emit(EventType.PROPERTY, { annotation: this });
+        this.emit(EventType.ENTITY_PROPERTY, { annotation: this });
     }
     removeHandles() {
         for (let handle of Object.values(this.handles)) {

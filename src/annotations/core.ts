@@ -215,17 +215,17 @@ export class Annotation {
     setEntityProperties(properties: Cesium.Entity.ConstructorOptions, destructive: boolean = false) {
         if (!destructive) properties = { ...this.entityProperties, ...properties };
         this.entityProperties = properties;
-        this.emit(EventType.PROPERTY, { annotation: this });
+        this.emit(EventType.ENTITY_PROPERTY, { annotation: this });
     }
 
     setEntityProperty(propName: string, value: any): void {
         (this.entityProperties as any)[propName] = value;
-        this.emit(EventType.PROPERTY, { annotation: this });
+        this.emit(EventType.ENTITY_PROPERTY, { annotation: this });
     }
 
     deleteEntityProperty(propName: string): void {
         delete (this.entityProperties as any)[propName];
-        this.emit(EventType.PROPERTY, { annotation: this });
+        this.emit(EventType.ENTITY_PROPERTY, { annotation: this });
     }
 
     removeHandles() {
@@ -534,8 +534,6 @@ export class Annotation {
                 }
             )
         }
-
-
     }
 
     toGeoJson(): GeoJsonFeatureCollection | null {

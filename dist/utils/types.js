@@ -39,6 +39,7 @@ export var EventType;
     EventType["DELETE"] = "delete";
     EventType["ATTRIBUTE"] = "attribute_update";
     EventType["PROPERTY"] = "property_update";
+    EventType["ENTITY_PROPERTY"] = "entity_property_update";
 })(EventType || (EventType = {}));
 export var RegistryEventType;
 (function (RegistryEventType) {

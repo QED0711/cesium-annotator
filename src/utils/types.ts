@@ -122,7 +122,8 @@ export enum EventType {
     REDO = "redo",
     DELETE = "delete",
     ATTRIBUTE = "attribute_update",
-    PROPERTY = "property_update"
+    PROPERTY = "property_update",
+    ENTITY_PROPERTY = "entity_property_update",
 }
 
 export enum RegistryEventType {
