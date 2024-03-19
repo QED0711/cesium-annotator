@@ -120,6 +120,7 @@ export class Annotation {
         }
     }
     delete() {
+        this.emit(EventType.PRE_DELETE, { annotation: this });
         this.deactivate();
         this.removeEntity();
         this.leaveAllGroups();

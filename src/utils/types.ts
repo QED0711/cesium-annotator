@@ -120,6 +120,7 @@ export enum EventType {
     REMOVE_ENTITY = "removeEntity",
     UNDO = "undo",
     REDO = "redo",
+    PRE_DELETE = "pre_delete",
     DELETE = "delete",
     ATTRIBUTE = "attribute_update",
     PROPERTY = "property_update",
