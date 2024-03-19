@@ -60,7 +60,7 @@ export class AnnotationGroup {
     deleteAll() {
         let annotations = Array.from(this.annotations);
         for (let annotation of annotations) {
-            annotation.delete();
+            this.registry.deleteByID(annotation.id);
         }
     }
     flyTo(options) {
