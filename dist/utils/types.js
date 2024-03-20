@@ -36,6 +36,8 @@ export var EventType;
     EventType["REMOVE_ENTITY"] = "removeEntity";
     EventType["UNDO"] = "undo";
     EventType["REDO"] = "redo";
+    EventType["SHOW"] = "show";
+    EventType["HIDE"] = "hide";
     EventType["PRE_DELETE"] = "pre_delete";
     EventType["DELETE"] = "delete";
     EventType["ATTRIBUTE"] = "attribute_update";

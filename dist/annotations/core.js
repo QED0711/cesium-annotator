@@ -205,11 +205,13 @@ export class Annotation {
     show() {
         if (this.entity) {
             this.entity.show = true;
+            this.emit(EventType.SHOW, { annotation: this });
         }
     }
     hide() {
         if (this.entity) {
             this.entity.show = false;
+            this.emit(EventType.HIDE, { annotation: this });
         }
     }
     showHandles() {
