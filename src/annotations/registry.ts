@@ -243,6 +243,14 @@ export class Registry {
         }
     }
 
+    every(callback: (annotation: Annotation) => boolean){
+        return this.annotations.every(callback);
+    }
+
+    some(callback: (annotation: Annotation) => boolean) {
+        return this.annotations.some(callback)
+    }
+
     registerEvent(event: EventListItem) {
         if (event.eventName in this.events) {
             this.events[event.eventName].push(event.callback);

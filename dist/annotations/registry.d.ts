@@ -75,6 +75,8 @@ export declare class Registry {
     deactivateAllExcept(id: string): void;
     showAll(): void;
     hideAll(): void;
+    every(callback: (annotation: Annotation) => boolean): boolean;
+    some(callback: (annotation: Annotation) => boolean): boolean;
     registerEvent(event: EventListItem): void;
     registerEvents(events: EventListItem[]): void;
     applyEvents(annotation: Annotation): void;

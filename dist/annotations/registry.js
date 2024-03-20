@@ -196,6 +196,12 @@ export class Registry {
             annotation.hide();
         }
     }
+    every(callback) {
+        return this.annotations.every(callback);
+    }
+    some(callback) {
+        return this.annotations.some(callback);
+    }
     registerEvent(event) {
         if (event.eventName in this.events) {
             this.events[event.eventName].push(event.callback);
