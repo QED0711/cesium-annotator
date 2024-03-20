@@ -44,6 +44,7 @@ export class Annotation {
         this.preDragHistoricalRecord = null;
         this.events = {};
         this.mutedEvents = new Set();
+        this.lastEventTime = null;
         this.initGroupRecords((_j = options.groupRecords) !== null && _j !== void 0 ? _j : []);
     }
     on(eventNames, callback) {
@@ -58,6 +59,7 @@ export class Annotation {
         }
     }
     emit(eventName, payload) {
+        this.lastEventTime = Date.now();
         if (!(eventName in this.events) || this.mutedEvents.has(eventName))
             return;
         for (let handler of this.events[eventName]) {

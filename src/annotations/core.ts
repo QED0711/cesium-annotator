@@ -42,6 +42,7 @@ export class Annotation {
 
     protected events: { [eventName: string]: ((payload: AnnotationEventPayload) => void)[] };
     protected mutedEvents: Set<EventType>;
+    lastEventTime: number | null
 
     constructor(registry: Registry, options: AnnotationBaseInit) {
 
@@ -76,6 +77,7 @@ export class Annotation {
 
         this.events = {};
         this.mutedEvents = new Set();
+        this.lastEventTime = null;
 
         this.initGroupRecords(options.groupRecords ?? []);
     }
@@ -92,6 +94,7 @@ export class Annotation {
     }
 
     protected emit(eventName: EventType, payload: AnnotationEventPayload) {
+        this.lastEventTime = Date.now();
         if (!(eventName in this.events) || this.mutedEvents.has(eventName)) return;
         for (let handler of this.events[eventName]) {
             handler(payload);
