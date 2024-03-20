@@ -69,10 +69,12 @@ export declare class Registry {
     getActiveAnnotation(): Annotation | null;
     getAnnotationByID(id: string): Annotation | null | undefined;
     deleteByID(id: string): void;
-    deleteAllAnnotations(): void;
+    deleteAll(): void;
     activateByID(id: string): Annotation | null;
     deactivateByID(id: string): void;
     deactivateAllExcept(id: string): void;
+    showAll(): void;
+    hideAll(): void;
     registerEvent(event: EventListItem): void;
     registerEvents(events: EventListItem[]): void;
     applyEvents(annotation: Annotation): void;

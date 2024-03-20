@@ -159,7 +159,7 @@ export class Registry {
         this.emit(RegistryEventType.DELETE, { annotations: this.annotations, registry: this });
         this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this });
     }
-    deleteAllAnnotations() {
+    deleteAll() {
         for (let annotation of this.annotations) {
             annotation.delete();
         }
@@ -184,6 +184,16 @@ export class Registry {
             if (annotation.id === id)
                 continue;
             annotation.deactivate();
+        }
+    }
+    showAll() {
+        for (let annotation of this.annotations) {
+            annotation.show();
+        }
+    }
+    hideAll() {
+        for (let annotation of this.annotations) {
+            annotation.hide();
         }
     }
     registerEvent(event) {

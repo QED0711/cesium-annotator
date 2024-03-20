@@ -198,17 +198,17 @@ export class Registry {
             annotation.delete();
             this.annotations = this.annotations.filter(a => a !== annotation);
         }
-        this.emit(RegistryEventType.DELETE, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.DELETE, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
     }
 
-    deleteAllAnnotations() {
-        for(let annotation of this.annotations) {
+    deleteAll() {
+        for (let annotation of this.annotations) {
             annotation.delete()
         }
         this.annotations = [];
-        this.emit(RegistryEventType.DELETE, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.DELETE, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
     }
 
     activateByID(id: string): Annotation | null {
@@ -228,6 +228,18 @@ export class Registry {
         for (let annotation of this.annotations) {
             if (annotation.id === id) continue;
             annotation.deactivate();
+        }
+    }
+
+    showAll() {
+        for(let annotation of this.annotations) {
+            annotation.show();
+        }
+    }
+
+    hideAll() {
+        for(let annotation of this.annotations) {
+            annotation.hide();
         }
     }
 
@@ -280,9 +292,9 @@ export class Registry {
     }
 
     // FACTORIES
-    addPoint(options: PointInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): PointAnnotation {
-        if(this.getAnnotationByID(options?.id ?? "")) {
-            if(initConfig.replaceExisting) {
+    addPoint(options: PointInitOptions, initConfig: RegistryAddInitOptions = { replaceExisting: false }): PointAnnotation {
+        if (this.getAnnotationByID(options?.id ?? "")) {
+            if (initConfig.replaceExisting) {
                 this.deleteByID(options.id as string);
             } else {
                 return this.getAnnotationByID(options.id as string) as PointAnnotation;
@@ -291,14 +303,14 @@ export class Registry {
         const annotation = new PointAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
-        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
         return annotation
     }
 
-    addPolyline(options: PolylineInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): PolylineAnnotation {
-        if(this.getAnnotationByID(options?.id ?? "")) {
-            if(initConfig.replaceExisting) {
+    addPolyline(options: PolylineInitOptions, initConfig: RegistryAddInitOptions = { replaceExisting: false }): PolylineAnnotation {
+        if (this.getAnnotationByID(options?.id ?? "")) {
+            if (initConfig.replaceExisting) {
                 this.deleteByID(options.id as string);
             } else {
                 return this.getAnnotationByID(options.id as string) as PolylineAnnotation;
@@ -307,14 +319,14 @@ export class Registry {
         const annotation = new PolylineAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
-        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
         return annotation
     }
 
-    addPolygon(options: PolygonInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): PolygonAnnotation {
-        if(this.getAnnotationByID(options?.id ?? "")) {
-            if(initConfig.replaceExisting) {
+    addPolygon(options: PolygonInitOptions, initConfig: RegistryAddInitOptions = { replaceExisting: false }): PolygonAnnotation {
+        if (this.getAnnotationByID(options?.id ?? "")) {
+            if (initConfig.replaceExisting) {
                 this.deleteByID(options.id as string);
             } else {
                 return this.getAnnotationByID(options.id as string) as PolygonAnnotation;
@@ -323,14 +335,14 @@ export class Registry {
         const annotation = new PolygonAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
-        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
         return annotation;
     }
 
-    addRectangle(options: RectangleInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): RectangleAnnotation {
-        if(this.getAnnotationByID(options?.id ?? "")) {
-            if(initConfig.replaceExisting) {
+    addRectangle(options: RectangleInitOptions, initConfig: RegistryAddInitOptions = { replaceExisting: false }): RectangleAnnotation {
+        if (this.getAnnotationByID(options?.id ?? "")) {
+            if (initConfig.replaceExisting) {
                 this.deleteByID(options.id as string);
             } else {
                 return this.getAnnotationByID(options.id as string) as RectangleAnnotation;
@@ -339,14 +351,14 @@ export class Registry {
         const annotation = new RectangleAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
-        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
         return annotation;
     }
 
-    addRing(options: RingInitOptions, initConfig: RegistryAddInitOptions = {replaceExisting: false}): RingAnnotation {
-        if(this.getAnnotationByID(options?.id ?? "")) {
-            if(initConfig.replaceExisting) {
+    addRing(options: RingInitOptions, initConfig: RegistryAddInitOptions = { replaceExisting: false }): RingAnnotation {
+        if (this.getAnnotationByID(options?.id ?? "")) {
+            if (initConfig.replaceExisting) {
                 this.deleteByID(options.id as string);
             } else {
                 return this.getAnnotationByID(options.id as string) as RingAnnotation;
@@ -355,8 +367,8 @@ export class Registry {
         const annotation = new RingAnnotation(this, options);
         this.applyEvents(annotation);
         this.annotations.push(annotation);
-        this.emit(RegistryEventType.ADD, {annotations: this.annotations, registry: this})
-        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.ADD, { annotations: this.annotations, registry: this })
+        this.emit(RegistryEventType.UPDATE, { annotations: this.annotations, registry: this })
         return annotation;
     }
 
@@ -377,7 +389,7 @@ export class Registry {
         options.propertiesInitKey = options.propertiesInitKey ?? "initOptions";
         options.shouldDraw = options.shouldDraw ?? true;
         // callback is executed to change the geoJson prior to initializing annotation(s) from it.
-        geoJson = (await options.asyncPreInitCallback?.({geoJson})) ?? geoJson;
+        geoJson = (await options.asyncPreInitCallback?.({ geoJson })) ?? geoJson;
         geoJson = options.preInitCallback?.({ geoJson }) ?? geoJson;
         let annotation: Annotation | null = null;
 
@@ -426,8 +438,8 @@ export class Registry {
         if (annotation && !options.shouldDraw) return annotation;
 
         if (annotation) {
-            if("asyncPreDrawCallback" in options) {
-                annotation = (await options.asyncPreDrawCallback?.({annotation, geoJson})) ?? annotation;
+            if ("asyncPreDrawCallback" in options) {
+                annotation = (await options.asyncPreDrawCallback?.({ annotation, geoJson })) ?? annotation;
             }
             annotation = options.preDrawCallback?.({ annotation, geoJson }) ?? annotation;
             this.applyEvents(annotation);
