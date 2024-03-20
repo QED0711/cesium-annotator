@@ -202,6 +202,15 @@ export class Registry {
         this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
     }
 
+    deleteAllAnnotations() {
+        for(let annotation of this.annotations) {
+            annotation.delete()
+        }
+        this.annotations = [];
+        this.emit(RegistryEventType.DELETE, {annotations: this.annotations, registry: this})
+        this.emit(RegistryEventType.UPDATE, {annotations: this.annotations, registry: this})
+    }
+
     activateByID(id: string): Annotation | null {
         const annotation = this.annotations.find(a => a.id === id);
         if (annotation && !annotation.isActive) {

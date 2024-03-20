@@ -69,6 +69,7 @@ export declare class Registry {
     getActiveAnnotation(): Annotation | null;
     getAnnotationByID(id: string): Annotation | null | undefined;
     deleteByID(id: string): void;
+    deleteAllAnnotations(): void;
     activateByID(id: string): Annotation | null;
     deactivateByID(id: string): void;
     deactivateAllExcept(id: string): void;
