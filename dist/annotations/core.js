@@ -326,6 +326,12 @@ export class Annotation {
         this.syncHandles();
         this.emit(EventType.UNDO, { annotation: this });
     }
+    undoAll() {
+        const n = this.undoHistory.length;
+        for (let i = 0; i < n; i++) {
+            this.undo();
+        }
+    }
     redo() {
         const next = this.redoHistory.pop();
         if (!!next) {

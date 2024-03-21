@@ -78,6 +78,7 @@ export declare class Annotation {
     protected handlePointerMove(e: PointerEvent): Promise<void>;
     protected handlePointerUp(e: PointerEvent): Promise<void>;
     undo(): void;
+    undoAll(): void;
     redo(): void;
     protected recordPointsToUndoHistory(): void;
     protected manualAppendToUndoHistory(points: CoordinateCollection): void;
