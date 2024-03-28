@@ -21,6 +21,9 @@ export class RingAnnotation extends Annotation {
         this.nPoints = (_c = options.nPoints) !== null && _c !== void 0 ? _c : 360;
         this.radius = null;
     }
+    get center() {
+        return this.points.at(0);
+    }
     // Note: This implementation is needed to set the radius property any time a handle is dragged
     handlePointerMove(e) {
         return __awaiter(this, void 0, void 0, function* () {

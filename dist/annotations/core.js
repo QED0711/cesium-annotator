@@ -47,6 +47,9 @@ export class Annotation {
         this.lastEventTime = null;
         this.initGroupRecords((_j = options.groupRecords) !== null && _j !== void 0 ? _j : []);
     }
+    get type() {
+        return this.annotationType;
+    }
     on(eventNames, callback) {
         eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
         for (let eventName of eventNames) {

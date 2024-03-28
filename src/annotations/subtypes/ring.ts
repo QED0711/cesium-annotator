@@ -26,6 +26,10 @@ export class RingAnnotation extends Annotation {
         this.radius = null;
     }
 
+    get center(): Coordinate | null{
+        return this.points.at(0);
+    }
+
     // Note: This implementation is needed to set the radius property any time a handle is dragged
     async handlePointerMove(e: PointerEvent) {
         if (this.pointerDownDetected) {
