@@ -20,6 +20,7 @@ export declare class Annotation {
     handleType: HandleType;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     isActive: boolean;
+    protected isTempLocked: boolean;
     bypassTerrainSampleOnDrags: boolean;
     attributes: {
         [key: string]: any;
@@ -54,6 +55,9 @@ export declare class Annotation {
     activate(): void;
     deactivate(): void;
     delete(): void;
+    lock(): void;
+    unlock(): void;
+    get isLocked(): boolean;
     private initGroupRecords;
     joinGroup(group: AnnotationGroup): void;
     leaveGroup(group: AnnotationGroup): void;
@@ -86,7 +90,7 @@ export declare class Annotation {
     protected clearRedoHistory(): void;
     protected updateHandleIdxs(): void;
     protected removeStaleHandles(): void;
-    protected syncHandles(): void;
+    syncHandles(): void;
     insertCoordinateAtIndex(coordinate: Coordinate, idx: number): void;
     flyTo(options?: FlyToOptions): Promise<void>;
     toGeoJson(): GeoJsonFeatureCollection | null;

@@ -25,6 +25,7 @@ export class Annotation {
     handleType: HandleType;
     handleProperties: Cesium.PointGraphics.ConstructorOptions | Cesium.BillboardGraphics.ConstructorOptions;
     isActive: boolean;
+    protected isTempLocked: boolean
     bypassTerrainSampleOnDrags: boolean;
 
     attributes: { [key: string]: any };
@@ -66,6 +67,7 @@ export class Annotation {
         this.attributes = options.attributes ?? {};
 
         this.isActive = false;
+        this.isTempLocked = false;
         this.bypassTerrainSampleOnDrags = options.bypassTerrainSampleOnDrag ?? false;
         this.handleFound = null;
         this.bypassPointerUp = false;
@@ -175,6 +177,18 @@ export class Annotation {
         this.removeEntity();
         this.leaveAllGroups();
         this.emit(EventType.DELETE, { annotation: this });
+    }
+
+    lock() {
+        this.isTempLocked = true;
+    }
+
+    unlock() {
+        this.isTempLocked = false;
+    }
+
+    get isLocked() {
+        return this.isTempLocked;
     }
 
     private initGroupRecords(records: GroupRecord[]) {
@@ -302,6 +316,8 @@ export class Annotation {
 
     protected handlePointerDown(e: PointerEvent) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
+        if(this.isTempLocked) return;
+
         this.pointerDownDetected = true;
         let existingEntity = this.viewerInterface.queryEntityAtPixel();
 
@@ -316,6 +332,7 @@ export class Annotation {
     }
 
     protected async handlePointerMove(e: PointerEvent) {
+        if(this.isTempLocked) return;
         this.movedDetected = true;
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
@@ -338,6 +355,8 @@ export class Annotation {
             this.movedDetected = false;
             return;
         }
+
+        if(this.isTempLocked) return;
 
         // longpress logic
         if (this.viewerInterface.longPressComplete) {
@@ -388,6 +407,7 @@ export class Annotation {
     }
 
     undo() {
+        if(this.isTempLocked) return;
         if (this.points.length > 0) {
             // store current points array in the redo history
             this.redoHistory.push(this.points.clone())
@@ -402,6 +422,7 @@ export class Annotation {
     }
 
     undoAll() {
+        if(this.isTempLocked) return;
         const n = this.undoHistory.length;
         for(let i = 0; i < n; i++) {
             this.undo();
@@ -409,6 +430,7 @@ export class Annotation {
     }
 
     redo() {
+        if(this.isTempLocked) return;
         const next = this.redoHistory.pop();
         if (!!next) {
             this.recordPointsToUndoHistory();
@@ -457,7 +479,7 @@ export class Annotation {
         }
     }
 
-    protected syncHandles(): void {
+    syncHandles(): void {
         if (this.isActive) {
             for (let i = 0; i < this.points.length; i++) {
                 const point = this.points.at(i);

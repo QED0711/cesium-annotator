@@ -44,6 +44,8 @@ export class ViewerInterface {
                 let foundEntity = this.queryEntityAtPixel();
                 if (foundEntity === null || foundEntity === void 0 ? void 0 : foundEntity._isHandle) {
                     foundEntity = foundEntity;
+                    if (foundEntity._parentAnnotation.isLocked)
+                        return; // if the annotation has a temp lock, don't allow removal of its handles
                     if (foundEntity._handleIdx !== undefined) {
                         foundEntity._parentAnnotation.removePointAtIndex(foundEntity._handleIdx);
                     }

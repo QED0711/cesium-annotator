@@ -24,6 +24,12 @@ export class RingAnnotation extends Annotation {
     get center() {
         return this.points.at(0);
     }
+    calcRadius() {
+        if (this.points.length === 2) {
+            return this.points.first.distanceTo(this.points.last);
+        }
+        return null;
+    }
     // Note: This implementation is needed to set the radius property any time a handle is dragged
     handlePointerMove(e) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -34,7 +40,7 @@ export class RingAnnotation extends Annotation {
                     const coordinate = yield this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
                     if (coordinate)
                         this.points.set(this.handleFound.index, coordinate);
-                    this.radius = this.points.at(0).distanceTo(this.points.at(1));
+                    this.radius = this.calcRadius();
                 }
                 this.dragDetected = true;
             }
@@ -48,12 +54,13 @@ export class RingAnnotation extends Annotation {
             this.points.set(1, coordinate);
         }
         if (this.points.length === 2) {
-            this.radius = this.points.at(0).distanceTo(this.points.at(1));
+            this.radius = this.calcRadius();
         }
     }
     draw(options) {
         var _a;
         options = options || {};
+        this.radius = this.calcRadius();
         if (this.points.length < 2 || this.radius === null)
             return;
         let entity = null;
@@ -80,7 +87,7 @@ export class RingAnnotation extends Annotation {
                             const perimeterCoords = [];
                             for (let i = 0; i < this.nPoints; i++) {
                                 const heading = headingFactor * i;
-                                perimeterCoords.push(this.points.at(0).atHeadingDistance(heading, this.radius).cartesian3);
+                                perimeterCoords.push(this.points.first.atHeadingDistance(heading, this.radius).cartesian3);
                             }
                             perimeterCoords.push(perimeterCoords[0]); // close the perimerter
                             return perimeterCoords;

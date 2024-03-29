@@ -30,6 +30,13 @@ export class RingAnnotation extends Annotation {
         return this.points.at(0);
     }
 
+    calcRadius(): number | null {
+        if(this.points.length === 2) {
+            return (this.points.first as Coordinate).distanceTo(this.points.last as Coordinate)
+        }
+        return null;
+    }
+
     // Note: This implementation is needed to set the radius property any time a handle is dragged
     async handlePointerMove(e: PointerEvent) {
         if (this.pointerDownDetected) {
@@ -38,7 +45,7 @@ export class RingAnnotation extends Annotation {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = await this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY);
                 if (coordinate) this.points.set(this.handleFound.index, coordinate);
-                this.radius = (this.points.at(0) as Coordinate).distanceTo(this.points.at(1) as Coordinate);
+                this.radius = this.calcRadius();
             }
             this.dragDetected = true;
         }
@@ -51,12 +58,13 @@ export class RingAnnotation extends Annotation {
             this.points.set(1, coordinate)
         }
         if (this.points.length === 2) {
-            this.radius = (this.points.at(0) as Coordinate).distanceTo(this.points.at(1) as Coordinate);
+            this.radius = this.calcRadius();
         }
     }
 
     draw(options?: DrawOptions): void {
         options = options || {};
+        this.radius = this.calcRadius();
         if (this.points.length < 2 || this.radius === null) return
         let entity: AnnotationEntity | null = null;
         if (!this.liveUpdate) {
@@ -100,7 +108,7 @@ export class RingAnnotation extends Annotation {
                             const perimeterCoords: Cesium.Cartesian3[] = [];
                             for (let i = 0; i < this.nPoints; i++) {
                                 const heading = headingFactor * i;
-                                perimeterCoords.push((this.points.at(0) as Coordinate).atHeadingDistance(heading, this.radius as number).cartesian3)
+                                perimeterCoords.push((this.points.first as Coordinate).atHeadingDistance(heading, this.radius as number).cartesian3)
                             }
                             perimeterCoords.push(perimeterCoords[0]) // close the perimerter
                             return perimeterCoords;

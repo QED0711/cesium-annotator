@@ -34,6 +34,7 @@ export class Annotation {
         this.handleProperties = (_f = options.handleProperties) !== null && _f !== void 0 ? _f : {};
         this.attributes = (_g = options.attributes) !== null && _g !== void 0 ? _g : {};
         this.isActive = false;
+        this.isTempLocked = false;
         this.bypassTerrainSampleOnDrags = (_h = options.bypassTerrainSampleOnDrag) !== null && _h !== void 0 ? _h : false;
         this.handleFound = null;
         this.bypassPointerUp = false;
@@ -130,6 +131,15 @@ export class Annotation {
         this.removeEntity();
         this.leaveAllGroups();
         this.emit(EventType.DELETE, { annotation: this });
+    }
+    lock() {
+        this.isTempLocked = true;
+    }
+    unlock() {
+        this.isTempLocked = false;
+    }
+    get isLocked() {
+        return this.isTempLocked;
     }
     initGroupRecords(records) {
         for (let record of records) {
@@ -237,6 +247,8 @@ export class Annotation {
     }
     handlePointerDown(e) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
+        if (this.isTempLocked)
+            return;
         this.pointerDownDetected = true;
         let existingEntity = this.viewerInterface.queryEntityAtPixel();
         if (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isHandle) {
@@ -250,6 +262,8 @@ export class Annotation {
     }
     handlePointerMove(e) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (this.isTempLocked)
+                return;
             this.movedDetected = true;
             if (this.pointerDownDetected) {
                 // update the specified point as it is dragged
@@ -272,6 +286,8 @@ export class Annotation {
                 this.movedDetected = false;
                 return;
             }
+            if (this.isTempLocked)
+                return;
             // longpress logic
             if (this.viewerInterface.longPressComplete) {
                 this.handleFound = null;
@@ -316,6 +332,8 @@ export class Annotation {
         });
     }
     undo() {
+        if (this.isTempLocked)
+            return;
         if (this.points.length > 0) {
             // store current points array in the redo history
             this.redoHistory.push(this.points.clone());
@@ -330,12 +348,16 @@ export class Annotation {
         this.emit(EventType.UNDO, { annotation: this });
     }
     undoAll() {
+        if (this.isTempLocked)
+            return;
         const n = this.undoHistory.length;
         for (let i = 0; i < n; i++) {
             this.undo();
         }
     }
     redo() {
+        if (this.isTempLocked)
+            return;
         const next = this.redoHistory.pop();
         if (!!next) {
             this.recordPointsToUndoHistory();
