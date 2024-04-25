@@ -368,6 +368,7 @@ export class Annotation {
         // double click logic
         const now = Date.now()
         if (now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
+            this.emit(EventType.DOUBLE_CLICK, {annotation: this});
             this.registry.deactivateByID(this.id);
             this.lastPointerUpTime = now;
             this.movedDetected = false;

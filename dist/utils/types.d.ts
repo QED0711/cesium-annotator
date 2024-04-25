@@ -104,7 +104,8 @@ export declare enum EventType {
     DELETE = "delete",
     ATTRIBUTE = "attribute_update",
     PROPERTY = "property_update",
-    ENTITY_PROPERTY = "entity_property_update"
+    ENTITY_PROPERTY = "entity_property_update",
+    DOUBLE_CLICK = "double_click"
 }
 export declare enum RegistryEventType {
     ADD = "add",
