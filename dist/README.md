@@ -2,7 +2,7 @@
 
 <h3 style="color: red;"><em>!!!WARNING!!!</em></h3> 
 
-Cesium Annotator is in active development. There version deployed here is in beta testing. Use at your own risk. 
+Cesium Annotator is in active development. The version deployed here is in beta testing. Use at your own risk. 
 
 ---
 

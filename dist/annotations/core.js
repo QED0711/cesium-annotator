@@ -218,12 +218,14 @@ export class Annotation {
         this.emit(EventType.PROPERTY, { annotation: this });
     }
     show() {
+        this.setEntityProperty("show", true);
         if (this.entity) {
             this.entity.show = true;
             this.emit(EventType.SHOW, { annotation: this });
         }
     }
     hide() {
+        this.setEntityProperty("show", false);
         if (this.entity) {
             this.entity.show = false;
             this.emit(EventType.HIDE, { annotation: this });

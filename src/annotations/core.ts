@@ -282,6 +282,7 @@ export class Annotation {
     }
 
     show() {
+        this.setEntityProperty("show", true);
         if (this.entity) {
             this.entity.show = true;
             this.emit(EventType.SHOW, {annotation: this});
@@ -289,6 +290,7 @@ export class Annotation {
     }
 
     hide() {
+        this.setEntityProperty("show", false);
         if (this.entity) {
             this.entity.show = false;
             this.emit(EventType.HIDE, {annotation: this});
