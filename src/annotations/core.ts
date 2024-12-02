@@ -45,6 +45,8 @@ export class Annotation {
     protected mutedEvents: Set<EventType>;
     lastEventTime: number | null
 
+    customMethods: Record<string, Function>
+
     constructor(registry: Registry, options: AnnotationBaseInit) {
 
         this.registry = registry;
@@ -80,6 +82,8 @@ export class Annotation {
         this.events = {};
         this.mutedEvents = new Set();
         this.lastEventTime = null;
+
+        this.customMethods = {};
 
         this.initGroupRecords(options.groupRecords ?? []);
     }
@@ -125,8 +129,22 @@ export class Annotation {
         return this.mutedEvents.has(eventName)
     }
 
-    executeCallback(func: (annotation: Annotation) => {}) {
+    executeCallback(func: (annotation: Annotation) => void) {
         func(this);
+    }
+
+    applyMethod(name: string, func: Function): boolean {
+        if(name in this.customMethods) return false;
+        this.customMethods[name] = func.bind(this);
+        return true
+    }
+
+    removeMethod(name: string): boolean {
+        if(name in this.customMethods) {
+            delete this.customMethods[name];
+            return true;
+        }
+        return false
     }
 
     setAttributes(attributes: { [key: string]: any }, destructive: boolean = false): void {

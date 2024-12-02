@@ -30,7 +30,7 @@ export class ViewerInterface {
     overrideDefaultClickEvents: boolean;
 
     private useAltitude: AltQueryType;
-    private terrainSampleLevel: number;
+    terrainSampleLevel: number;
     private altQueryFallback: AltQueryType;
 
     static interfaces: ViewerInterface[];

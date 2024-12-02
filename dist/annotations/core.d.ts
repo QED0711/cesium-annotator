@@ -39,6 +39,7 @@ export declare class Annotation {
     };
     protected mutedEvents: Set<EventType>;
     lastEventTime: number | null;
+    customMethods: Record<string, Function>;
     constructor(registry: Registry, options: AnnotationBaseInit);
     get type(): AnnotationType;
     on(eventNames: EventType | EventType[], callback: (payload: AnnotationEventPayload) => void): void;
@@ -46,7 +47,9 @@ export declare class Annotation {
     muteEvents(eventNames: EventType | EventType[]): void;
     unmuteEvents(eventNames: EventType | EventType[]): void;
     eventIsMuted(eventName: EventType): boolean;
-    executeCallback(func: (annotation: Annotation) => {}): void;
+    executeCallback(func: (annotation: Annotation) => void): void;
+    applyMethod(name: string, func: Function): boolean;
+    removeMethod(name: string): boolean;
     setAttributes(attributes: {
         [key: string]: any;
     }, destructive?: boolean): void;

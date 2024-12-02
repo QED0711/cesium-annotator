@@ -21,7 +21,7 @@ export declare class ViewerInterface {
     longPressComplete: boolean;
     overrideDefaultClickEvents: boolean;
     private useAltitude;
-    private terrainSampleLevel;
+    terrainSampleLevel: number;
     private altQueryFallback;
     static interfaces: ViewerInterface[];
     private constructor();

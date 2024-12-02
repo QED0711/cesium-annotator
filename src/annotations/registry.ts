@@ -166,6 +166,11 @@ export class Registry {
         );
     }
 
+    setTerrainSampleLevel(level: number) {
+        this.terrainSampleLevel = level
+        this.viewerInterface.terrainSampleLevel = level
+    }
+
     on(eventNames: RegistryEventType | RegistryEventType[], callback: (payload: RegistryEventPayload) => void): void {
         eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
         for (let eventName of eventNames) {
@@ -232,18 +237,18 @@ export class Registry {
     }
 
     showAll() {
-        for(let annotation of this.annotations) {
+        for (let annotation of this.annotations) {
             annotation.show();
         }
     }
 
     hideAll() {
-        for(let annotation of this.annotations) {
+        for (let annotation of this.annotations) {
             annotation.hide();
         }
     }
 
-    every(callback: (annotation: Annotation) => boolean){
+    every(callback: (annotation: Annotation) => boolean) {
         return this.annotations.every(callback);
     }
 

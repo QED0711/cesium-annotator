@@ -64,6 +64,7 @@ export declare class Registry {
     private terrainSampleLevel;
     private altQueryFallback;
     constructor(init: RegistryInit);
+    setTerrainSampleLevel(level: number): void;
     on(eventNames: RegistryEventType | RegistryEventType[], callback: (payload: RegistryEventPayload) => void): void;
     private emit;
     getActiveAnnotation(): Annotation | null;

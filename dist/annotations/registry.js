@@ -125,6 +125,10 @@ export class Registry {
             altQueryFallback: this.altQueryFallback,
         });
     }
+    setTerrainSampleLevel(level) {
+        this.terrainSampleLevel = level;
+        this.viewerInterface.terrainSampleLevel = level;
+    }
     on(eventNames, callback) {
         eventNames = Array.isArray(eventNames) ? eventNames : [eventNames];
         for (let eventName of eventNames) {

@@ -46,6 +46,7 @@ export class Annotation {
         this.events = {};
         this.mutedEvents = new Set();
         this.lastEventTime = null;
+        this.customMethods = {};
         this.initGroupRecords((_j = options.groupRecords) !== null && _j !== void 0 ? _j : []);
     }
     get type() {
@@ -89,6 +90,19 @@ export class Annotation {
     }
     executeCallback(func) {
         func(this);
+    }
+    applyMethod(name, func) {
+        if (name in this.customMethods)
+            return false;
+        this.customMethods[name] = func.bind(this);
+        return true;
+    }
+    removeMethod(name) {
+        if (name in this.customMethods) {
+            delete this.customMethods[name];
+            return true;
+        }
+        return false;
     }
     setAttributes(attributes, destructive = false) {
         if (!destructive)
