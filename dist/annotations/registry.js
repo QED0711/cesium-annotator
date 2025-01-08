@@ -338,12 +338,28 @@ export class Registry {
     }
     // LOADERS
     loadFromGeoJson(geoJson, options) {
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
-            if (geoJson.type === "Feature") {
+            const geoJsonType = geoJson.type;
+            const geometryType = (_a = geoJson.geometry) === null || _a === void 0 ? void 0 : _a.type;
+            if (geoJsonType === "Feature" && geometryType !== "GeometryCollection") { // basic feature type
                 const annotation = yield this.loadFeatureFromGeoJson(geoJson, options);
                 return annotation ? [annotation] : null;
             }
-            if (geoJson.type === "FeatureCollection") {
+            if (geoJsonType === "Feature" && geometryType === "GeometryCollection") { // geometry collection feature type
+                // if dealing with a Geometry collection (that presents as a single feature), convert to a feature collection
+                const featureCollection = { type: "FeatureCollection", features: [] };
+                const geometries = (_c = (_b = geoJson.geometry) === null || _b === void 0 ? void 0 : _b.geometries) !== null && _c !== void 0 ? _c : [];
+                for (const geometry of geometries) {
+                    featureCollection.features.push({
+                        type: "Feature",
+                        properties: {},
+                        geometry
+                    });
+                }
+                return this.loadFeatureCollectionFromGeoJson(featureCollection, options);
+            }
+            if (geoJsonType === "FeatureCollection") { // feature collection
                 return this.loadFeatureCollectionFromGeoJson(geoJson, options);
             }
             return null;

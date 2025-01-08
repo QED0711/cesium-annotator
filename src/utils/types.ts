@@ -195,3 +195,7 @@ export type GeoJsonFeatureCollection = {
     type: string,
     features: GeoJsonFeature[]
 }
+
+export type GeoJsonGeometryCollection = GeoJsonFeatureCollection & {
+    geometry: Record<string, any>,
+}

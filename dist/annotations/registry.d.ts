@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryAddInitOptions, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
+import { AnnotationEventPayload, EventListItem, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonGeometryCollection, GeoJsonLoaderOptions, GroupInitOptions, GroupRecord, RegistryAddInitOptions, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -93,7 +93,7 @@ export declare class Registry {
     addPolygon(options: PolygonInitOptions, initConfig?: RegistryAddInitOptions): PolygonAnnotation;
     addRectangle(options: RectangleInitOptions, initConfig?: RegistryAddInitOptions): RectangleAnnotation;
     addRing(options: RingInitOptions, initConfig?: RegistryAddInitOptions): RingAnnotation;
-    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null>;
+    loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection | GeoJsonGeometryCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null>;
     private loadFeatureFromGeoJson;
     private loadFeatureCollectionFromGeoJson;
     defineCustomLoader(loaderName: string, func: (geom: any) => Annotation | null): void;

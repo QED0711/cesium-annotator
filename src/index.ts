@@ -35,4 +35,5 @@ export {
     GeoJsonType,
     GeoJsonFeature,
     GeoJsonFeatureCollection,
+    GeoJsonGeometryCollection,
 } from './utils/types'

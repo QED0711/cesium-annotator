@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, EventType, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryAddInitOptions, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
+import { AltQueryType, AnnotationEventPayload, AnnotationType, EventListItem, EventType, FlyToOptions, GeoJsonFeature, GeoJsonFeatureCollection, GeoJsonGeometryCollection, GeoJsonLoaderOptions, GeoJsonType, GroupInitOptions, GroupRecord, RegistryAddInitOptions, RegistryEventPayload, RegistryEventType, RegistryInit } from '../utils/types';
 import { ViewerInterface } from './viewerInterface';
 import { Annotation } from './core';
 import { PointAnnotation, PointInitOptions } from './subtypes/point';
@@ -386,14 +386,30 @@ export class Registry {
     }
 
     // LOADERS
-    async loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null> {
-        if (geoJson.type === "Feature") {
+    async loadFromGeoJson(geoJson: GeoJsonFeature | GeoJsonFeatureCollection | GeoJsonGeometryCollection, options?: GeoJsonLoaderOptions): Promise<Annotation[] | null> {
+        const geoJsonType = geoJson.type;
+        const geometryType = (geoJson as GeoJsonGeometryCollection).geometry?.type;
+        if (geoJsonType === "Feature" && geometryType !== "GeometryCollection") { // basic feature type
             const annotation = await this.loadFeatureFromGeoJson(geoJson as GeoJsonFeature, options);
             return annotation ? [annotation] : null;
         }
-        if (geoJson.type === "FeatureCollection") {
+        if (geoJsonType === "Feature" && geometryType === "GeometryCollection") { // geometry collection feature type
+            // if dealing with a Geometry collection (that presents as a single feature), convert to a feature collection
+            const featureCollection: GeoJsonFeatureCollection = {type: "FeatureCollection", features: []}
+            const geometries = (geoJson as GeoJsonGeometryCollection).geometry?.geometries ?? []
+            for (const geometry of geometries) {
+                featureCollection.features.push({
+                    type: "Feature",
+                    properties: {},
+                    geometry
+                } as GeoJsonFeature)
+            }
+            return this.loadFeatureCollectionFromGeoJson(featureCollection, options)
+        }
+        if (geoJsonType === "FeatureCollection") { // feature collection
             return this.loadFeatureCollectionFromGeoJson(geoJson as GeoJsonFeatureCollection, options);
         }
+
         return null;
     }
 
@@ -446,6 +462,7 @@ export class Registry {
                     annotation.appendCoordinate(new Coordinate({ lng: (c as number[])[0], lat: (c as number[])[1], alt: (c as number[])[2] ?? 0.0 }))
                 }
             }
+
         }
 
         if (annotation && !options.shouldDraw) return annotation;
