@@ -23,6 +23,7 @@ export declare class ViewerInterface {
     private useAltitude;
     terrainSampleLevel: number;
     private altQueryFallback;
+    private pointerMovementThreshold;
     static interfaces: ViewerInterface[];
     private constructor();
     static registerViewer(viewer: Cesium.Viewer, options: ViewerInterfaceInitOptions): ViewerInterface;

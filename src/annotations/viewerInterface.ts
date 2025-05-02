@@ -32,6 +32,7 @@ export class ViewerInterface {
     private useAltitude: AltQueryType;
     terrainSampleLevel: number;
     private altQueryFallback: AltQueryType;
+    private pointerMovementThreshold: number
 
     static interfaces: ViewerInterface[];
 
@@ -49,6 +50,8 @@ export class ViewerInterface {
         this.longPressComplete = false;
         this.detectedPointerMove = false;
         this.lastPointerUpTime = 0;
+        this.pointerMovementThreshold = options.pointerMovementThreshold ?? 0
+
 
         this.init();
 
@@ -84,16 +87,29 @@ export class ViewerInterface {
         // stop long press & track last known x, y coordinates
         this.pointerMoveHandler = (e: PointerEvent) => {
             clearTimeout(this.longPressTimeout);
-            this.cursorX = e.offsetX;
-            this.cursorY = e.offsetY;
-            this.detectedPointerMove = true;
+    
+            const originalX = this.cursorX ?? e.offsetX;
+            const originalY = this.cursorY ?? e.offsetY;
+            const newX = e.offsetX;
+            const newY = e.offsetY;
+
+            if(
+                Math.abs(newX - originalX) >= this.pointerMovementThreshold || 
+                Math.abs(newY - originalY) >= this.pointerMovementThreshold
+            ) {
+                this.detectedPointerMove = true
+            }             
+
+            this.cursorX = newX;
+            this.cursorY = newY;
+
         }
 
         // track long press exit
         this.pointerUpHandler = (e: PointerEvent) => {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
-
+            console.log(this.detectedPointerMove)
             const now = Date.now();
             if(!this.detectedPointerMove && now - this.lastPointerUpTime > 200) {
                 let foundEntity = this.queryEntityAtPixel();

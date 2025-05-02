@@ -139,7 +139,7 @@ export class Registry {
     private useAltitude: AltQueryType;
     private terrainSampleLevel: number;
     private altQueryFallback: AltQueryType;
-
+    pointerMovementThreshold: number 
 
     constructor(init: RegistryInit) {
         this.id = init.id;
@@ -150,6 +150,8 @@ export class Registry {
         this.useAltitude = init.useAltitude ?? AltQueryType.NONE;
         this.terrainSampleLevel = init.terrainSampleLevel ?? 12
         this.altQueryFallback = init.altQueryFallback ?? AltQueryType.DEFAULT
+
+        this.pointerMovementThreshold = init.pointerMovementThreshold ?? 0
 
         this.events = {};
         this.registryEvents = {};
@@ -162,6 +164,7 @@ export class Registry {
                 useAltitude: this.useAltitude,
                 terrainSampleLevel: this.terrainSampleLevel,
                 altQueryFallback: this.altQueryFallback,
+                pointerMovementThreshold: this.pointerMovementThreshold,
             }
         );
     }

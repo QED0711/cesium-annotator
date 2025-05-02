@@ -63,6 +63,7 @@ export declare class Registry {
     private useAltitude;
     private terrainSampleLevel;
     private altQueryFallback;
+    pointerMovementThreshold: number;
     constructor(init: RegistryInit);
     setTerrainSampleLevel(level: number): void;
     on(eventNames: RegistryEventType | RegistryEventType[], callback: (payload: RegistryEventPayload) => void): void;

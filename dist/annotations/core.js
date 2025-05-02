@@ -39,8 +39,10 @@ export class Annotation {
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false;
+        this.pointerDownLocation = { x: 0, y: 0 };
         this.lastPointerUpTime = 0;
         this.movedDetected = false;
+        this.pointerMovementThreshold = this.registry.pointerMovementThreshold;
         this.dragDetected = false;
         this.preDragHistoricalRecord = null;
         this.events = {};
@@ -266,7 +268,8 @@ export class Annotation {
         if (this.isTempLocked)
             return;
         this.pointerDownDetected = true;
-        let existingEntity = this.viewerInterface.queryEntityAtPixel();
+        this.pointerDownLocation = { x: e.offsetX, y: e.offsetY };
+        let existingEntity = this.viewerInterface.queryEntityAtPixel(e.offsetX, e.offsetY);
         if (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._isHandle) {
             existingEntity = existingEntity;
             if ((existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleIdx) !== undefined && (existingEntity === null || existingEntity === void 0 ? void 0 : existingEntity._handleCoordinateID)) {
@@ -288,8 +291,13 @@ export class Annotation {
                     const coordinate = yield this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY, { bypassAlt: this.bypassTerrainSampleOnDrags }); // if don't want to make a sampleTerrain call on each mouse move, so we bypass the altitude calculation for this call of getCoordinateAtPixel
                     if (coordinate)
                         this.points.set(this.handleFound.index, coordinate);
+                    this.dragDetected = true;
                 }
-                this.dragDetected = true;
+                // only detect drag if the threshold for drag has been reached has been established
+                if (Math.abs(e.offsetX - this.pointerDownLocation.x) >= this.pointerMovementThreshold ||
+                    Math.abs(e.offsetY - this.pointerDownLocation.y) >= this.pointerMovementThreshold) {
+                    this.dragDetected = true;
+                }
             }
         });
     }

@@ -47,7 +47,12 @@ export class RingAnnotation extends Annotation {
                 if (coordinate) this.points.set(this.handleFound.index, coordinate);
                 this.radius = this.calcRadius();
             }
-            this.dragDetected = true;
+            if (
+                Math.abs(e.offsetX - this.pointerDownLocation.x) >= this.pointerMovementThreshold ||
+                Math.abs(e.offsetY - this.pointerDownLocation.y) >= this.pointerMovementThreshold
+            ) {
+                this.dragDetected = true;
+            }
         }
     }
 

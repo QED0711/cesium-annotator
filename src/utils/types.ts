@@ -28,6 +28,7 @@ export type RegistryInit = {
     useAltitude?: AltQueryType,
     terrainSampleLevel?: number,
     altQueryFallback?: AltQueryType,
+    pointerMovementThreshold?: number,
 }
 
 export type ViewerInterfaceInitOptions = {
@@ -35,6 +36,7 @@ export type ViewerInterfaceInitOptions = {
     useAltitude?: AltQueryType,
     terrainSampleLevel?: number,
     altQueryFallback?: AltQueryType,
+    pointerMovementThreshold?: number
 }
 
 export type RegistryAddInitOptions = {

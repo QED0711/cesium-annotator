@@ -36,8 +36,10 @@ export class Annotation {
     protected bypassPointerUp: boolean
 
     protected pointerDownDetected: boolean;
+    protected pointerDownLocation: { x: number, y: number }
     protected lastPointerUpTime: number;
     protected movedDetected: boolean;
+    protected pointerMovementThreshold: number
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: CoordinateCollection | null;
 
@@ -74,8 +76,10 @@ export class Annotation {
         this.handleFound = null;
         this.bypassPointerUp = false;
         this.pointerDownDetected = false
+        this.pointerDownLocation = { x: 0, y: 0 };
         this.lastPointerUpTime = 0;
         this.movedDetected = false;
+        this.pointerMovementThreshold = this.registry.pointerMovementThreshold; 
         this.dragDetected = false;
         this.preDragHistoricalRecord = null
 
@@ -134,13 +138,13 @@ export class Annotation {
     }
 
     applyMethod(name: string, func: Function): boolean {
-        if(name in this.customMethods) return false;
+        if (name in this.customMethods) return false;
         this.customMethods[name] = func.bind(this);
         return true
     }
 
     removeMethod(name: string): boolean {
-        if(name in this.customMethods) {
+        if (name in this.customMethods) {
             delete this.customMethods[name];
             return true;
         }
@@ -190,7 +194,7 @@ export class Annotation {
     }
 
     delete() {
-        this.emit(EventType.PRE_DELETE, {annotation: this});
+        this.emit(EventType.PRE_DELETE, { annotation: this });
         this.deactivate();
         this.removeEntity();
         this.leaveAllGroups();
@@ -303,7 +307,7 @@ export class Annotation {
         this.setEntityProperty("show", true);
         if (this.entity) {
             this.entity.show = true;
-            this.emit(EventType.SHOW, {annotation: this});
+            this.emit(EventType.SHOW, { annotation: this });
         }
     }
 
@@ -311,7 +315,7 @@ export class Annotation {
         this.setEntityProperty("show", false);
         if (this.entity) {
             this.entity.show = false;
-            this.emit(EventType.HIDE, {annotation: this});
+            this.emit(EventType.HIDE, { annotation: this });
         }
     }
 
@@ -336,10 +340,12 @@ export class Annotation {
 
     protected handlePointerDown(e: PointerEvent) {
         this.dragDetected = false; // reset drag detection whenever user initiates a new click event cycle
-        if(this.isTempLocked) return;
+        if (this.isTempLocked) return;
 
         this.pointerDownDetected = true;
-        let existingEntity = this.viewerInterface.queryEntityAtPixel();
+        this.pointerDownLocation = { x: e.offsetX, y: e.offsetY };
+
+        let existingEntity = this.viewerInterface.queryEntityAtPixel(e.offsetX, e.offsetY);
 
         if ((existingEntity as HandleEntity)?._isHandle) {
             existingEntity = existingEntity as HandleEntity;
@@ -352,7 +358,7 @@ export class Annotation {
     }
 
     protected async handlePointerMove(e: PointerEvent) {
-        if(this.isTempLocked) return;
+        if (this.isTempLocked) return;
         this.movedDetected = true;
         if (this.pointerDownDetected) {
             // update the specified point as it is dragged
@@ -360,8 +366,15 @@ export class Annotation {
                 this.removeHandleByCoordinateID(this.handleFound.handleID);
                 const coordinate = await this.viewerInterface.getCoordinateAtPixel(e.offsetX, e.offsetY, { bypassAlt: this.bypassTerrainSampleOnDrags }); // if don't want to make a sampleTerrain call on each mouse move, so we bypass the altitude calculation for this call of getCoordinateAtPixel
                 if (coordinate) this.points.set(this.handleFound.index, coordinate);
+                this.dragDetected = true;
             }
-            this.dragDetected = true;
+            // only detect drag if the threshold for drag has been reached has been established
+            if (
+                Math.abs(e.offsetX - this.pointerDownLocation.x) >= this.pointerMovementThreshold ||
+                Math.abs(e.offsetY - this.pointerDownLocation.y) >= this.pointerMovementThreshold
+            ) {
+                this.dragDetected = true;
+            }
         }
     }
 
@@ -376,7 +389,7 @@ export class Annotation {
             return;
         }
 
-        if(this.isTempLocked) return;
+        if (this.isTempLocked) return;
 
         // longpress logic
         if (this.viewerInterface.longPressComplete) {
@@ -388,7 +401,7 @@ export class Annotation {
         // double click logic
         const now = Date.now()
         if (now - this.lastPointerUpTime < 200 && this.movedDetected === false) {
-            this.emit(EventType.DOUBLE_CLICK, {annotation: this});
+            this.emit(EventType.DOUBLE_CLICK, { annotation: this });
             this.registry.deactivateByID(this.id);
             this.lastPointerUpTime = now;
             this.movedDetected = false;
@@ -396,7 +409,6 @@ export class Annotation {
         }
         this.lastPointerUpTime = now;
         this.movedDetected = false;
-
 
         if (this.handleFound !== null) {
             const coordinate = await this.viewerInterface.getCoordinateAtPixel();
@@ -428,7 +440,7 @@ export class Annotation {
     }
 
     undo() {
-        if(this.isTempLocked) return;
+        if (this.isTempLocked) return;
         if (this.points.length > 0) {
             // store current points array in the redo history
             this.redoHistory.push(this.points.clone())
@@ -443,15 +455,15 @@ export class Annotation {
     }
 
     undoAll() {
-        if(this.isTempLocked) return;
+        if (this.isTempLocked) return;
         const n = this.undoHistory.length;
-        for(let i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {
             this.undo();
         }
     }
 
     redo() {
-        if(this.isTempLocked) return;
+        if (this.isTempLocked) return;
         const next = this.redoHistory.pop();
         if (!!next) {
             this.recordPointsToUndoHistory();
@@ -554,7 +566,7 @@ export class Annotation {
     async flyTo(options?: FlyToOptions): Promise<void> {
         options ??= {};
         const locationType = options?.locationType ?? FlyToType.ENTITY
-        
+
         if (locationType === FlyToType.ENTITY) {
             if (!this.entity) return;
             await this.viewerInterface.viewer.flyTo(
@@ -571,11 +583,11 @@ export class Annotation {
             this.viewerInterface.viewer.camera.flyTo({ destination: this.points.mean()?.withAlt(options.alt)?.cartesian3 as Cesium.Cartesian3, ...options as any })
         }
 
-        if(locationType === FlyToType.FIRST) {
+        if (locationType === FlyToType.FIRST) {
             this.viewerInterface.viewer.camera.flyTo({ destination: this.points.first?.withAlt(options.alt)?.cartesian3 as Cesium.Cartesian3, ...options as any })
         }
 
-        if(locationType === FlyToType.LAST) {
+        if (locationType === FlyToType.LAST) {
             this.viewerInterface.viewer.camera.flyTo({ destination: this.points.last?.withAlt(options.alt)?.cartesian3 as Cesium.Cartesian3, ...options as any })
         }
 

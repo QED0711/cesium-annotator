@@ -26,12 +26,14 @@ export type RegistryInit = {
     useAltitude?: AltQueryType;
     terrainSampleLevel?: number;
     altQueryFallback?: AltQueryType;
+    pointerMovementThreshold?: number;
 };
 export type ViewerInterfaceInitOptions = {
     overrideDefaultClickEvents?: boolean;
     useAltitude?: AltQueryType;
     terrainSampleLevel?: number;
     altQueryFallback?: AltQueryType;
+    pointerMovementThreshold?: number;
 };
 export type RegistryAddInitOptions = {
     replaceExisting?: boolean;

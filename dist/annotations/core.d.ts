@@ -30,8 +30,13 @@ export declare class Annotation {
     protected handleFound: HandleFoundRecord | null;
     protected bypassPointerUp: boolean;
     protected pointerDownDetected: boolean;
+    protected pointerDownLocation: {
+        x: number;
+        y: number;
+    };
     protected lastPointerUpTime: number;
     protected movedDetected: boolean;
+    protected pointerMovementThreshold: number;
     protected dragDetected: boolean;
     protected preDragHistoricalRecord: CoordinateCollection | null;
     protected events: {

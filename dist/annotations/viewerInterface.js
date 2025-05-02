@@ -12,7 +12,7 @@ import { Coordinate } from './coordinate';
 import { AltQueryType } from '../utils/types';
 export class ViewerInterface {
     constructor(viewer, options) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         this.viewer = viewer;
         this.canvas = viewer.canvas;
         this.events = {};
@@ -23,9 +23,10 @@ export class ViewerInterface {
         this.longPressComplete = false;
         this.detectedPointerMove = false;
         this.lastPointerUpTime = 0;
+        this.pointerMovementThreshold = (_e = options.pointerMovementThreshold) !== null && _e !== void 0 ? _e : 0;
         this.init();
         const constructor = this.constructor;
-        constructor.interfaces = (_e = constructor.interfaces) !== null && _e !== void 0 ? _e : [];
+        constructor.interfaces = (_f = constructor.interfaces) !== null && _f !== void 0 ? _f : [];
         constructor.interfaces.push(this);
     }
     static registerViewer(viewer, options) {
@@ -54,15 +55,24 @@ export class ViewerInterface {
         };
         // stop long press & track last known x, y coordinates
         this.pointerMoveHandler = (e) => {
+            var _a, _b;
             clearTimeout(this.longPressTimeout);
-            this.cursorX = e.offsetX;
-            this.cursorY = e.offsetY;
-            this.detectedPointerMove = true;
+            const originalX = (_a = this.cursorX) !== null && _a !== void 0 ? _a : e.offsetX;
+            const originalY = (_b = this.cursorY) !== null && _b !== void 0 ? _b : e.offsetY;
+            const newX = e.offsetX;
+            const newY = e.offsetY;
+            if (Math.abs(newX - originalX) >= this.pointerMovementThreshold ||
+                Math.abs(newY - originalY) >= this.pointerMovementThreshold) {
+                this.detectedPointerMove = true;
+            }
+            this.cursorX = newX;
+            this.cursorY = newY;
         };
         // track long press exit
         this.pointerUpHandler = (e) => {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
+            console.log(this.detectedPointerMove);
             const now = Date.now();
             if (!this.detectedPointerMove && now - this.lastPointerUpTime > 200) {
                 let foundEntity = this.queryEntityAtPixel();

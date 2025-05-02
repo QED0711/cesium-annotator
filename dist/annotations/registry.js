@@ -108,7 +108,7 @@ export class AnnotationGroup {
  */
 export class Registry {
     constructor(init) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         this.id = init.id;
         this.viewer = init.viewer;
         this.annotations = [];
@@ -116,6 +116,7 @@ export class Registry {
         this.useAltitude = (_a = init.useAltitude) !== null && _a !== void 0 ? _a : AltQueryType.NONE;
         this.terrainSampleLevel = (_b = init.terrainSampleLevel) !== null && _b !== void 0 ? _b : 12;
         this.altQueryFallback = (_c = init.altQueryFallback) !== null && _c !== void 0 ? _c : AltQueryType.DEFAULT;
+        this.pointerMovementThreshold = (_d = init.pointerMovementThreshold) !== null && _d !== void 0 ? _d : 0;
         this.events = {};
         this.registryEvents = {};
         this.loaders = {};
@@ -123,6 +124,7 @@ export class Registry {
             useAltitude: this.useAltitude,
             terrainSampleLevel: this.terrainSampleLevel,
             altQueryFallback: this.altQueryFallback,
+            pointerMovementThreshold: this.pointerMovementThreshold,
         });
     }
     setTerrainSampleLevel(level) {
