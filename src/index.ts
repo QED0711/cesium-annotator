@@ -4,6 +4,7 @@
 export * from './annotations/core';
 export * from './annotations/coordinate';
 export * from './annotations/registry';
+export * from './annotations/viewerInterface';
 
 export * from "./annotations/subtypes/point";
 export * from "./annotations/subtypes/polyline";
@@ -16,6 +17,7 @@ export {
     AnnotationBaseInit,
     RegistryInit,
     RegistryAddInitOptions,
+    ViewerInterfaceInitOptions,
     GroupInitOptions,
 
     DistanceUnit,

@@ -33,6 +33,7 @@ export declare class Coordinate {
     static fromLngLatString(s: string, alt?: number): Coordinate | null;
     static dmsToDecimal(degrees: number, minutes: number, seconds: number, direction: string): number;
     static fromDMSString(s: string, alt?: number): Coordinate | null;
+    toScreenPosition(viewer: Cesium.Viewer): Cesium.Cartesian2;
 }
 export declare class CoordinateCollection {
     coordinates: Coordinate[];

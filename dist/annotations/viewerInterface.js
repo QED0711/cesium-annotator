@@ -72,7 +72,6 @@ export class ViewerInterface {
         this.pointerUpHandler = (e) => {
             clearTimeout(this.longPressTimeout);
             setTimeout(() => this.longPressComplete = false, 0);
-            console.log(this.detectedPointerMove);
             const now = Date.now();
             if (!this.detectedPointerMove && now - this.lastPointerUpTime > 200) {
                 let foundEntity = this.queryEntityAtPixel();

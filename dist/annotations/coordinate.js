@@ -188,6 +188,9 @@ export class Coordinate {
         }
         return null;
     }
+    toScreenPosition(viewer) {
+        return Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian3);
+    }
 }
 export class CoordinateCollection {
     constructor(coordsArray) {
