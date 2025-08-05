@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
-import { AnnotationType, CoordinateInit, DistanceUnit, GeoJsonFeatureCollection, HandleEntity } from '../utils/types';
+import { AnnotationType, CoordinateInit, DistanceOptions, DistanceUnit, GeoJsonFeatureCollection, HandleEntity } from '../utils/types';
 export declare class Coordinate {
     id: string;
     lng: number;
@@ -11,6 +11,7 @@ export declare class Coordinate {
     entity: HandleEntity | null;
     constructor(init: CoordinateInit);
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate;
+    static convertDistance(distance: number, from: DistanceUnit, to: DistanceUnit): number;
     clone(): Coordinate;
     update(values: {
         lat?: number;
@@ -20,7 +21,7 @@ export declare class Coordinate {
     toCartographicPosition(): Cesium.Cartographic;
     withAlt(alt?: number): Coordinate;
     queryAlt(terrainProvider: Cesium.TerrainProvider, terrainSampleLevel?: number): Promise<number | null>;
-    distanceTo(point2: Coordinate, unit?: DistanceUnit): number;
+    distanceTo(point2: Coordinate, options?: DistanceOptions): number;
     headingTo(point2: Coordinate): number;
     atHeadingDistance(heading: number, distance: number, distanceUnit?: DistanceUnit): Coordinate;
     segmentDistance(point2: Coordinate, segments: number): Coordinate[];

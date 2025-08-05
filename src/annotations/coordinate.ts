@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import CheapRuler from 'cheap-ruler';
 import { nanoid } from 'nanoid';
-import { AnnotationType, CoordinateInit, DistanceUnit, GeoJsonFeature, GeoJsonFeatureCollection, HandleEntity } from '../utils/types';
+import { AnnotationType, CoordinateInit, DistanceOptions, DistanceUnit, GeoJsonFeature, GeoJsonFeatureCollection, HandleEntity } from '../utils/types';
 
 export class Coordinate {
     id: string;
@@ -24,6 +24,43 @@ export class Coordinate {
 
     static fromDegrees(lng: number, lat: number, alt?: number): Coordinate {
         return new this({ lng, lat, alt });
+    }
+
+    static convertDistance(distance: number, from: DistanceUnit, to: DistanceUnit) {
+        if (from === to) return distance;
+        // First, normalize to meters
+        let distanceInMeters: number;
+
+        switch (from) {
+            case DistanceUnit.METERS:
+                distanceInMeters = distance;
+                break;
+            case DistanceUnit.KILOMETERS:
+                distanceInMeters = distance * 1000;
+                break;
+            case DistanceUnit.FEET:
+                distanceInMeters = distance / 3.28084;
+                break;
+            case DistanceUnit.MILES:
+                distanceInMeters = distance * 1609.344;
+                break;
+            default:
+                throw new Error(`Unsupported 'from' unit: ${from}`);
+        }
+
+        // Then convert from meters to target unit
+        switch (to) {
+            case DistanceUnit.METERS:
+                return distanceInMeters;
+            case DistanceUnit.KILOMETERS:
+                return distanceInMeters / 1000;
+            case DistanceUnit.FEET:
+                return distanceInMeters * 3.28084;
+            case DistanceUnit.MILES:
+                return distanceInMeters / 1609.344;
+            default:
+                throw new Error(`Unsupported 'to' unit: ${to}`);
+        }
     }
 
     clone(): Coordinate {
@@ -71,20 +108,17 @@ export class Coordinate {
         return cartWithHeight[0]?.height
     }
 
-    distanceTo(point2: Coordinate, unit: DistanceUnit = DistanceUnit.METERS): number {
-        const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
+    distanceTo(point2: Coordinate, options: DistanceOptions = {}): number {
 
-        unit ??= DistanceUnit.METERS;
-        switch (unit) {
-            case DistanceUnit.METERS:
-                return distance;
-            case DistanceUnit.KILOMETERS:
-                return distance / 1000;
-            case DistanceUnit.FEET:
-                return distance * 3.281;
-            case DistanceUnit.MILES:
-                return distance / 1609;
+        const { unit = DistanceUnit.METERS, useAlt = false } = options
+
+        let distance: number = 0;
+        if (useAlt) {
+            distance = Cesium.Cartesian3.distance(this.cartesian3, point2.cartesian3)
+        } else {
+            distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
         }
+        return Coordinate.convertDistance(distance, DistanceUnit.METERS, unit);
     }
 
     headingTo(point2: Coordinate): number {
@@ -217,7 +251,7 @@ export class Coordinate {
         return null;
     }
 
-    toScreenPosition(viewer: Cesium.Viewer): Cesium.Cartesian2{
+    toScreenPosition(viewer: Cesium.Viewer): Cesium.Cartesian2 {
         return Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, this.cartesian3)
     }
 

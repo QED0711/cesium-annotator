@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationType, DistanceUnit, EventType, HandleType } from "../../utils/types";
+import { AnnotationType, EventType, HandleType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
 export class PolylineAnnotation extends Annotation {
@@ -123,17 +123,17 @@ export class PolylineAnnotation extends Annotation {
         return null;
     }
     // SUBCLASS SPECIFIC METHODS
-    getTotalDistance(unit = DistanceUnit.METERS) {
+    getTotalDistance(options = {}) {
         let dist = 0;
         for (let i = 1; i < this.points.length; i++) {
-            dist += this.points.at(i).distanceTo(this.points.at(i - 1), unit);
+            dist += this.points.at(i).distanceTo(this.points.at(i - 1), options);
         }
         return dist;
     }
-    getDistanceSegments(unit = DistanceUnit.METERS) {
+    getDistanceSegments(options = {}) {
         let distArr = [];
         for (let i = 1; i < this.points.length; i++) {
-            distArr.push(this.points.at(i).distanceTo(this.points.at(i - 1), unit));
+            distArr.push(this.points.at(i).distanceTo(this.points.at(i - 1), options));
         }
         return distArr;
     }
@@ -151,7 +151,7 @@ export class PolylineAnnotation extends Annotation {
         for (let i = 1; i < this.points.length; i++) {
             const p1 = this.points.at(i - 1);
             const p2 = this.points.at(i);
-            const segDist = p1.distanceTo(p2, unit);
+            const segDist = p1.distanceTo(p2, { unit });
             const segHeading = p1.headingTo(p2);
             const pointsInSeg = Math.floor(segDist / distance);
             for (let n = 0; n < pointsInSeg; n++) {

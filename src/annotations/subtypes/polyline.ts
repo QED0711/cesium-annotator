@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType, DrawOptions } from "../../utils/types";
+import { AnnotationBaseInit, AnnotationEntity, AnnotationType, DistanceUnit, MidPointHandleEntity, EventType, GeoJsonFeatureCollection, HandleType, DrawOptions, DistanceOptions } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate, CoordinateCollection } from '../coordinate';
 import { Registry } from '../registry';
@@ -175,18 +175,18 @@ export class PolylineAnnotation extends Annotation {
     }
 
     // SUBCLASS SPECIFIC METHODS
-    getTotalDistance(unit: DistanceUnit = DistanceUnit.METERS): number {
+    getTotalDistance(options: DistanceOptions = {}): number {
         let dist = 0;
         for (let i = 1; i < this.points.length; i++) {
-            dist += (this.points.at(i) as Coordinate).distanceTo(this.points.at(i - 1) as Coordinate, unit);
+            dist += (this.points.at(i) as Coordinate).distanceTo(this.points.at(i - 1) as Coordinate, options);
         }
         return dist;
     }
 
-    getDistanceSegments(unit: DistanceUnit = DistanceUnit.METERS): number[] {
+    getDistanceSegments(options: DistanceOptions = {}): number[] {
         let distArr: number[] = [];
         for (let i = 1; i < this.points.length; i++) {
-            distArr.push((this.points.at(i) as Coordinate).distanceTo(this.points.at(i - 1) as Coordinate, unit));
+            distArr.push((this.points.at(i) as Coordinate).distanceTo(this.points.at(i - 1) as Coordinate, options));
         }
         return distArr;
     }
@@ -206,7 +206,7 @@ export class PolylineAnnotation extends Annotation {
         for (let i = 1; i < this.points.length; i++) {
             const p1 = this.points.at(i - 1) as Coordinate;
             const p2 = this.points.at(i) as Coordinate;
-            const segDist = p1.distanceTo(p2, unit);
+            const segDist = p1.distanceTo(p2, {unit});
             const segHeading = p1.headingTo(p2);
             const pointsInSeg = Math.floor(segDist / distance);
             for (let n = 0; n < pointsInSeg; n++) {

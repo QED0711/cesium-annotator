@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium';
-import { AnnotationBaseInit, DrawOptions, GeoJsonFeatureCollection } from "../../utils/types";
+import { AnnotationBaseInit, DistanceUnit, DrawOptions, GeoJsonFeatureCollection } from "../../utils/types";
 import { Annotation } from "../core";
 import { Coordinate } from '../coordinate';
 import { Registry } from '../registry';
@@ -15,7 +15,7 @@ export declare class RingAnnotation extends Annotation {
     private radius;
     constructor(registry: Registry, options: RingInitOptions);
     get center(): Coordinate | null;
-    calcRadius(): number | null;
+    calcRadius(unit?: DistanceUnit): number | null;
     handlePointerMove(e: PointerEvent): Promise<void>;
     appendCoordinate(coordinate: Coordinate): void;
     draw(options?: DrawOptions): void;

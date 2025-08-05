@@ -81,8 +81,8 @@ export class RectangleAnnotation extends Annotation {
         const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
         const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
         const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
-        const width = bl.distanceTo(br, unit);
-        const height = bl.distanceTo(tl, unit);
+        const width = bl.distanceTo(br, { unit });
+        const height = bl.distanceTo(tl, { unit });
         return (width * 2) + (height * 2);
     }
     getArea(unit = DistanceUnit.METERS) {
@@ -92,8 +92,8 @@ export class RectangleAnnotation extends Annotation {
         const bl = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMin });
         const br = new Coordinate({ lat: bbox.latMin, lng: bbox.lngMax });
         const tl = new Coordinate({ lat: bbox.latMax, lng: bbox.lngMax });
-        const width = bl.distanceTo(br, unit);
-        const height = bl.distanceTo(tl, unit);
+        const width = bl.distanceTo(br, { unit });
+        const height = bl.distanceTo(tl, { unit });
         return width * height;
     }
     // OVERRIDES

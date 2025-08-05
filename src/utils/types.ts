@@ -60,6 +60,11 @@ export enum DistanceUnit {
     MILES = "miles"
 }
 
+export type DistanceOptions = {
+    unit?: DistanceUnit
+    useAlt?: boolean
+}
+
 export enum AnnotationType {
     BASE = "base",
     POINT = "point",

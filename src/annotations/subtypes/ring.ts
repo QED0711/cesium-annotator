@@ -30,9 +30,9 @@ export class RingAnnotation extends Annotation {
         return this.points.at(0);
     }
 
-    calcRadius(): number | null {
+    calcRadius(unit: DistanceUnit = DistanceUnit.METERS): number | null {
         if(this.points.length === 2) {
-            return (this.points.first as Coordinate).distanceTo(this.points.last as Coordinate)
+            return (this.points.first as Coordinate).distanceTo(this.points.last as Coordinate, {unit})
         }
         return null;
     }

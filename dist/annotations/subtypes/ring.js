@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import * as Cesium from 'cesium';
-import { AnnotationType, EventType } from "../../utils/types";
+import { AnnotationType, DistanceUnit, EventType } from "../../utils/types";
 import { Annotation } from "../core";
 import { CoordinateCollection } from '../coordinate';
 export class RingAnnotation extends Annotation {
@@ -24,9 +24,9 @@ export class RingAnnotation extends Annotation {
     get center() {
         return this.points.at(0);
     }
-    calcRadius() {
+    calcRadius(unit = DistanceUnit.METERS) {
         if (this.points.length === 2) {
-            return this.points.first.distanceTo(this.points.last);
+            return this.points.first.distanceTo(this.points.last, { unit });
         }
         return null;
     }

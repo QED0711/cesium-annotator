@@ -25,6 +25,41 @@ export class Coordinate {
     static fromDegrees(lng, lat, alt) {
         return new this({ lng, lat, alt });
     }
+    static convertDistance(distance, from, to) {
+        if (from === to)
+            return distance;
+        // First, normalize to meters
+        let distanceInMeters;
+        switch (from) {
+            case DistanceUnit.METERS:
+                distanceInMeters = distance;
+                break;
+            case DistanceUnit.KILOMETERS:
+                distanceInMeters = distance * 1000;
+                break;
+            case DistanceUnit.FEET:
+                distanceInMeters = distance / 3.28084;
+                break;
+            case DistanceUnit.MILES:
+                distanceInMeters = distance * 1609.344;
+                break;
+            default:
+                throw new Error(`Unsupported 'from' unit: ${from}`);
+        }
+        // Then convert from meters to target unit
+        switch (to) {
+            case DistanceUnit.METERS:
+                return distanceInMeters;
+            case DistanceUnit.KILOMETERS:
+                return distanceInMeters / 1000;
+            case DistanceUnit.FEET:
+                return distanceInMeters * 3.28084;
+            case DistanceUnit.MILES:
+                return distanceInMeters / 1609.344;
+            default:
+                throw new Error(`Unsupported 'to' unit: ${to}`);
+        }
+    }
     clone() {
         const coordinate = new Coordinate({ lng: this.lng, lat: this.lat, alt: this.alt });
         coordinate.id = this.id;
@@ -62,19 +97,16 @@ export class Coordinate {
             return (_a = cartWithHeight[0]) === null || _a === void 0 ? void 0 : _a.height;
         });
     }
-    distanceTo(point2, unit = DistanceUnit.METERS) {
-        const distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
-        unit !== null && unit !== void 0 ? unit : (unit = DistanceUnit.METERS);
-        switch (unit) {
-            case DistanceUnit.METERS:
-                return distance;
-            case DistanceUnit.KILOMETERS:
-                return distance / 1000;
-            case DistanceUnit.FEET:
-                return distance * 3.281;
-            case DistanceUnit.MILES:
-                return distance / 1609;
+    distanceTo(point2, options = {}) {
+        const { unit = DistanceUnit.METERS, useAlt = false } = options;
+        let distance = 0;
+        if (useAlt) {
+            distance = Cesium.Cartesian3.distance(this.cartesian3, point2.cartesian3);
         }
+        else {
+            distance = this.ruler.distance([this.lng, this.lat], [point2.lng, point2.lat]);
+        }
+        return Coordinate.convertDistance(distance, DistanceUnit.METERS, unit);
     }
     headingTo(point2) {
         const heading = this.ruler.bearing([this.lng, this.lat], [point2.lng, point2.lat]);
